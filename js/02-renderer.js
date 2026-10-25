@@ -18,5 +18,8 @@ const gl=new THREE.PointLight(0xffa060,.8,5),cl=new THREE.PointLight(0xffa060,.8
 let comp=null;
 if(PP){try{const rt=R.capabilities.isWebGL2?new THREE.WebGLMultisampleRenderTarget(2,2):null;comp=rt?new THREE.EffectComposer(R,rt):new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(sc,cam));
 comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.4,.5,.88));comp.addPass(new THREE.ShaderPass(GRADE));}catch(e){comp=null;R.outputEncoding=THREE.sRGBEncoding;}}
-function resize(){const w=$('wrap').clientWidth,h=w*.75;R.setSize(w,h,false);if(comp){comp.setPixelRatio(R.getPixelRatio());comp.setSize(w,h);}}
-addEventListener('resize',resize);resize();setCam();
+// the canvas fills #wrap, which CSS stretches to whatever space the window leaves; narrower than 4:3 widens the fov so the board's width stays in view
+function resize(){const W=$('wrap'),w=W.clientWidth,h=W.clientHeight,a=w/h;if(!w||!h)return;// hidden tab: wait for the observer
+R.setSize(w,h,false);if(comp){comp.setPixelRatio(R.getPixelRatio());comp.setSize(w,h);}
+cam.aspect=a;cam.fov=a>=4/3?40:2*Math.atan(Math.tan(20*Math.PI/180)*4/3/a)*180/Math.PI;cam.updateProjectionMatrix();}
+addEventListener('resize',resize);if(window.ResizeObserver)new ResizeObserver(resize).observe($('wrap'));resize();setCam();
