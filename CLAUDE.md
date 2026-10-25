@@ -1,7 +1,10 @@
-# Slotsforsvar – projektnoter til Claude Code
+# Castle Defense (Slotsforsvar) – project notes for Claude Code
 
 Medieval 3D tower defense game for the browser (three.js r128). Built as a hobby project, the goal is fun.
 **The user is Danish but prefers replies in English.** All in-game text is English – write it as natural, native English, never a literal translation from Danish. The on-screen title is "Castle Defense"; the repo/package name stays `slotsforsvar`.
+
+## Workflow
+The user works in one session per task. Commit when a task is done, and add anything a future session needs to know (new rules, gotchas) to this file or `docs/GAME_DESIGN.md` – a new session only knows what is written down here.
 
 ## Run
 - `npm install` then `npm run dev` → http://localhost:5173 (static server, no bundler).
@@ -37,7 +40,7 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 - **Name clashes:** terrain noise is `nz`, audio noise is `nzs`. Top-level `const` names are global across files – check for duplicates (`npm run check` catches syntax, not all clashes).
 - **Health bar sprites** must be centred at the same point (don't offset in world x), or they drift when the camera rotates.
 - Audio only starts after the first user gesture (`auInit`).
-- The game has never been verified by Claude in a browser during this chat; the user found bugs by playing. If you can run a browser (Claude in Chrome etc.), open the page, read console errors, and take screenshots **before** claiming something works.
+- **Verify in a browser before claiming something works.** Start the dev server via `.claude/launch.json` (config `dev`, port 5173; if the port is taken, the user's own `npm run dev` is probably running – just open http://localhost:5173), read console errors and take a screenshot. Everything is global, so you can inspect or drive the game from the page's JS console (`g`, `T`, `ui()`, `startWave()`), e.g. set `g.sel`/`g.over` to check panels and end screens without playing.
 
 ## Current rules (details in docs/GAME_DESIGN.md)
 8 tower types (Wizard is **disabled**, `T.frost.off = true`, redesign pending), 4 enemy types, 20 waves, boss every 5th wave.
