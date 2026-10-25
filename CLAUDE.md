@@ -1,7 +1,7 @@
 # Slotsforsvar – projektnoter til Claude Code
 
 Medieval 3D tower defense game for the browser (three.js r128). Built as a hobby project, the goal is fun.
-**The user speaks Danish – reply in Danish.** All in-game text is Danish.
+**The user is Danish but prefers replies in English.** All in-game text is English – write it as natural, native English, never a literal translation from Danish. The on-screen title is "Castle Defense"; the repo/package name stays `slotsforsvar`.
 
 ## Run
 - `npm install` then `npm run dev` → http://localhost:5173 (static server, no bundler).
@@ -17,8 +17,8 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 | `js/02-renderer.js` | renderer, camera, lights, sky/env map, bloom + grade post-processing (falls back if the CDN scripts are missing) |
 | `js/03-textures.js` | procedural PBR textures (`genTex`: albedo + normal from noise), `TX.*` |
 | `js/04-materials.js` | `part()` mesh helper, `mat()` picks texture by hex colour (STONE/WOOD/METAL/SKIN/… sets), `bake()` merges static meshes, glow sprites, blob shadows |
-| `js/05-scenery.js` | terrain, walls, gate, **breach in the wall**, castle, vegetation (wind shader), butterflies, trees |
-| `js/06-towers.js` | `buildTower()` models for all towers + the little men (`chibi`) |
+| `js/05-towers.js` | `buildTower()` models for all towers + the little men (`chibi`) – must load BEFORE scenery, which calls `chibi` at top level |
+| `js/06-scenery.js` | terrain, walls, gate, **breach in the wall**, castle, vegetation (wind shader), butterflies, trees |
 | `js/07-enemies.js` | enemy rigs (`makeEnemy`), status effects (`fxStatus`: arrows stuck, ice, shock, poison bubbles, stars), animation (`animEnemy`, `animDying`) |
 | `js/08-effects.js` | particles, floating damage text |
 | `js/09-game.js` | game state `g`, waves, spawning, targeting, bullets, damage, win/lose checks (`update(dt)`) and visual sync (`sync(dt)`) |
@@ -29,6 +29,7 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 | `js/14-main.js` | render loop, start |
 
 ## Gotchas learned the hard way
+- **Function declarations are NOT hoisted across script files.** Top-level code in a file may only call functions defined in earlier files (or itself). This caused a black screen (`chibi is not defined`, then follow-up `rng` errors) when scenery loaded before towers. Functions called later at runtime (from `update`/`sync`/event handlers) are fine.
 - **Layers:** most scenery/effects are on three.js layer 1 (`L1()`), the camera must have `cam.layers.enableAll()` or the ground vanishes.
 - **`bake(root)`** merges non-animated meshes per material. Anything animated must have `userData.keep = true` and be baked separately. Towers/enemies are baked after construction.
 - **Enemy templates** are built once (`tpl[type]`) and cloned with `clone(true)`; animated joints are found by name (`rig[name]`, e.g. `H0/K0` hip/knee, `S/E` shoulder/elbow, `TO` torso, `HD` head, `W0/W1` wings).
@@ -39,10 +40,10 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 - The game has never been verified by Claude in a browser during this chat; the user found bugs by playing. If you can run a browser (Claude in Chrome etc.), open the page, read console errors, and take screenshots **before** claiming something works.
 
 ## Current rules (details in docs/GAME_DESIGN.md)
-8 tower types (Magiker is **disabled**, `T.frost.off = true`, redesign pending), 4 enemy types, 20 waves, boss every 5th wave.
+8 tower types (Wizard is **disabled**, `T.frost.off = true`, redesign pending), 4 enemy types, 20 waves, boss every 5th wave.
 
 ## Ideas / roadmap
-- Decide what the Magiker should do (tile is locked and greyed out).
+- Decide what the Wizard should do (tile is locked and greyed out).
 - More levels/maps, difficulty modes, save/highscores, main menu, pause.
 - Barracks tower (soldiers that block enemies), more enemy types (flying, healers, armoured).
 - Vendor three.js locally; optionally migrate to ES modules + Vite once the split has settled.

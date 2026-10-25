@@ -1,45 +1,45 @@
-# Spildesign – Slotsforsvar
+# Game design – Castle Defense (Slotsforsvar)
 
-Opdateret til version 0.1.0. Tallene står i `js/01-config.js` (tårne `T`, fjender `E`) og `js/09-game.js` (bølger, økonomi).
+Up to date as of version 0.1.0. The numbers live in `js/01-config.js` (towers `T`, enemies `E`) and `js/09-game.js` (waves, economy).
 
-## Mål
-Forsvar slottet gennem 20 bølger. Fjenderne kommer ind gennem hullet i muren til venstre og går langs vejen til slottet til højre. Hver fjende, der slipper igennem, koster liv (boss koster 5). Start: 20 liv, 120 guld.
+## Goal
+Defend the castle through 20 waves. Enemies pour in through the breach in the wall on the left and march along the road to the castle on the right. Every enemy that gets through costs a life (a boss costs 5). You start with 20 lives and 120 gold.
 
-## Økonomi
-- Guld for hver dræbt fjende (`rw`), plus bølgebonus `20 + 2 × bølge` efter hver bølge.
-- Opgradering koster `pris × 0,8 × niveau` (niveau 1→2, 2→3). Salg giver 60 % af det samlede beløb.
-- Opgradering giver +60 % skade og +10 rækkevidde pr. niveau.
+## Economy
+- Gold for every enemy killed (`rw`), plus a wave bonus of `20 + 2 × wave` at the end of each wave.
+- Upgrading costs `price × 0.8 × level` (level 1→2, 2→3). Selling refunds 60% of everything spent on the tower.
+- Each upgrade gives +60% damage and +10 range.
 
-## Tårne (pris / rækkevidde / skade / ladetid)
-| Tårn | Pris | Rækkevidde | Skade | Tid | Særligt |
+## Towers (price / range / damage / reload)
+| Tower | Price | Range | Damage | Reload | Special |
 |---|---|---|---|---|---|
-| Bueskytter | 50 | 130 | 10 | 0,5 s | Skyder 1/2/3 mål ved niveau 1/2/3 (de forreste) |
-| Katapult | 100 | 110 | 30 | 1,4 s | Områdeskade (radius 55). Rammer sinkes 20/40/60 % i 1 sek |
-| Magiker | 75 | 100 | 3 | 0,9 s | **Slukket**, bliver lavet om |
-| Ballista | 125 | 190 | 66 | 2,2 s | Skyder altid på fjenden med flest liv |
-| Stormtårn | 150 | 105 | 16 | 1,0 s | Kædelyn rammer 5/6/7 mål, lammer 0,2 s, 8 % mindre skade pr. hop |
-| Alkymist | 90 | 115 | 7,8/s | 1,1 s | Giftflaske, radius 45, 3 sek gift |
-| Fanetårn | 120 | 120 | – | – | +20 % skade (+10 % pr. niveau) til tårne i rækkevidde |
-| Skatkiste | 150 | – | – | – | 15 guld × niveau efter hver bølge |
+| Archers | 50 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the ones furthest ahead) |
+| Catapult | 100 | 110 | 30 | 1.4 s | Area damage (radius 55). Slows enemies hit by 20/40/60% for 1 s |
+| Wizard | 75 | 100 | 3 | 0.9 s | **Disabled**, pending a rework |
+| Ballista | 125 | 190 | 66 | 2.2 s | Always targets the enemy with the most health |
+| Storm Tower | 150 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump |
+| Alchemist | 90 | 115 | 7.8/s | 1.1 s | Poison flask, radius 45, poisons for 3 s |
+| Banner Tower | 120 | 120 | – | – | +20% damage (+10% per level) to towers in range |
+| Treasury | 150 | – | – | – | 15 gold × level at the end of each wave |
 
-## Fjender
-| Type | Fart | Liv (× basis) | Guld |
+## Enemies
+| Type | Speed | Health (× base) | Gold |
 |---|---|---|---|
-| Goblin (norm) | 50 | 1,0 | 5 |
-| Ulveryttere (fast) | 90 | 0,6 | 5 |
-| Sort ridder (tank) | 35 | 2,6 | 10 |
-| Drage (boss) | 30 | 12 | 50 |
+| Goblin (norm) | 50 | 1.0 | 5 |
+| Wolf rider (fast) | 90 | 0.6 | 5 |
+| Black knight (tank) | 35 | 2.6 | 10 |
+| Dragon (boss) | 30 | 12 | 50 |
 
-Basisliv = `30 × 1,2^bølge`. Bølge n har `5 + 2n` fjender, 0,8 s mellem hver. Fra bølge 3 er hver 3. fjende en ulv, fra bølge 5 hver 5. en ridder, og hver 5. bølge slutter med en drage.
+Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon.
 
-## Slutscener
-- Sejr: kamera glider over slottet, fyrværkeri.
-- Nederlag: slottet brænder, det store tårn styrter sammen, fjendehæren jubler.
+## Ending scenes
+- Victory: the camera sweeps over the castle and fireworks go off.
+- Defeat: the castle burns, the keep collapses and the enemy army cheers.
 
-## Styring
-Mus/touch: klik på bane for at bygge, klik på tårn for at opgradere/sælge. Træk = drej kamera (360°), hjul/knib = zoom, højre museknap/to fingre = flyt. Tast 1–8 vælger tårn, mellemrum starter bølge, Q/E drejer. Minikort klik = hop. ♪ og 🔊 slår musik/lyd til og fra.
+## Controls
+Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave, Q/E rotate. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects.
 
-## Åbne spørgsmål
-- Hvad skal Magikeren bruges til?
-- Er 20 bølger passende, og hvordan skal sværhedsgraden stige?
-- Skal der være flere baner og et hovedmenu?
+## Open questions
+- What should the Wizard do?
+- Are 20 waves the right length, and how should the difficulty ramp up?
+- Should there be more maps and a main menu?

@@ -1,7 +1,7 @@
 {
   "name": "slotsforsvar",
   "version": "0.1.0",
-  "description": "Slotsforsvar - et middelalderligt 3D tower defense spil til browseren (three.js)",
+  "description": "Castle Defense (Slotsforsvar) - a medieval 3D tower defense game for the browser (three.js)",
   "private": true,
   "scripts": {
     "dev": "http-server -c-1 -p 5173 .",

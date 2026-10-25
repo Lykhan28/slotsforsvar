@@ -1,37 +1,37 @@
-# ⚔️ Slotsforsvar
+# ⚔️ Castle Defense (Slotsforsvar)
 
-Et middelalderligt 3D tower defense spil til browseren. Alt grafik og lyd bliver tegnet og genereret i kode (three.js + WebAudio), så der ligger ingen billed- eller lydfiler i projektet.
+A medieval 3D tower defense game for the browser. All the graphics and sound are drawn and generated in code (three.js + WebAudio), so the project contains no image or audio files.
 
-## Sådan kører du det
-1. Installér [Node.js](https://nodejs.org) (hvis du ikke har det).
-2. Åbn en terminal i projektmappen:
+## How to run it
+1. Install [Node.js](https://nodejs.org) if you don't have it yet.
+2. Open a terminal in the project folder:
    ```
    npm install
    npm run dev
    ```
-3. Åbn http://localhost:5173 i en browser. (Du skal have internet, da three.js hentes fra et CDN.)
+3. Open http://localhost:5173 in a browser. (You need an internet connection, since three.js is loaded from a CDN.)
 
-Du kan også åbne `archive/slotsforsvar-en-fil.html`: det er hele spillet i én fil, præcis som det var i chatten.
+You can also open `archive/slotsforsvar-en-fil.html`: that's the whole game in a single file, exactly as it was in the original chat (still in Danish).
 
-## Arbejd videre med Claude Code
-Åbn mappen i Claude Code (`claude` i terminalen i mappen). Den læser `CLAUDE.md` automatisk og kender dermed opbygningen og de faldgruber, vi fandt undervejs.
+## Keep building with Claude Code
+Open the folder in Claude Code (run `claude` in a terminal inside the folder). It reads `CLAUDE.md` automatically, so it knows how the project is laid out and the pitfalls we ran into along the way.
 
-Forslag til første ting at bede om:
-- "Åbn spillet i browseren, spil et par bølger og fortæl mig om fejl i konsollen."
-- "Lav en kvalitetsknap (lav/mellem/høj), så det kører bedre på min telefon."
-- "Find på en ny rolle til Magikeren og byg den." (Feltet er låst nu.)
-- "Tilføj en hovedmenu og en pause-knap."
-- "Gem min rekord (højeste bølge) i browseren."
+Some ideas for what to ask first:
+- "Open the game in the browser, play a few waves and tell me about any console errors."
+- "Add a quality setting (low/medium/high) so it runs better on my phone."
+- "Come up with a new role for the Wizard and build it." (Its tile is locked for now.)
+- "Add a main menu and a pause button."
+- "Save my best score (highest wave) in the browser."
 
-## Mappen
+## Folder layout
 ```
-index.html        siden, indlæser filerne i rækkefølge
-css/style.css     udseende (Warcraft-agtigt interface)
-js/               spillets kode, delt op efter emne (se CLAUDE.md)
-docs/             spildesign: regler, tal, ideer
-archive/          den gamle enkelt-fil-version
-scripts/check.mjs hurtig kontrol af koden uden browser
+index.html        the page; loads the scripts in order
+css/style.css     styling (Warcraft-style interface)
+js/               the game code, split up by topic (see CLAUDE.md)
+docs/             game design: rules, numbers, ideas
+archive/          the old single-file version
+scripts/check.mjs quick code check without a browser
 ```
 
 ## Git
-Projektet ligger allerede i et git-repository med en første commit. Lav en commit, før du beder om store ændringer, så du kan gå tilbage.
+The project is already a git repository with an initial commit. Commit before asking for big changes so you can always go back.
