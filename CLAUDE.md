@@ -43,10 +43,9 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 - **Verify in a browser before claiming something works.** Start the dev server via `.claude/launch.json` (config `dev`, port 5173; if the port is taken, the user's own `npm run dev` is probably running – just open http://localhost:5173), read console errors and take a screenshot. Everything is global, so you can inspect or drive the game from the page's JS console (`g`, `T`, `ui()`, `startWave()`), e.g. set `g.sel`/`g.over` to check panels and end screens without playing.
 
 ## Current rules (details in docs/GAME_DESIGN.md)
-8 tower types (Wizard is **disabled**, `T.frost.off = true`, redesign pending), 4 enemy types, 20 waves, boss every 5th wave.
+8 tower types (the Wizard has key `frost` for historical reasons; it now banishes enemies back along the road via `banish()` in js/09-game.js, enemy field `bn` = immunity timer), 4 enemy types, 20 waves, boss every 5th wave.
 
 ## Ideas / roadmap
-- Decide what the Wizard should do (tile is locked and greyed out).
 - More levels/maps, difficulty modes, save/highscores, main menu, pause.
 - Barracks tower (soldiers that block enemies), more enemy types (flying, healers, armoured).
 - Vendor three.js locally; optionally migrate to ES modules + Vite once the split has settled.

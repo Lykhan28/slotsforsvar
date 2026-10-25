@@ -36,6 +36,7 @@ f_storm(){const t=T0();nzs(t,.28,'highpass',2500,6000,.2,DS2(),.2);const o=voice
 f_alch(){const t=T0();nzs(t,.2,'bandpass',900,1800,.12,DS2(),.1,2);for(let i=0;i<3;i++)voice('sine',400+i*170+rnd(0,100),t+i*.05,.002,.1,.07,3000,DS2(),.1);},
 h_arrow(){const t=T0();nzs(t,.07,'lowpass',900,300,.22,DS2(),0);voice('sine',170*rr(),t,.002,.08,.18,600,DS2(),0).frequency.exponentialRampToValueAtTime(80,t+.08);},
 h_ballista(){const t=T0();nzs(t,.12,'lowpass',700,150,.4,DS2(),.05);voice('sine',110,t,.003,.15,.35,500,DS2(),0).frequency.exponentialRampToValueAtTime(50,t+.15);},
+banish(){const t=T0(),o=voice('sine',1200*rr(),t,.005,.45,.12,6000,DS2(),.5);o.frequency.exponentialRampToValueAtTime(180,t+.4);nzs(t,.4,'bandpass',2400,500,.1,DS2(),.4,2);voice('triangle',mf(81),t+.32,.005,.35,.07,5000,DS2(),.5);},
 h_frost(){const t=T0();voice('sine',1400*rr(),t,.002,.18,.08,7000,DS2(),.4);voice('sine',2100*rr(),t+.02,.002,.12,.05,8000,DS2(),.4);},
 boom(){const t=T0();nzs(t,.6,'lowpass',600,80,.5,DS2(),.3);voice('sine',90,t,.004,.45,.5,300,DS2(),.1).frequency.exponentialRampToValueAtTime(30,t+.45);},
 splash(){const t=T0();nzs(t,.3,'bandpass',1500,500,.15,DS2(),.2,1.5);for(let i=0;i<6;i++)voice('sine',350+i*90+rnd(0,120),t+i*.04,.002,.09,.07,2500,DS2(),.15);},

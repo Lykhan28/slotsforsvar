@@ -15,7 +15,7 @@ Defend the castle through 20 waves. Enemies pour in through the breach in the wa
 |---|---|---|---|---|---|
 | Archers | 50 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the ones furthest ahead) |
 | Catapult | 100 | 110 | 30 | 1.4 s | Area damage (radius 55). Slows enemies hit by 20/40/60% for 1 s |
-| Wizard | 75 | 100 | 3 | 0.9 s | **Disabled**, pending a rework |
+| Wizard | 110 | 115 | 8 | 3.0 s | Banish: teleports the enemy closest to the castle 1/1.5/2 tiles back down the road (bosses only a third as far). A banished enemy is immune to banishing for 4 s, so several Wizards spread out |
 | Ballista | 125 | 190 | 66 | 2.2 s | Always targets the enemy with the most health |
 | Storm Tower | 150 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump |
 | Alchemist | 90 | 115 | 7.8/s | 1.1 s | Poison flask, radius 45, poisons for 3 s |
@@ -40,6 +40,6 @@ Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apar
 Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave, Q/E rotate. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects.
 
 ## Open questions
-- What should the Wizard do?
+- Is the Wizard too strong or too weak? (Tune distance, reload and the 4 s immunity in `banish()` / `T.frost`.)
 - Are 20 waves the right length, and how should the difficulty ramp up?
 - Should there be more maps and a main menu?
