@@ -1,0 +1,13 @@
+{
+  "name": "slotsforsvar",
+  "version": "0.1.0",
+  "description": "Slotsforsvar - et middelalderligt 3D tower defense spil til browseren (three.js)",
+  "private": true,
+  "scripts": {
+    "dev": "http-server -c-1 -p 5173 .",
+    "check": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
