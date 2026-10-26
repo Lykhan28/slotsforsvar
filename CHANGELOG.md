@@ -3,6 +3,9 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-26
+- **8 levels:** the castle now has to be defended through eight lands, each worse than the last – the peaceful fields, a dark forest full of fireflies, a burning forest with burnt-out villages, a misty marsh, a smouldering ruined town, a haunted graveyard moor, scorched badlands with rivers of lava and finally the Dread Wastes under a blood-red sky. Every level has its own road, its own breach in the wall and its own spot for the castle, and some are bigger or smaller than others.
+- **Harder to build:** later levels have tiles you can't build on (stumps, bog pools, rubble, graves, lava pits), roads that are harder to cover, and the last two levels have two breaches, so the enemy comes from two sides at once.
+- **Levels menu:** win a level to unlock the next. Pick any unlocked level from Levels in the main menu, or go straight to the next one from the victory screen. The current level is shown under the title.
 - **Moodier colours:** the world has a darker, more natural look – earthier grass, a softer sky, deeper water and toned-down colours everywhere – while torches, magic and fireworks still glow.
 - The new colours were a little too grey and dark, so they're now a bit brighter and livelier while staying natural.
 - **Brighter shadows:** the whole game is lighter, and shadows are soft and see-through instead of almost black.

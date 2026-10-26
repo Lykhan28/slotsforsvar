@@ -1,22 +1,24 @@
 // ---------- game ----------
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying])sc.remove(a.m);
-g={gold:120,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],wt:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
+g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],wt:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
 // enemy types of wave w in spawn order (the UI previews the next wave with this too)
 function waveMix(w){const n=5+w*2,q=[];for(let i=0;i<n;i++)q.push(w%5==0&&i==n-1?'boss':w>4&&i%5==4?'tank':w>2&&i%3==2?'fast':'norm');return q;}
-function startWave(){if(g.run||g.over)return;g.wave++;snd('horn');g.run=true;g.wt=0;g.q=waveMix(g.wave).map((type,i)=>({t:i*.8,type}));ui();}
-function spawn(type){if(type=='boss')snd('roar');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h,o=buildEnemy(type);o.m.scale.setScalar(.01);
-g.en.push({x:WP[0][0],y:WP[0][1],px:WP[0][0],py:WP[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0}[type],age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig});}
-const prog=e=>e.seg*1e4-Math.hypot(WP[e.seg][0]-e.x,WP[e.seg][1]-e.y);
+function startWave(){if(g.run||g.over)return;g.wave++;snd('horn');g.run=true;g.wt=0;g.q=waveMix(g.wave).map((type,i)=>({t:i*.8,type,p:i%PATHS.length}));ui();}
+// each breach has its own road (PATHS); the wave alternates between them
+function spawn(type,pi){if(type=='boss')snd('roar');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp,o=buildEnemy(type),R=PATHS[pi||0];o.m.scale.setScalar(.01);
+g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0}[type],age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig});}
+// higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
+const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
 const stat=t=>({d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1),r:T[t.k].r+10*(t.l-1),f:T[t.k].f});
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
-if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt)spawn(g.q.shift().type);}
+if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
 for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;if(e.pt>0){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
-while(m>0&&e.seg<WP.length){const tx2=WP[e.seg][0],ty=WP[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
+while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
-if(e.seg>=WP.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.type=='boss'?5:1;}}
-buffs();for(const t of g.tw){if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t);let best=null,bp=-1;
+if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.type=='boss'?5:1;}}
+buffs();for(const t of g.tw){if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t);let best=null,bp=-Infinity;
 for(const e of g.en){if(e.hp<=0||(t.k=='frost'&&e.bn>0))continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=t.k=='ballista'?e.hp:prog(e);if(p>bp){bp=p;best=e;}}}
 if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k)}));}}}
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0){b.dead=1;continue;}
@@ -28,10 +30,10 @@ for(const e of g.en)if(e.hp<=0){if(e.leak)sc.remove(e.m);else{g.gold+=e.rw;snd('
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
-if(g.run&&!g.q.length&&!g.en.length){g.run=false;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;g.overT=performance.now();startEnd(true);}ui();}}
+if(g.run&&!g.q.length&&!g.en.length){g.run=false;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
 // Wizard: teleport an enemy back along the road (bosses resist), then it is immune for 4 s
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.type=='boss'?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
-while(m>0){const p=WP[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
+while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
@@ -53,4 +55,4 @@ for(let i=txts.length-1;i>=0;i--){const q=txts[i];q.t+=dt;if(q.t>=1){sc.remove(q
 for(let i=bolts.length-1;i>=0;i--){const q=bolts[i];q.t+=dt;if(q.t>.18){sc.remove(q.g);bolts.splice(i,1);}else q.g.visible=Math.random()>.15;}fl(flames,0);flags.forEach((f,i)=>f.rotation.y=Math.sin(tt*3*FS+i*1.7)*.35*(FS>1?1.5:1));
 smoke.forEach(s=>{const p=(tt*.2+s.ph)%1;s.m.position.set(s.e[0]+p*.35+Math.sin(p*7+s.ph*9)*.04,s.e[1]+p*1.1,s.e[2]);s.m.scale.setScalar(.04+p*.17);s.m.material.opacity=.5*(1-p);});
 trees.forEach(t=>t.rotation.z=Math.sin(tt*1.2+t.userData.ph)*.03);clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>34)c.position.x=-34;});
-gl.intensity=.65+.2*Math.sin(tt*13);cl.intensity=.65+.2*Math.sin(tt*11+1);mill.rotation.z+=dt*.7;}
+gls.forEach((l,i)=>l.intensity=.65+.2*Math.sin(tt*13+i*2));cl.intensity=.65+.2*Math.sin(tt*11+1);if(mill)mill.rotation.z+=dt*.7;moteAnim(dt);}

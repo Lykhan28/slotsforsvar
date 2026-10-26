@@ -5,9 +5,19 @@ const GFX={glow:true,shadows:true,sharp:true};
 try{Object.assign(GFX,JSON.parse(localStorage.getItem('sfgfx')||'{}'));}catch(e){}
 function gfxApply(){if(bloom)bloom.enabled=GFX.glow;sun.castShadow=GFX.shadows;R.setPixelRatio(GFX.sharp?Math.min(devicePixelRatio,PP?1.75:2):1);resize();}
 function gfxSet(k){GFX[k]=!GFX[k];try{localStorage.setItem('sfgfx',JSON.stringify(GFX));}catch(e){}gfxApply();}
+// levels: PROG = how many levels have been won (level i is unlocked when i <= PROG). Switching level reloads the page, because the whole scene is built once at load (js/01-config.js picks LVN)
+let PROG=0;try{PROG=+localStorage.getItem('sfprog')||0;}catch(e){}
+function lvWon(){if(LVN+1>PROG){PROG=LVN+1;try{localStorage.setItem('sfprog',PROG);}catch(e){}}}
+function goLevel(i){if(i===LVN){reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1));}
+function mLevels(){const el=$('m_lvls');el.innerHTML='';LEVELS.forEach((L,i)=>{const b=document.createElement('button'),lock=i>PROG&&i!=LVN,done=i<PROG;b.className='lvb'+(i==LVN?' cur':'')+(lock?' lock':'');b.disabled=lock;
+b.innerHTML='<span class="ln">'+(i+1)+'</span><span class="lt"><b>'+L.n+'</b><small>'+(lock?'Win '+LEVELS[i-1].n+' to unlock':L.d)+'</small></span><span class="lx">'+(done?'✓':lock?'🔒':'')+'<small>'+L.w+'×'+L.h+'</small></span>';b.onclick=()=>goLevel(i);el.appendChild(b);});
+const c=el.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}
+// a level picked in the menu starts right after the reload
+function menuStart(){let go=false;try{go=sessionStorage.getItem('sfgo')=='1';sessionStorage.removeItem('sfgo');}catch(e){}if(go){MENU.open=false;$('menu').style.display='none';}else menuOpen();}
+$('lvl').textContent='Level '+(LVN+1)+' · '+LV.n;
 const inGame=()=>!g.over&&(g.wave>0||g.tw.length>0);
-function mPage(p){MENU.pg=p;for(const k of['main','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();
-$('m_sub').textContent=p=='bye'?'':inGame()?'Paused · wave '+g.wave+' of '+MAXW:'Hold the castle through '+MAXW+' waves';}
+function mPage(p){MENU.pg=p;for(const k of['main','levels','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
+$('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+(inGame()?' · paused on wave '+g.wave+' of '+MAXW:'');}
 function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}
 function menuClose(){MENU.open=false;$('menu').style.display='none';}
 // settings: [label, current value, toggle]; music/sound reuse the HUD buttons so both stay in sync
@@ -27,10 +37,10 @@ fetch('CHANGELOG.md',{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.text
 function menuQuit(){reset();MENU.quit=true;if(AU.m)AU.m.gain.setTargetAtTime(0,AU.ctx.currentTime,.05);mPage('bye');window.close();}
 function menuBack(){MENU.quit=false;if(AU.m)AU.m.gain.setTargetAtTime(.9,AU.ctx.currentTime,.05);mPage('main');last=performance.now();requestAnimationFrame(loop);}
 $('m_play').onclick=()=>{if(g.over)reset();menuClose();};
-$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
+$('m_lv').onclick=()=>mPage('levels');$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
 document.querySelectorAll('#menu [data-back]').forEach(b=>b.onclick=()=>mPage('main'));
 $('mn').onclick=menuOpen;
 // while the menu is open, game hotkeys are off; Esc goes back a page or resumes a game in progress
 addEventListener('keydown',e=>{if(!MENU.open)return;e.stopImmediatePropagation();auInit();if(e.key!='Escape'||e.repeat)return;
-if(MENU.pg=='settings'||MENU.pg=='changelog')mPage('main');else if(MENU.pg=='main'&&inGame())menuClose();},true);
+if(MENU.pg=='settings'||MENU.pg=='changelog'||MENU.pg=='levels')mPage('main');else if(MENU.pg=='main'&&inGame())menuClose();},true);
 gfxApply();

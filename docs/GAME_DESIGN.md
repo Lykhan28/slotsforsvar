@@ -1,9 +1,25 @@
 # Game design – Castle Defense (Slotsforsvar)
 
-Up to date as of version 0.1.0. The numbers live in `js/01-config.js` (towers `T`, enemies `E`) and `js/09-game.js` (waves, economy).
+Up to date as of version 0.1.0 plus levels. The numbers live in `js/01-config.js` (levels `LEVELS`, towers `T`, enemies `E`) and `js/09-game.js` (waves, economy).
 
 ## Goal
-Defend the castle through 20 waves. Enemies pour in through the breach in the wall on the left and march along the road to the castle on the right. Every enemy that gets through costs a life (a boss costs 5). You start with 20 lives and 120 gold.
+Defend the castle through 20 waves on each of 8 levels. Enemies pour in through a breach in the wall and march along the road to the castle gate. Every enemy that gets through costs a life (a boss costs 5). You start with 20 lives and 120 gold.
+
+## Levels
+Each level is a walled board with the same castle outside one of its walls. Winning a level unlocks the next; any unlocked level can be replayed from Levels in the menu.
+
+| # | Level | Land | Board | Breaches → castle | Blocked tiles | Start gold | Enemy health |
+|---|---|---|---|---|---|---|---|
+| 1 | Greenmeadow | Fields | 12×8 | west → east | 0 | 120 | ×1 |
+| 2 | Darkwood | Dark forest | 10×7 | north → east | 4 | 130 | ×1 |
+| 3 | Emberwood | Burning forest, burnt houses | 13×8 | south → north | 5 | 140 | ×1.05 |
+| 4 | Mirefen | Marsh | 14×9 | west → south | 11 | 150 | ×1.1 |
+| 5 | Ashfall | Ruined, smouldering town | 11×7 | east → west | 7 | 160 | ×1.1 |
+| 6 | Barrow Moor | Graveyard moor | 15×9 | north → east | 12 | 170 | ×1.15 |
+| 7 | Scorched Badlands | Cracked earth and lava | 12×9 | west + north → south | 9 | 190 | ×1.15 |
+| 8 | The Dread Wastes | Black rock, lava, red sky | 16×10 | west + east → north | 16 | 220 | ×1.2 |
+
+Tower placement gets harder level by level: more blocked tiles (often right where two stretches of road would overlap), long straight roads, and on levels 7–8 two breaches that split each wave between two roads (enemies alternate between them; the roads merge before the gate).
 
 ## Economy
 - Gold for every enemy killed (`rw`), plus a wave bonus of `20 + 2 × wave` at the end of each wave.
@@ -42,4 +58,4 @@ Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it, 
 ## Open questions
 - Is the Wizard too strong or too weak? (Tune distance, reload and the 4 s immunity in `banish()` / `T.frost`.)
 - Are 20 waves the right length, and how should the difficulty ramp up?
-- Should there be more maps? (The main menu exists now; a level picker could go under Play.)
+- Are the later levels too hard or too easy? Tune `gold`, `hp` and blocked tiles `bk` per level in `LEVELS`.
