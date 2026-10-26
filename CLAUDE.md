@@ -9,6 +9,7 @@ The user works in one session per task. Commit when a task is done, and add anyt
 ## Run
 - `npm install` then `npm run dev` → http://localhost:5173 (static server, no bundler).
 - `npm run check` → parses all js files in the order index.html loads them (no browser needed).
+- **Live online:** https://lykhan28.github.io/slotsforsvar/ via GitHub Pages (repo `github.com/Lykhan28/slotsforsvar`, branch `main`, root folder). Friends play there. `git push` updates the site in about a minute, so only push when the game works; ask the user before pushing.
 - three.js and its post-processing scripts load from CDNs (see index.html). Needs internet. Vendoring them into `vendor/` is on the roadmap.
 
 ## Architecture
