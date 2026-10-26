@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-26
+- **Moodier colours:** the world has a darker, more natural look – earthier grass, a softer sky, deeper water and toned-down colours everywhere – while torches, magic and fireworks still glow.
+- Right-click anywhere to deselect the tower you have selected.
 - **New look:** the whole interface has been redesigned. The battlefield now fills the screen, with the controls floating on top as sleek glass panels in gold and dark wood tones. On phones the controls sit neatly below the battlefield.
 - **Tower stats:** the info panel now shows each defender's DPS, damage, fire rate and range, with bars so you can compare towers at a glance. Selected towers also show what the next upgrade gives you, in green.
 - **Next wave preview:** see how many goblins, wolf riders, knights and dragons are coming before you start a wave, and how many are left during it.

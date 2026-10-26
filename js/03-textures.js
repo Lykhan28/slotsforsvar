@@ -13,7 +13,7 @@ return{a:mk(A,true),n:mk(N,false)};}
 const TX={
 stone:genTex(256,(x,y)=>{const row=Math.floor(y/32),off=(row%2)*32,xx=(x+off)%256,bid=Math.floor(xx/64),lx=xx%64,ly=y%32,d=Math.min(lx,63-lx,ly,31-ly),hh=hash(row,bid),n1=fbm(x/256*6,y/256*6,6,6,4),n2=fbm(x/256*24,y/256*24,24,24,2),bev=Math.min(1,d/4.5),l=(.5+.32*(hh-.5)+.22*(n1-.5))*(.72+.28*bev)*(d<1.5?.55:1)*(.93+.14*n2);return[l*1.04,l,l*.93,d<1.5?0:bev*(.75+.25*n2)];},3),
 wood:genTex(256,(x,y)=>{const pid=Math.floor(x/64),lx=x%64,hh=hash(pid,7),w=fbm(x/256*3,y/256,3,1,3),gr=fbm(x/256*48+w*4,y/256*3,48,3,3),d=Math.min(lx,63-lx),gap=d<2,l=(.42+.14*hh)*(.8+.4*gr)*(gap?.35:1);return[l*1.15,l*.78,l*.5,gap?0:.55+.45*gr];},2),
-grass:genTex(256,(x,y)=>{const n1=fbm(x/256*8,y/256*8,8,8,4),n2=fbm(x/256*64,y/256*64,64,64,2),l=.5+.7*(n1-.5);return[(.2+.3*l)*(.9+.2*n2),(.4+.36*l)*(.85+.3*n2),.1+.1*l,n2*.7+n1*.3];},2.5),
+grass:genTex(256,(x,y)=>{const n1=fbm(x/256*8,y/256*8,8,8,4),n2=fbm(x/256*64,y/256*64,64,64,2),l=.5+.7*(n1-.5);return[(.24+.3*l)*(.9+.2*n2),(.37+.32*l)*(.85+.3*n2),.13+.1*l,n2*.7+n1*.3];},2.5),
 road:genTex(256,(x,y)=>{const G=8,cs=32,cx=Math.floor(x/cs),cy=Math.floor(y/cs);let f1=1e9,f2=1e9,id=0;
 for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const ci=cx+i,cj=cy+j,wi=((ci%G)+G)%G,wj=((cj%G)+G)%G,px=(ci+.5+(hash(wi,wj)-.5)*.7)*cs,py=(cj+.5+(hash(wj,wi+9)-.5)*.7)*cs,d=Math.hypot(x-px,y-py);if(d<f1){f2=f1;f1=d;id=hash(wi*7,wj*13);}else if(d<f2)f2=d;}
 const e=(f2-f1)/cs,st=Math.min(1,e*7),n=fbm(x/256*16,y/256*16,16,16,3),l=(.46+.4*(id-.5)+.15*(n-.5))*(.55+.45*st);return[l*1.02,l*.97,l*.88,st*(.7+.3*n)];},3.5),

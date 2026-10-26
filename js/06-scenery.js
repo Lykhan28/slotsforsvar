@@ -6,7 +6,7 @@ const flames=[],flags=[],emit=[],smoke=[],trees=[],clouds=[];let mill,KEEP,KEEP0
 const ST=new THREE.Group();sc.add(ST);
 {const gg=new THREE.PlaneGeometry(120,90,150,112);gg.rotateX(-PI/2);const p=gg.attributes.position;
 for(let i=0;i<p.count;i++)p.setY(i,gh(p.getX(i),p.getZ(i)));gg.computeVertexNormals();
-const nm=gg.attributes.normal,cols=new Float32Array(p.count*3),c1=new THREE.Color(0x8fc94f),c2=new THREE.Color(0x5f9f3c),c3=new THREE.Color(0x3f7f38),cr=new THREE.Color(0x8a8578),dr=new THREE.Color(0x7a6244),c=new THREE.Color();
+const nm=gg.attributes.normal,cols=new Float32Array(p.count*3),c1=new THREE.Color(0x86a052),c2=new THREE.Color(0x5e7d3c),c3=new THREE.Color(0x405c33),cr=new THREE.Color(0x8a8578),dr=new THREE.Color(0x7a6244),c=new THREE.Color();
 for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),h=p.getY(i),n=nz(x*1.3,z*1.3)*.5+.5;c.copy(c2).lerp(n>.5?c1:c3,Math.abs(n-.5)*1.6).lerp(c1,clamp(h*.1,0,.4));c.lerp(cr,clamp((1-nm.getY(i)-.08)*5,0,.85));if(nz(x*.7+9,z*.7)>.9)c.lerp(dr,.4);c.convertSRGBToLinear();cols[i*3]=c.r;cols[i*3+1]=c.g;cols[i*3+2]=c.b;}
 gg.setAttribute('color',new THREE.BufferAttribute(cols,3));const tg=TX.grass.a.clone(),tn=TX.grass.n.clone();tg.needsUpdate=tn.needsUpdate=true;tg.repeat.set(40,30);tn.repeat.set(40,30);
 const gm=new THREE.Mesh(gg,new THREE.MeshStandardMaterial({map:tg,normalMap:tn,vertexColors:true,roughness:.95,envMapIntensity:.5}));gm.receiveShadow=true;L1(gm);sc.add(gm);}
@@ -34,7 +34,7 @@ part(g,'box',P.wd2,w+.02,.05,d+.02,0,.5,0);part(g,'pyr',RF(rf),w*.82,.5,d*.82,0,
 win(g,0,.13,d/2+.01,.14,.22,0,P.wd2);win(g,-w*.3,.32,d/2+.01,.1,.12,0,0xfff0a0,0xffd24a);win(g,w*.3,.32,d/2+.01,.1,.12,0,0xfff0a0,0xffd24a);chim(g,w*.25,.9,-d*.1);}
 // board
 {const gt=TX.grass.a.clone(),gn=TX.grass.n.clone();gt.needsUpdate=gn.needsUpdate=true;gt.repeat.set(.35,.35);gn.repeat.set(.35,.35);
-const top=new THREE.MeshStandardMaterial({map:gt,normalMap:gn,color:new THREE.Color(0xe8f6d8).convertSRGBToLinear(),roughness:.95,envMapIntensity:.5}),side=mat(0x5a4632);
+const top=new THREE.MeshStandardMaterial({map:gt,normalMap:gn,color:new THREE.Color(0xdadfc8).convertSRGBToLinear(),roughness:.95,envMapIntensity:.5}),side=mat(0x5a4632);
 const pl=part(sc,'box',[side,side,top,side,side,side],12.4,.3,8.4,0,-.15,0);pl.castShadow=false;pl.receiveShadow=true;L1(pl);}
 for(const k of road){const[c,r]=k.split(',').map(Number);flat(M.roadA,1.01,.06,1.01,c-5.5,0,r-3.5);}
 flat(M.roadA,1.01,.2,1.01,-6.5,-.07,-2.5);flat(M.roadA,1.01,.2,1.01,6.5,-.07,2.5);
@@ -79,7 +79,7 @@ const rm=new THREE.Group();rm.position.set(-8.6,-.15,-1.5);rm.rotation.y=-.15;ST
 for(const x of[-.45,.45])for(const z of[-.22,.22])part(rm,'box',P.wd,.06,.45,.06,x,.22,z);part(rm,'box',P.wd,1.1,.05,.5,0,.5,0);for(const x of[-.4,.4])for(const z of[-.3,.3])part(rm,'cyl',P.wd2,.14,.05,.14,x,.14,z).rotation.x=PI/2;}
 turret(6.17,1.7,1.5,.34,P.rd);turret(6.17,3.3,1.5,.34,P.rd);part(ST,'box',P.st,.4,.26,1.4,6.17,1.22,2.5);part(ST,'box',P.st3,.5,.08,1.46,6.17,1.4,2.5);
 {const CG=new THREE.Group();CG.position.y=-.15;ST.add(CG);const X0=8.2,X1=12.8,Z0=.2,Z1=4.8,WH=1.2;
-const WATER=new THREE.MeshStandardMaterial({color:new THREE.Color(0x2c7db0).convertSRGBToLinear(),roughness:.08,metalness:.15,transparent:true,opacity:.88,normalMap:WN,normalScale:new THREE.Vector2(.5,.5),envMapIntensity:1.4});
+const WATER=new THREE.MeshStandardMaterial({color:new THREE.Color(0x2e5d74).convertSRGBToLinear(),roughness:.08,metalness:.15,transparent:true,opacity:.88,normalMap:WN,normalScale:new THREE.Vector2(.5,.5),envMapIntensity:1.4});
 flat(WATER,.5,.06,6.74,7.35,-.12,2.5);flat(WATER,6.8,.06,.5,10.5,-.12,-.62);flat(WATER,6.8,.06,.5,10.5,-.12,5.62);flat(WATER,.5,.06,6.74,13.65,-.12,2.5);
 function rod(g,x1,y1,z1,x2,y2,z2,r,c){const d=new THREE.Vector3(x2-x1,y2-y1,z2-z1),L=d.length(),m=part(g,'cyl',c,r,L,r,(x1+x2)/2,(y1+y2)/2,(z1+z2)/2);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return m;}
 function cwall(x1,z1,x2,z2,h){const L=Math.hypot(x2-x1,z2-z1),a=Math.abs(x2-x1)>Math.abs(z2-z1),cx=(x1+x2)/2,cz=(z1+z2)/2,n2=Math.ceil(L),n=Math.floor(L/.5);

@@ -13,7 +13,9 @@ function zoom(f){cine=null;dist=clamp(dist*f,5,26);setCam();}
 function pan(dx,dy){cine=null;const k=dist*.0022,s=Math.sin(az),c=Math.cos(az);tx=clamp(tx-(c*dx+s*dy)*k,-9,13);tz=clamp(tz+(s*dx-c*dy)*k,-6,6);setCam();}
 const ptrs=new Map();let dn=null,drag=false,pin=null;
 C.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.12:.89);},{passive:false});
-C.addEventListener('contextmenu',e=>e.preventDefault());
+// right-click anywhere drops the selected tower; on the board it waits for pointerup so a right-drag pan keeps it
+function unsel(){if(g.sel){g.sel=null;selRng();ui();}}
+document.addEventListener('contextmenu',e=>{if(MENU.open)return;e.preventDefault();if(!C.contains(e.target))unsel();});
 C.addEventListener('pointerdown',e=>{cine=null;C.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
 if(ptrs.size==1){dn={x:e.clientX,y:e.clientY,az,pol,btn:e.button,sh:e.shiftKey};drag=false;}
 else{drag=true;dn=null;const[a,b]=[...ptrs.values()];pin={d:Math.hypot(a.x-b.x,a.y-b.y)||1,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};}});
@@ -22,6 +24,6 @@ const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;
 if(ptrs.size>=2&&pin){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoom(pin.d/d);pan(mx-pin.mx,my-pin.my);pin={d,mx,my};return;}
 if(!dn)return;const dx=e.clientX-dn.x,dy=e.clientY-dn.y;
 if(drag||Math.hypot(dx,dy)>8){drag=true;if(dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
-const up=e=>{const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(ptrs.size<2)pin=null;if(dn&&had&&!drag&&dn.btn===0&&e.type=='pointerup')tap(e);if(!ptrs.size)dn=null;};
+const up=e=>{const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(ptrs.size<2)pin=null;if(dn&&had&&!drag&&e.type=='pointerup'){if(dn.btn===0)tap(e);else if(dn.btn===2)unsel();}if(!ptrs.size)dn=null;};
 C.addEventListener('pointerup',up);C.addEventListener('pointercancel',up);
 $('zi').onclick=()=>zoom(.8);$('zo').onclick=()=>zoom(1.25);$('zr').onclick=()=>{az=0;pol=.85;dist=20;tx=2;tz=.3;setCam();};
