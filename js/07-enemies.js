@@ -2,37 +2,6 @@
 const SB=new THREE.SpriteMaterial({color:0x1a1030,depthTest:false,fog:false}),SF=new THREE.SpriteMaterial({color:0x2ecc71,depthTest:false,fog:false});
 const FL=new THREE.MeshStandardMaterial({color:new THREE.Color(0xffb8a8).convertSRGBToLinear(),emissive:new THREE.Color(0xff3b1a).convertSRGBToLinear(),emissiveIntensity:.45,roughness:.6});
 const lerpA=(a,b,k)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*k;
-function piv(par,name,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);p.name=name;p.userData.keep=true;par.add(p);return p;}
-// ---------- enemy parts: smooth shapes, built once and cached in EGC ----------
-// capG: a capsule hanging from its pivot down -y (bottom radius r1, top radius r2); lathG: [radius,y] profile from the bottom up, optionally open (phi start/length);
-// rboxG: centred rounded box; shpG: a flat shape [[x,y]...] extruded along z; memG: a flat shape for wing membranes (double-sided material); domG: top part of a sphere
-// ESG: default round segments (fewer on phones)
-const ESG=LOWQ?7:10,EGC={},eg=(k,f)=>EGC[k]||(EGC[k]=f()),ek=a=>a.map(v=>typeof v=='number'?Math.round(v*1000):v).join(','),YUP=new THREE.Vector3(0,1,0);
-function capG(r1,r2,len,n){return eg('c'+ek([r1,r2,len,n||ESG]),()=>{const p=[];for(let i=0;i<=4;i++){const a=-PI/2+i/4*PI/2;p.push(new THREE.Vector2(Math.max(1e-4,Math.cos(a)*r1),-len+Math.sin(a)*r1));}
-for(let i=0;i<=4;i++){const a=i/4*PI/2;p.push(new THREE.Vector2(Math.max(1e-4,Math.cos(a)*r2),Math.sin(a)*r2));}return new THREE.LatheGeometry(p,n||ESG);});}
-function lathG(pr,n,ps,pl){return eg('l'+ek(pr.flat())+'|'+ek([n||16,ps||0,pl||0]),()=>new THREE.LatheGeometry(pr.map(q=>new THREE.Vector2(Math.max(1e-4,q[0]),q[1])),n||16,ps||0,pl||2*PI));}
-function rboxG(w,h,d,r){return eg('r'+ek([w,h,d,r]),()=>{r=Math.min(r,w*.45,h*.45,d*.45);const a=w/2-r,b=h/2-r,q=Math.min(a,b)*.6,s=new THREE.Shape();
-s.moveTo(-a+q,-b);s.lineTo(a-q,-b);s.absarc(a-q,-b+q,q,-PI/2,0);s.lineTo(a,b-q);s.absarc(a-q,b-q,q,0,PI/2);s.lineTo(-a+q,b);s.absarc(-a+q,b-q,q,PI/2,PI);s.lineTo(-a,-b+q);s.absarc(-a+q,-b+q,q,PI,1.5*PI);
-const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(1e-3,d-2*r),bevelEnabled:true,bevelSize:r,bevelThickness:r,bevelSegments:2,curveSegments:2});g.translate(0,0,-Math.max(1e-3,d-2*r)/2);return g;});}
-function shpG(k,pts,d,bv){return eg('s'+k,()=>{const g=new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1]))),{depth:d,bevelEnabled:!!bv,bevelSize:bv||0,bevelThickness:bv||0,bevelSegments:1});g.translate(0,0,-d/2);return g;});}
-function memG(k,pts){return eg('m'+k,()=>new THREE.ShapeGeometry(new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1])))));}
-const domG=(r,f,n)=>eg('d'+ek([r,f,n||14]),()=>new THREE.SphereGeometry(r,n||14,8,0,2*PI,0,PI*f));
-const MDS={},matDS=c=>MDS[c]||(MDS[c]=(()=>{const m=mat(c).clone();m.side=THREE.DoubleSide;return m;})());
-const SPL=new THREE.SphereGeometry(1,LOWQ?8:12,LOWQ?6:8),CNL=new THREE.ConeGeometry(1,1,8),CYL=new THREE.CylinderGeometry(1,1,1,10),TORL=new THREE.TorusGeometry(1,.14,6,18);
-function eM(p,gm,c,x,y,z,rx,ry,rz,e){const m=new THREE.Mesh(gm,typeof c=='number'?mat(c,e):c);m.position.set(x,y,z);m.rotation.set(rx||0,ry||0,rz||0);m.castShadow=true;p.add(m);return m;}
-function eSp(p,c,sx,sy,sz,x,y,z,e){const m=eM(p,SPL,c,x,y,z,0,0,0,e);m.scale.set(sx,sy,sz);return m;}
-function eTor(p,c,sx,sy,sz,x,y,z){const m=eM(p,TORL,c,x,y,z);m.scale.set(sx,sy,sz);return m;}
-function eCy(p,c,r,h,x,y,z,rx,ry,rz){const m=eM(p,CYL,c,x,y,z,rx,ry,rz);m.scale.set(r,h,r);return m;}
-// a cone (spike, tooth, claw, tuft) whose tip points along (dx,dy,dz)
-function eCnD(p,c,r,h,x,y,z,dx,dy,dz){const m=eM(p,CNL,c,x,y,z);m.scale.set(r,h,r);m.quaternion.setFromUnitVectors(YUP,new THREE.Vector3(dx,dy,dz).normalize());return m;}
-// a capsule from its pivot along (dx,dy,dz)
-function eBone(p,c,r1,r2,len,x,y,z,dx,dy,dz,n){const m=eM(p,capG(r1,r2,len,n||8),c,x,y,z);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),new THREE.Vector3(dx,dy,dz).normalize());return m;}
-// a curved horn of n tapering segments: starts pointing down -y turned by (rx,rz), and each segment turns a further (bx,bz)
-function horn(p,c,x,y,z,r,len,n,rx,rz,bx,bz){let q=new THREE.Group();q.position.set(x,y,z);q.rotation.set(rx,0,rz);p.add(q);
-for(let i=0;i<n;i++){eM(q,capG(r*(1-(i+1)/n)+.003,r*(1-i/n)+.003,len/n,8),c,0,0,0);const nq=new THREE.Group();nq.position.y=-len/n;nq.rotation.set(bx,0,bz);q.add(nq);q=nq;}}
-// two-part limb (pivots a+n and b+n, as the animation expects) made of tapered capsules; end() adds hands, feet and armour
-function limb(par,a,b,n,x,y,z,l1,l2,r1,r2,c,c2,end){const u=piv(par,a+n,x,y,z);eM(u,capG(r1*.88,r1,l1),c,0,0,0);const k=piv(u,b+n,0,-l1,0);eM(k,capG(r2*.82,r2,l2),c2,0,0,0);if(end)end(k,l2,r2,u,l1);return u;}
-function hand(k,l,c,r){eSp(k,c,r*1.25,r*1.05,r*1.15,0,-l-r*.5,0);for(let i=0;i<3;i++)eBone(k,c,r*.3,r*.36,r*.8,(i-1)*r*.55,-l-r*1.1,r*.3,0,-1,.6);eBone(k,c,r*.3,r*.36,r*.65,r*.85,-l-r*.55,r*.35,.4,-.4,.8);}
 function eye(p,x,y,z,s,col,glo){eSp(p,col,s,s*.75,s*.6,x,y,z,glo||0x332200);eSp(p,0x0a0805,s*.2,s*.62,s*.12,x,y,z+s*.52);}
 // goblin head (also the wolf rider's): big ears on pivots R0/R1, beady eyes, a long nose, tusks; v=0 wears a dented iron cap, v=1 a mohawk
 function gHead(H,v){const sk=0x71903c,sk2=0x5a7a2f,bn=0xe8e0c8,dk=0x2a1a10;
@@ -43,19 +12,6 @@ const ear=piv(H,'R'+(k<0?0:1),k*.09,.07,-.01);eM(ear,capG(.004,.03,.14,8),sk,0,0
 eTor(H,0xb87333,.018,.018,.018,.205,.096,-.01).rotation.y=PI/2;
 if(v==0){const m=eM(H,domG(.104,.5),0x777b83,0,.085,-.01);m.scale.y=.85;eTor(H,0x5d7094,.1,.1,.12,0,.088,-.01).rotation.x=PI/2;eCnD(H,0x5d7094,.016,.06,0,.19,-.01,0,1,-.15);eSp(H,0x5d7094,.012,.012,.012,-.06,.15,.05);}
 else{for(let i=0;i<6;i++)eCnD(H,dk,.02,.08-Math.abs(i-2.5)*.008,0,.165-Math.abs(i-2.5)*.006,.07-i*.032,0,1,-.3-i*.12);eBone(H,dk,.01,.018,.12,0,.12,-.1,0,-.8,-.5);}}
-// like bake() (js/04-materials.js), but merges every part that shares a texture set and surface into one mesh, its colour moved into vertex colours:
-// an enemy is ~12 animated pivots × a handful of materials, and with an army of 20 outside the wall the per-colour meshes cost ~900 draw calls
-const BKM={};
-function bakeE(root){root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),by=new Map(),rm=[];
-(function w(o){if(o!==root&&o.userData.keep)return;
-if(o.isMesh&&!o.userData.keep&&o.layers.mask===1&&o.geometry.attributes.uv){const mt=o.material,key=[mt.map&&mt.map.uuid,mt.normalMap&&mt.normalMap.uuid,mt.roughness,mt.metalness,mt.emissive.getHex(),mt.emissiveIntensity,mt.side].join('|'),
-m=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld),g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(m);let a=by.get(key);if(!a){a={mt,gs:[]};by.set(key,a);}a.gs.push([g,mt.color]);rm.push(o);}
-o.children.forEach(w);})(root);
-rm.forEach(o=>o.parent.remove(o));
-by.forEach(({mt,gs},key)=>{let n=0;for(const[q]of gs)n+=q.attributes.position.count;const A=new Float32Array(n*3),B=new Float32Array(n*3),U=new Float32Array(n*2),K=new Float32Array(n*3);let i=0;
-for(const[q,c]of gs){const k=q.attributes.position.count;A.set(q.attributes.position.array,i*3);B.set(q.attributes.normal.array,i*3);U.set(q.attributes.uv.array,i*2);for(let j=i;j<i+k;j++){K[j*3]=c.r;K[j*3+1]=c.g;K[j*3+2]=c.b;}i+=k;}
-const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(A,3));bg.setAttribute('normal',new THREE.BufferAttribute(B,3));bg.setAttribute('uv',new THREE.BufferAttribute(U,2));bg.setAttribute('color',new THREE.BufferAttribute(K,3));
-const cm=BKM[key]||(BKM[key]=(()=>{const q=mt.clone();q.color.setRGB(1,1,1);q.vertexColors=true;return q;})()),m=new THREE.Mesh(bg,cm);m.castShadow=m.receiveShadow=true;root.add(m);});}
 function makeEnemy(type,v){const g=new THREE.Group(),b=new THREE.Group();b.name='body';g.add(b);let hy=.95,sh=.24;
 const bn=0xe8e0c8,rg=0x6b4a2b,rg2=0x45301d,cl=0x8e2a2a,mt=0x777b83,gd=0xb87333;
 if(type=='norm'){const sk=0x71903c,sk2=0x5a7a2f;
