@@ -7,7 +7,7 @@ const inC=(x,z,x0,x1,z0,z1)=>{const q=toC(x,z);return q.x>x0&&q.x<x1&&q.z>z0&&q.
 const gh=(x,z)=>-.15+sm(0,9,Math.max(Math.abs(x)-HX-1.63,Math.abs(z)-HZ-1.43,0))*sm(0,3,cDist(x,z))*(nz(x,z)*1.1+1.3)*TH.hl;
 // the far side of the board (away from the default camera) gets most of the scenery; ZF flips z when the camera looks from the north
 const ZF=CAM0.az?-1:1,rzf=(a,b)=>ZF*rnd(a,b);
-const flames=[],flags=[],emit=[],smoke=[],trees=[],clouds=[],mists=[],keepOut=[];let mill,KEEP,KEEP0;
+const flames=[],flags=[],emit=[],smoke=[],trees=[],clouds=[],mists=[],keepOut=[],ripples=[],RIPG=new THREE.RingGeometry(.85,1,28).rotateX(-PI/2);let mill,KEEP,KEEP0;
 const ST=new THREE.Group();sc.add(ST);
 const RKM=TH.rc?PBR(TX.rock,TH.rc):M.rock;
 // barren lands (theme gt:'dirt') use bare earth instead of grass for the ground and the board
@@ -111,8 +111,23 @@ for(const x of[-.45,.45])for(const z of[-.22,.22])part(rm,'box',P.wd,.06,.45,.06
 {const CP=new THREE.Group();CP.position.set(GATE.x,0,GATE.z);CP.rotation.y=GATE.rot;ST.add(CP);const CI=new THREE.Group();CI.position.set(-6.17,0,-2.5);CP.add(CI);
 turret(6.17,1.7,1.5,.34,P.rd,CI);turret(6.17,3.3,1.5,.34,P.rd,CI);part(CI,'box',P.st,.4,.26,1.4,6.17,1.22,2.5);part(CI,'box',P.st3,.5,.08,1.46,6.17,1.4,2.5);
 const CG=new THREE.Group();CG.position.y=-.15;CI.add(CG);ST.updateMatrixWorld(true);const X0=8.2,X1=12.8,Z0=.2,Z1=4.8,WH=1.2;
-const WATER=new THREE.MeshStandardMaterial({color:new THREE.Color(0x2e5d74).convertSRGBToLinear(),roughness:.08,metalness:.15,transparent:true,opacity:.88,normalMap:WN,normalScale:new THREE.Vector2(.5,.5),envMapIntensity:1.4});
-flat(WATER,.5,.06,6.74,7.35,-.12,2.5,CI);flat(WATER,6.8,.06,.5,10.5,-.12,-.62,CI);flat(WATER,6.8,.06,.5,10.5,-.12,5.62,CI);flat(WATER,.5,.06,6.74,13.65,-.12,2.5,CI);
+// moat: a sunken channel around the castle (castle coordinates) with stone banks, a dark bed that shallows at the edges, double-scrolling ripples, lily pads and rings on the water
+{const O={x0:6.95,x1:14.05,z0:-1.05,z1:6.05},I={x0:7.6,x1:13.4,z0:-.4,z1:5.4},ins=(r,d)=>({x0:r.x0+d,x1:r.x1-d,z0:r.z0+d,z1:r.z1-d});
+const ring=(o,i,y,m)=>{const sh=new THREE.Shape(),rc=(p,r,cw)=>{const q=cw?[[r.x0,r.z0],[r.x0,r.z1],[r.x1,r.z1],[r.x1,r.z0]]:[[r.x0,r.z0],[r.x1,r.z0],[r.x1,r.z1],[r.x0,r.z1]];p.moveTo(q[0][0],-q[0][1]);for(const v of q.slice(1))p.lineTo(v[0],-v[1]);p.closePath();};
+rc(sh,o);const h=new THREE.Path();rc(h,i,1);sh.holes.push(h);const g2=new THREE.ShapeGeometry(sh);g2.rotateX(-PI/2);g2.translate(0,y,0);const mm=L1(new THREE.Mesh(g2,m));mm.receiveShadow=true;CI.add(mm);return mm;};
+const wc=new THREE.Color(TH.wc||0x1f4a58),bm2=c=>new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),roughness:1});
+ring(O,I,-.14,bm2(wc.clone().multiplyScalar(.22).getHex()));ring(O,ins(O,.15),-.13,bm2(0x5a5a42));ring(ins(I,-.15),I,-.13,bm2(0x5a5a42));ring(ins(O,.15),ins(O,.27),-.135,bm2(wc.clone().lerp(new THREE.Color(0x5a5a42),.5).multiplyScalar(.6).getHex()));ring(ins(I,-.27),ins(I,-.15),-.135,bm2(wc.clone().lerp(new THREE.Color(0x5a5a42),.5).multiplyScalar(.6).getHex()));
+const WV=genTex(128,(x,y)=>[.5,.5,.5,fbm(x/128*4,y/128*4,4,4,4)*.7+fbm(x/128*16,y/128*16,16,16,2)*.3],5).n;
+const WM=new THREE.MeshStandardMaterial({color:wc.clone().convertSRGBToLinear(),roughness:.12,metalness:.1,transparent:true,opacity:.72,normalMap:WV,normalScale:new THREE.Vector2(.7,.7),envMapIntensity:1.05,depthWrite:false});
+WM.onBeforeCompile=sh=>{sh.uniforms.uT=WT;sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT;').replace('vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;','vec3 mapN = normalize( texture2D( normalMap, vUv*.8 + vec2( uT*.03, uT*.017 ) ).xyz * 2.0 - 1.0 + texture2D( normalMap, vUv*1.3 + vec2( -uT*.021, uT*.027 ) ).xyz * 2.0 - 1.0 );');};
+ring(O,I,-.1,WM).renderOrder=1;
+const bridge=(x,z)=>x<7.8&&z>1.85&&z<3.15;
+function kerb(x1,z1,x2,z2){const Lk=Math.hypot(x2-x1,z2-z1),a=Math.abs(x2-x1)>Math.abs(z2-z1),n=Math.ceil(Lk/.32);for(let k=0;k<n;k++){const u=(k+.5)/n,x=x1+(x2-x1)*u,z=z1+(z2-z1)*u;if(bridge(x,z))continue;
+const b=part(CI,'box',[P.st2,P.st,P.st3][k%3],a?Lk/n*.95:.14,.1+rnd(-.015,.015),a?.14:Lk/n*.95,x,-.09,z);b.rotation.y=rnd(-.06,.06);}}
+for(const[r,d]of[[O,-.04],[I,.04]]){const q=ins(r,d);kerb(q.x0,q.z0,q.x1,q.z0);kerb(q.x0,q.z1,q.x1,q.z1);kerb(q.x0,q.z0,q.x0,q.z1);kerb(q.x1,q.z0,q.x1,q.z1);}
+const chs=[[O.x0,O.x1,O.z0,I.z0],[O.x0,O.x1,I.z1,O.z1],[O.x0,I.x0,I.z0,I.z1],[I.x1,O.x1,I.z0,I.z1]],mp=()=>{for(;;){const c=chs[Math.random()<.7?Math.random()*2|0:2+(Math.random()*2|0)],x=rnd(c[0]+.14,c[1]-.14),z=rnd(c[2]+.14,c[3]-.14);if(!bridge(x,z))return{x,z};}};
+if(['meadow','darkwood','marsh'].includes(LV.th))for(let k=0;k<18;k++){const q=mp(),pd=part(CI,'cyl',k%3?0x4f7a34:0x5e8a3c,rnd(.06,.1),.012,rnd(.06,.1),q.x,-.094,q.z);pd.rotation.y=rnd(0,6);pd.castShadow=false;if(k%4==0)part(CI,'sph',k%8?0xf3b6cf:0xfff6e8,.03,.025,.03,q.x+.02,-.075,q.z);}
+for(let k=0;k<7;k++){const m=L1(new THREE.Mesh(RIPG,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false})));CI.add(m);ripples.push({m,t:-rnd(0,3),d:rnd(1.5,2.5),mp});}}
 function cwall(x1,z1,x2,z2,h){const L=Math.hypot(x2-x1,z2-z1),a=Math.abs(x2-x1)>Math.abs(z2-z1),cx=(x1+x2)/2,cz=(z1+z2)/2,n2=Math.ceil(L),n=Math.floor(L/.5);
 for(let i=0;i<n2;i++){const u=-L/2+(i+.5)*L/n2;part(CG,'box',[P.st,P.st3][i%2],a?L/n2*.99:.44,h,a?.44:L/n2*.99,a?cx+u:cx,h/2,a?cz:cz+u);}
 for(let i=0;i<n;i++){const u=-L/2+(i+.5)*L/n;part(CG,'box',P.st3,a?.3:.44,.24,a?.44:.3,a?cx+u:cx,h+.12,a?cz:cz+u);}part(CG,'box',P.st2,a?L:.54,.08,a?.54:L,cx,h-.06,cz);}
@@ -251,7 +266,7 @@ else if(M2.k=='emb'){q.y+=dt*q.sp*.9;q.x+=Math.sin(tt*2+q.ph)*dt*.3;if(q.y>4.5){
 else if(M2.k=='ash'){q.y-=dt*q.sp*.35;q.x+=Math.sin(tt*.7+q.ph)*dt*.25+dt*.15;if(q.y<0){q.y=5;q.x=rnd(-ex,ex);q.z=rnd(-ez,ez);}}
 else{q.x+=dt*q.sp*.9;q.y=.2+Math.abs(Math.sin(tt*.5+q.ph))*.8*q.sp;if(q.x>ex){q.x=-ex;q.z=rnd(-ez,ez);}}
 ps[i*3]=q.x;ps[i*3+1]=q.y;ps[i*3+2]=q.z;cs[i*3]=c.r*b;cs[i*3+1]=c.g*b;cs[i*3+2]=c.b*b;}M2.gm.attributes.position.needsUpdate=true;M2.gm.attributes.color.needsUpdate=true;}
-for(const m of mists){m.s.position.x=m.x0+Math.sin(tt*m.v)*2;m.s.material.opacity=.16+.08*Math.sin(tt*m.v*3+m.x0);}LAVAT.offset.x=tt*.01;LAVAT.offset.y=Math.sin(tt*.2)*.02;}
+for(const m of mists){m.s.position.x=m.x0+Math.sin(tt*m.v)*2;m.s.material.opacity=.16+.08*Math.sin(tt*m.v*3+m.x0);}for(const r of ripples){r.t+=dt;const p=r.t/r.d;if(r.t<0){r.m.visible=false;continue;}if(p>=1){const q=r.mp();r.m.position.set(q.x,-.092,q.z);r.t=-rnd(.2,2);r.d=rnd(1.5,2.5);continue;}r.m.visible=true;r.m.scale.setScalar(.03+.2*p);r.m.material.opacity=.3*(1-p);}LAVAT.offset.x=tt*.01;LAVAT.offset.y=Math.sin(tt*.2)*.02;}
 // range indicator
 const rng=new THREE.Group(),rd1=L1(new THREE.Mesh(new THREE.CircleGeometry(1,48),new THREE.MeshBasicMaterial({transparent:true,opacity:.22,depthWrite:false}))),rd2=L1(new THREE.Mesh(new THREE.RingGeometry(.96,1,64),new THREE.MeshBasicMaterial({transparent:true,opacity:.9,depthWrite:false})));
 rd1.rotation.x=rd2.rotation.x=-PI/2;rng.add(rd1,rd2);rng.position.y=.04;rng.visible=false;sc.add(rng);
