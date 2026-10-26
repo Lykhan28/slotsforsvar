@@ -1,6 +1,7 @@
 // ---------- ENEMY ARMY + ENDING SCENES ----------
 let FS=1,AM=1,cine=null,endS=null;
 const army=[],fws=[],rockets=[],smk=[],chunks=[],dynF=[],SPM={};
+// the army casts no real shadows (just blob shadows): 20+ detailed enemies would double their cost in the shadow map
 // castle spots below are in the castle's original coordinates (gate on the east wall), mapped into the level with CW(); the army with BW() per breach
 const fireL=new THREE.PointLight(0xff5a1a,0,16);{const q=CW(11.4,2.5);fireL.position.set(q.x,3,q.z);}sc.add(fireL);
 const FW_COL=[0xff5a5a,0xffd24a,0x6af0ff,0xc08bff,0x7cff4a,0xff8ec0,0xffffff];
@@ -8,10 +9,10 @@ function buildArmy(){const types=['norm','norm','fast','norm','tank','norm','fas
 ENT.forEach((o0,bi)=>{const t0=BW(-6.3,-2.5,bi);
 for(let row=0;row<4;row++)for(let col=0;col<7;col++){const lx=-7.7-row*1.0+rnd(-.18,.18),lz=-2.5+(col-3)*.8*(1+row*.1)+rnd(-.18,.18);
 if(Math.abs(lz+2.5)<.7&&lx>-9.5)continue;if(Math.hypot(lx+8.6,lz+1.5)<1.2)continue;if(Math.random()<(nb>1?.45:.15))continue;
-const{x,z}=BW(lx,lz,bi),type=types[(row*7+col)%types.length],o=buildEnemy(type);o.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});
+const{x,z}=BW(lx,lz,bi),type=types[(row*7+col)%types.length],o=buildEnemy(type);o.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});o.m.traverse(c=>{c.castShadow=false;});
 o.m.position.set(x,gh(x,z),z);o.m.scale.setScalar(rnd(.92,1.1));o.body.rotation.y=Math.atan2(t0.x-x,t0.z-z)+rnd(-.15,.15);if(row>=2)o.m.traverse(c=>{if(c.isMesh)c.castShadow=false;});
 army.push({o,type,ph:rnd(0,6),y0:gh(x,z)});}
-for(const[lx,lz]of[[-10.2,-4.4],[-10.8,-.7]].slice(0,nb>1?1:2)){const{x,z}=BW(lx,lz,bi),o=buildEnemy('boss');o.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});o.m.position.set(x,gh(x,z),z);o.m.scale.setScalar(1.05);o.body.rotation.y=Math.atan2(t0.x-x,t0.z-z);army.push({o,type:'boss',ph:rnd(0,6),y0:gh(x,z)});}});}
+for(const[lx,lz]of[[-10.2,-4.4],[-10.8,-.7]].slice(0,nb>1?1:2)){const{x,z}=BW(lx,lz,bi),o=buildEnemy('boss');o.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});o.m.traverse(c=>{c.castShadow=false;});o.m.position.set(x,gh(x,z),z);o.m.scale.setScalar(1.05);o.body.rotation.y=Math.atan2(t0.x-x,t0.z-z);army.push({o,type:'boss',ph:rnd(0,6),y0:gh(x,z)});}});}
 function armyAnim(dt){for(const a of army){const r=a.o.rig,t=tt+a.ph,m=a.o.m,ro=(n,x,y,z)=>{const q=r[n];if(q){if(x!==undefined)q.rotation.x=x;if(y!==undefined)q.rotation.y=y;if(z!==undefined)q.rotation.z=z;}};
 const hop=AM==2?Math.max(0,Math.sin(t*5))*.12:AM==1?Math.max(0,Math.sin(t*3.2))*.03:0;m.position.y=a.y0+hop+(a.type=='boss'?1.5+Math.sin(t*1.6)*.1:0);
 const lift=AM==0?-.2:AM==2?-2.8:-1.0,w=Math.sin(t*3.5)*(AM==2?.35:.2);
