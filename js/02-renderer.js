@@ -15,9 +15,9 @@ sc.add(new THREE.HemisphereLight(0xcfe3ff,0x8a7a5a,.5));
 const sun=new THREE.DirectionalLight(0xffe2b4,1.55);sun.position.set(9,10,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0005;sun.shadow.normalBias=.03;
 Object.assign(sun.shadow.camera,{left:-12,right:12,top:12,bottom:-12,far:45});sc.add(sun);
 const gl=new THREE.PointLight(0xffa060,.8,5),cl=new THREE.PointLight(0xffa060,.8,5);gl.position.set(-6.5,1,-2.5);cl.position.set(6.5,1,2.5);sc.add(gl,cl);
-let comp=null;
+let comp=null,bloom=null;
 if(PP){try{const rt=R.capabilities.isWebGL2?new THREE.WebGLMultisampleRenderTarget(2,2):null;comp=rt?new THREE.EffectComposer(R,rt):new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(sc,cam));
-comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.4,.5,.88));comp.addPass(new THREE.ShaderPass(GRADE));}catch(e){comp=null;R.outputEncoding=THREE.sRGBEncoding;}}
+comp.addPass(bloom=new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.4,.5,.88));comp.addPass(new THREE.ShaderPass(GRADE));}catch(e){comp=null;R.outputEncoding=THREE.sRGBEncoding;}}
 // the canvas fills #wrap, which CSS stretches to whatever space the window leaves; narrower than 4:3 widens the fov so the board's width stays in view
 function resize(){const W=$('wrap'),w=W.clientWidth,h=W.clientHeight,a=w/h;if(!w||!h)return;// hidden tab: wait for the observer
 R.setSize(w,h,false);if(comp){comp.setPixelRatio(R.getPixelRatio());comp.setSize(w,h);}

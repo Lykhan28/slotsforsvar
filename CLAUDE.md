@@ -31,7 +31,8 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 | `js/11-audio.js` | all audio generated with WebAudio (no files): music (calm/battle) and `SX` sound effects, `snd(name)` |
 | `js/12-input.js` | pointer/touch/mouse camera (orbit 360°, zoom, pan), placing/selecting towers |
 | `js/13-ending.js` | enemy army outside the wall, victory fireworks, defeat (castle burns, keep collapses) |
-| `js/14-main.js` | render loop, start |
+| `js/14-menu.js` | main menu (Play/Settings/Changelog/Quit), `MENU` state, graphics settings `GFX` (glow/shadows/resolution, saved in localStorage `sfgfx`), in-game changelog (fetches and renders `CHANGELOG.md`) |
+| `js/15-main.js` | render loop, start (opens the menu) |
 
 ## Gotchas learned the hard way
 - **Function declarations are NOT hoisted across script files.** Top-level code in a file may only call functions defined in earlier files (or itself). This caused a black screen (`chibi is not defined`, then follow-up `rng` errors) when scenery loaded before towers. Functions called later at runtime (from `update`/`sync`/event handlers) are fine.
@@ -42,6 +43,8 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 - **Name clashes:** terrain noise is `nz`, audio noise is `nzs`. Top-level `const` names are global across files – check for duplicates (`npm run check` catches syntax, not all clashes).
 - **Health bar sprites** must be centred at the same point (don't offset in world x), or they drift when the camera rotates.
 - Audio only starts after the first user gesture (`auInit`).
+- **Main menu pauses the game:** while `MENU.open`, the loop skips `update()` (only `sync()` runs) and a capture-phase keydown listener in js/14-menu.js swallows game hotkeys. Quit sets `MENU.quit`, which stops the render loop entirely; `menuBack()` restarts it. Browsers only let `window.close()` close tabs a script opened, so Quit normally ends on the "Thanks for playing" page.
+- **The in-game changelog reads `CHANGELOG.md` over HTTP,** so keep its format (`## YYYY-MM-DD` headings, `- ` bullets, `**bold**`). `.nojekyll` in the repo root makes GitHub Pages serve the .md file as-is – don't delete it.
 - **Layout fills the window:** body is `100dvh` with no page scroll; `#wrap` (the 3D view) is the flex item that takes whatever height the title/panel leave, and the canvas is absolutely positioned inside it. `resize()` in js/02-renderer.js reads `#wrap`'s size (window resize + ResizeObserver) and sets `cam.aspect`; when the view is narrower than 4:3 it widens `cam.fov` so the whole board stays visible. Don't hard-code a canvas aspect ratio, and keep new HUD elements from pushing the page taller than the window (small screens hide the hint line and title via media queries).
 - **Verify in a browser before claiming something works.** Start the dev server via `.claude/launch.json` (config `dev`, port 5173; if the port is taken, the user's own `npm run dev` is probably running – just open http://localhost:5173), read console errors and take a screenshot. Everything is global, so you can inspect or drive the game from the page's JS console (`g`, `T`, `ui()`, `startWave()`), e.g. set `g.sel`/`g.over` to check panels and end screens without playing.
 
