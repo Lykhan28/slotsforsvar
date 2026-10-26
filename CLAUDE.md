@@ -5,6 +5,7 @@ Medieval 3D tower defense game for the browser (three.js r128). Built as a hobby
 
 ## Workflow
 The user works in one session per task. Commit when a task is done, and add anything a future session needs to know (new rules, gotchas) to this file or `docs/GAME_DESIGN.md` – a new session only knows what is written down here.
+**Every change gets a `CHANGELOG.md` entry** in the same commit: add a bullet under today's date (create the date heading at the top if missing, newest first). Write it for a player, in plain English – what changed, not how the code works. Small tweaks still count; pure notes/docs edits can share one "Project housekeeping" bullet.
 
 ## Run
 - `npm install` then `npm run dev` → http://localhost:5173 (static server, no bundler).
