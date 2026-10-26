@@ -37,7 +37,7 @@ Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apar
 - Defeat: the castle burns, the keep collapses and the enemy army cheers.
 
 ## Controls
-Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave, Q/E rotate. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects.
+Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave, Q/E rotate. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects; ? lists the controls. Hovering a tower in the dock shows its DPS, damage, fire rate and range.
 
 ## Open questions
 - Is the Wizard too strong or too weak? (Tune distance, reload and the 4 s immunity in `banish()` / `T.frost`.)

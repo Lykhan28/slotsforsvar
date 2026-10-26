@@ -56,7 +56,7 @@ win(){const t=T0();[0,4,7,12,16,19].forEach((s2,i)=>{voice('sawtooth',mf(62+s2),
 lose(){const t=T0();[0,-2,-5,-9].forEach((s2,i)=>voice('sawtooth',mf(57+s2),t+i*.4,.05,1,.1,900,DS2(),.4));kick(t,.9,DS2());}};
 function snd(n){if(!AU.ctx||AU.ctx.state!='running'||!AU.on.s||!SX[n])return;const t=AU.ctx.currentTime;if(t-(AU.last[n]||0)<(n.startsWith('die')?.04:.05))return;AU.last[n]=t;try{SX[n]();}catch(e){}}
 function auSave(){try{localStorage.setItem('sfaud',JSON.stringify(AU.on));}catch(e){}}
-function auUI(){$('mu').style.opacity=AU.on.m?1:.4;$('sf').style.opacity=AU.on.s?1:.4;}
+function auUI(){$('mu').classList.toggle('off',!AU.on.m);$('sf').classList.toggle('off',!AU.on.s);}
 $('mu').onclick=()=>{auInit();AU.on.m=!AU.on.m;if(AU.mus)AU.mus.gain.setTargetAtTime(AU.on.m?.32:0,AU.ctx.currentTime,.1);auSave();auUI();};
 $('sf').onclick=()=>{auInit();AU.on.s=!AU.on.s;if(AU.sfx)AU.sfx.gain.setTargetAtTime(AU.on.s?.8:0,AU.ctx.currentTime,.05);auSave();auUI();};
 auUI();['pointerdown','keydown'].forEach(ev=>addEventListener(ev,auInit,{passive:true}));

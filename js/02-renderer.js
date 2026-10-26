@@ -21,5 +21,7 @@ comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(256,256),.4,.5,.88));co
 // the canvas fills #wrap, which CSS stretches to whatever space the window leaves; narrower than 4:3 widens the fov so the board's width stays in view
 function resize(){const W=$('wrap'),w=W.clientWidth,h=W.clientHeight,a=w/h;if(!w||!h)return;// hidden tab: wait for the observer
 R.setSize(w,h,false);if(comp){comp.setPixelRatio(R.getPixelRatio());comp.setSize(w,h);}
-cam.aspect=a;cam.fov=a>=4/3?40:2*Math.atan(Math.tan(20*Math.PI/180)*4/3/a)*180/Math.PI;cam.updateProjectionMatrix();}
+// when the bottom HUD floats over the view (wide screens), render the lower part of a taller frustum so the board sits higher, above the HUD
+const d=getComputedStyle($('panel')).position=='absolute'?Math.round(h*.16):0,t=Math.tan((a>=4/3?20:Math.atan(Math.tan(20*Math.PI/180)*4/3/a)*180/Math.PI)*Math.PI/180)*(h+d)/h;
+cam.aspect=w/(h+d);cam.fov=2*Math.atan(t)*180/Math.PI;if(d)cam.setViewOffset(w,h+d,0,d,w,h);else cam.clearViewOffset();cam.updateProjectionMatrix();}
 addEventListener('resize',resize);if(window.ResizeObserver)new ResizeObserver(resize).observe($('wrap'));resize();setCam();

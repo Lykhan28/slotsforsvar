@@ -2,8 +2,9 @@
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying])sc.remove(a.m);
 g={gold:120,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],wt:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
-function startWave(){if(g.run||g.over)return;g.wave++;snd('horn');g.run=true;g.wt=0;const n=5+g.wave*2;g.q=[];
-for(let i=0;i<n;i++){let t='norm';if(g.wave%5==0&&i==n-1)t='boss';else if(g.wave>4&&i%5==4)t='tank';else if(g.wave>2&&i%3==2)t='fast';g.q.push({t:i*.8,type:t});}ui();}
+// enemy types of wave w in spawn order (the UI previews the next wave with this too)
+function waveMix(w){const n=5+w*2,q=[];for(let i=0;i<n;i++)q.push(w%5==0&&i==n-1?'boss':w>4&&i%5==4?'tank':w>2&&i%3==2?'fast':'norm');return q;}
+function startWave(){if(g.run||g.over)return;g.wave++;snd('horn');g.run=true;g.wt=0;g.q=waveMix(g.wave).map((type,i)=>({t:i*.8,type}));ui();}
 function spawn(type){if(type=='boss')snd('roar');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h,o=buildEnemy(type);o.m.scale.setScalar(.01);
 g.en.push({x:WP[0][0],y:WP[0][1],px:WP[0][0],py:WP[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0}[type],age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig});}
 const prog=e=>e.seg*1e4-Math.hypot(WP[e.seg][0]-e.x,WP[e.seg][1]-e.y);

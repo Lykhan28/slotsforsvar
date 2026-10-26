@@ -2,18 +2,31 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Castle Defense</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css"></head><body>
-<div id="app"><div class="frame">
-<div id="ttl">Castle Defense</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f0c45a"/><circle cx="12" cy="12" r="7" fill="none" stroke="#a87418" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" fill="#a87418"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.4A5.4 5.4 0 0 1 12 6.2a5.4 5.4 0 0 1 9.6 5.4C19.5 16.4 12 21 12 21z" fill="#ff6b5e"/><path d="M7.5 9.2a2.4 2.4 0 0 1 2.2-1.5" fill="none" stroke="#ffd0c8" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="i-swords" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5 18 3h3v3l-3.5 3.5M5 14l4 4M7 17l-3 3M3 19l2 2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8M3 3v5h5"/><circle cx="12" cy="12" r="2"/></symbol>
+<symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+<symbol id="i-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+</defs></svg>
+<div id="app">
 <div id="wrap"><canvas id="c"></canvas>
-<div class="res"><div class="slot"><i>🪙</i><span id="gold"></span></div><div class="slot"><i>🏰</i><span id="lives"></span></div><div class="slot"><i>⚔️</i><span id="wave"></span></div></div>
-<div id="zm"><button id="zi">+</button><button id="zo">&minus;</button><button id="zr">&#10227;</button><button id="mu" title="Music">&#9835;</button><button id="sf" title="Sound effects">&#128266;</button></div>
-<canvas id="mm" width="200" height="86"></canvas><div id="ov"></div></div>
-<div id="panel"><div id="towers"></div>
-<div id="ip"><div id="info"></div><div id="sel"><button class="wb" id="up"></button><button class="wb" id="sell"></button></div></div>
-<div id="act"><button class="wb go" id="start">Start wave</button><button class="wb" id="spd">×1</button></div></div>
-<p class="h">1–8 pick a defender · Space starts the wave · Drag to rotate the camera (Q/E) · Scroll or pinch to zoom · Right-drag or two fingers to pan · Click the minimap to jump there</p>
+<div id="top"><div id="ttl">Castle Defense</div>
+<div class="res"><div class="pill" title="Gold"><svg><use href="#i-coin"/></svg><span id="gold"></span></div><div class="pill" title="Lives"><svg><use href="#i-heart"/></svg><span id="lives"></span></div><div class="pill pw" title="Wave"><svg class="sw"><use href="#i-swords"/></svg><div><span id="wave"></span><i class="pb"><b id="wbar"></b></i></div></div></div></div>
+<div id="side"><canvas id="mm" width="200" height="86" title="Minimap – click to jump there"></canvas>
+<div id="zm"><button id="zi" title="Zoom in"><svg><use href="#i-plus"/></svg></button><button id="zo" title="Zoom out"><svg><use href="#i-minus"/></svg></button><button id="zr" title="Reset camera"><svg><use href="#i-reset"/></svg></button><button id="mu" title="Music"><svg><use href="#i-music"/></svg></button><button id="sf" title="Sound effects"><svg><use href="#i-sound"/></svg></button><button id="hp" title="Controls"><svg><use href="#i-help"/></svg></button></div>
+<div id="help"><h3>Controls</h3><ul><li><span><kbd>1</kbd>–<kbd>8</kbd></span>Pick a defender</li><li><span><kbd>Space</kbd></span>Start the next wave</li><li><span><kbd>Esc</kbd></span>Deselect</li><li><span><kbd>Drag</kbd> <kbd>Q</kbd> <kbd>E</kbd></span>Rotate the camera</li><li><span><kbd>Scroll</kbd></span>Zoom (pinch on touch)</li><li><span><kbd>Right-drag</kbd></span>Pan (two fingers on touch)</li><li><span><kbd>Minimap</kbd></span>Click to jump there</li></ul></div></div>
+<div id="ov"></div></div>
+<div id="panel">
+<div id="ip"><div id="info"></div><div id="sel"><button class="btn up" id="up"></button><button class="btn" id="sell"></button></div></div>
+<div id="dock"><div id="towers"></div></div>
+<div id="act"><div id="nw"></div><button class="btn go" id="start"></button><div class="seg" id="spd"><button data-s="1">×1</button><button data-s="2">×2</button><button data-s="3">×3</button></div></div>
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
