@@ -1,5 +1,5 @@
 // ---------- render loop ----------
-function draw(){if(comp)comp.render();else R.render(sc,cam);}
+function draw(){if(comp){if(AO&&AO.pass.enabled)aoDraw();comp.render();}else R.render(sc,cam);}
 let last=performance.now(),lu=0,lm=0;
 function loop(now){if(MENU.quit)return;// Quit stops the loop; menuBack() restarts it
 const dt=Math.min(.05,(now-last)/1000);last=now;

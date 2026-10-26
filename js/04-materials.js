@@ -13,8 +13,8 @@ METAL=new Set([0x4a5568,0x2a2a35,0x5a5a68,0x9aa3b0,0x8fa6c8,0x6f7f96,0x4b586e,0x
 const tint=c=>new THREE.Color(c).lerp(new THREE.Color(0xffffff),.45).convertSRGBToLinear();
 function mat(c,em){const k=c+'_'+em;if(MC[k])return MC[k];const o={color:new THREE.Color(c).convertSRGBToLinear(),envMapIntensity:.7};
 if(em){o.emissive=new THREE.Color(em).convertSRGBToLinear();o.emissiveIntensity=1.4;}
-if(STONE.has(c)){o.color=tint(c);o.map=TX.stone.a;o.normalMap=TX.stone.n;o.roughness=.92;}
-else if(WOOD.has(c)){o.color=tint(c);o.map=TX.wood.a;o.normalMap=TX.wood.n;o.roughness=.85;}
+if(STONE.has(c)){o.color=tint(c);o.map=TX.stone.a;o.normalMap=TX.stone.n;o.roughnessMap=TX.stone.r;o.roughness=.92;}
+else if(WOOD.has(c)){o.color=tint(c);o.map=TX.wood.a;o.normalMap=TX.wood.n;o.roughnessMap=TX.wood.r;o.roughness=.85;}
 else if(METAL.has(c)){o.color=tint(c);o.map=TX.plate.a;o.normalMap=TX.plate.n;o.roughness=.36;o.metalness=.9;}
 else if(SKIN.has(c)){o.color=tint2(c);o.map=TX.skin.a;o.normalMap=TX.skin.n;o.roughness=.6;}
 else if(LEATH.has(c)){o.color=tint2(c);o.map=TX.leather.a;o.normalMap=TX.leather.n;o.roughness=.66;}

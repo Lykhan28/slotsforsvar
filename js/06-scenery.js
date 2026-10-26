@@ -11,14 +11,20 @@ const flames=[],flags=[],emit=[],smoke=[],trees=[],clouds=[],mists=[],keepOut=[]
 const ST=new THREE.Group();sc.add(ST);
 const RKM=TH.rc?PBR(TX.rock,TH.rc):M.rock;
 // barren lands (theme gt:'dirt') use bare earth instead of grass for the ground and the board
-if(TH.gt=='dirt')TX.dirt=genTex(256,(x,y)=>{const n1=fbm(x/256*8,y/256*8,8,8,4),n2=fbm(x/256*64,y/256*64,64,64,2),c=fbm(x/256*20,y/256*20,20,20,3),l=.5+.35*(n1-.5)+.22*(n2-.5)-(c>.68?.12:0);return[l,l*.96,l*.9,n2*.6+n1*.4];},2.5);
+TX.dirt=genTex(TQ,(x,y)=>{const n1=fbm(x/256*8,y/256*8,8,8,4),n2=fbm(x/256*64,y/256*64,64,64,2),c=fbm(x/256*20,y/256*20,20,20,3),l=.5+.35*(n1-.5)+.22*(n2-.5)-(c>.68?.12:0);return[l,l*.96,l*.9,n2*.6+n1*.4];},2.5,256);
+// tiling value noise for the ground shaders: r = broad patches, g = medium, b = fine
+const NZT=(()=>{const n=256,D=new Uint8Array(n*n*4);for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=(y*n+x)*4;D[i]=fbm(x/n*4,y/n*4,4,4,4)*255;D[i+1]=fbm(x/n*12,y/n*12,12,12,3)*255;D[i+2]=fbm(x/n*40,y/n*40,40,40,2)*255;D[i+3]=255;}
+const t=new THREE.DataTexture(D,n,n,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.needsUpdate=true;return t;})();
+// breaks up visible texture repeats on a material with a map: mixes in a second, rotated sample and broad brightness patches
+function antiTile(m,f){m.onBeforeCompile=sh=>{sh.uniforms.uNz={value:NZT};sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D uNz;').replace('#include <map_fragment>',
+'vec3 nq=texture2D(uNz,vUv*'+f+').rgb;vec4 texelColor=mix(texture2D(map,vUv),texture2D(map,vec2(vUv.y,-vUv.x)*.71+.37),smoothstep(.35,.65,nq.r));texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;diffuseColor.rgb*=mix(.84,1.1,nq.g);');};return m;}
 const GTX=TX[TH.gt||'grass'];
 {const gg=new THREE.PlaneGeometry(120,90,150,112);gg.rotateX(-PI/2);const p=gg.attributes.position;
 for(let i=0;i<p.count;i++)p.setY(i,gh(p.getX(i),p.getZ(i)));gg.computeVertexNormals();
 const nm=gg.attributes.normal,cols=new Float32Array(p.count*3),c1=new THREE.Color(TH.gr[0]),c2=new THREE.Color(TH.gr[1]),c3=new THREE.Color(TH.gr[2]),cr=new THREE.Color(TH.gr[3]),dr=new THREE.Color(TH.gr[4]),c=new THREE.Color();
 for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),h=p.getY(i),n=nz(x*1.3,z*1.3)*.5+.5;c.copy(c2).lerp(n>.5?c1:c3,Math.abs(n-.5)*1.6).lerp(c1,clamp(h*.1,0,.4));c.lerp(cr,clamp((1-nm.getY(i)-.08)*5,0,.85));if(nz(x*.7+9,z*.7)>.9)c.lerp(dr,.4);c.convertSRGBToLinear();cols[i*3]=c.r;cols[i*3+1]=c.g;cols[i*3+2]=c.b;}
 gg.setAttribute('color',new THREE.BufferAttribute(cols,3));const tg=GTX.a.clone(),tn=GTX.n.clone();tg.needsUpdate=tn.needsUpdate=true;tg.repeat.set(40,30);tn.repeat.set(40,30);
-const gm=new THREE.Mesh(gg,new THREE.MeshStandardMaterial({map:tg,normalMap:tn,vertexColors:true,roughness:.95,envMapIntensity:.5}));gm.receiveShadow=true;L1(gm);sc.add(gm);}
+const gm=new THREE.Mesh(gg,antiTile(new THREE.MeshStandardMaterial({map:tg,normalMap:tn,vertexColors:true,roughness:.95,envMapIntensity:.5}),'.031'));gm.receiveShadow=true;L1(gm);sc.add(gm);}
 for(let i=0;i<TH.rk;i++){const x=rnd(-HX-10.8,HX+10.8),z=rzf(-HZ-9.8,HZ+5.8);if(Math.abs(x)<HX+1.43&&Math.abs(z)<HZ+1.63)continue;if(inC(x,z,6.4,9,.8,4.2))continue;const s2=rnd(.4,1.3),m=part(ST,'oct',RKM,s2,s2*rnd(.5,.9),s2*rnd(.7,1.1),x,gh(x,z)+s2*.25,z);m.rotation.set(rnd(0,.5),rnd(0,6),rnd(0,.4));}
 const flat=(c,w,h,d,x,y,z,par)=>{const o=part(par||sc,'box',c,w,h,d,x,y,z);o.castShadow=false;o.receiveShadow=true;return L1(o);};
 function scatter(k,m,n,fn){const im=new THREE.InstancedMesh(typeof k=='string'?geo(k):k,m,n),d=new THREE.Object3D(),col=new THREE.Color();let c=0;
@@ -57,20 +63,42 @@ for(let i=0;i<3;i++){const b=part(g,'box',0x1c1816,.05,.05,rnd(.5,.9)*w,rnd(-w/3
 if(Math.random()<.6){const r=part(g,'box',RF(0x5a3a2c),w*.6,.04,d*.55,rnd(-.1,.1),.16,rnd(-.1,.1));r.rotation.set(rnd(-.4,.4),rnd(0,1),rnd(-.4,.4));}
 for(let i=0;i<10;i++){const s2=rnd(.04,.11),m=part(g,'oct',[P.st,P.st2,0x3a3430][i%3],s2,s2*.7,s2,rnd(-w*.7,w*.7),s2*.3,rnd(-d*.7,d*.7));m.rotation.set(rnd(0,3),rnd(0,6),0);}
 part(g,'box',P.st2,.13,.7,.13,w*.25,.35,-d*.1);if(burn)fire(g,rnd(-w/5,w/5),.03,rnd(-d/5,d/5),rnd(.7,1.1));else if(Math.random()<.4){g.updateWorldMatrix(true,false);const v=new THREE.Vector3(w*.25,.75,-d*.1);g.localToWorld(v);emit.push([v.x,v.y,v.z]);}return g;}
-// board
-{const gt=GTX.a.clone(),gn=GTX.n.clone();gt.needsUpdate=gn.needsUpdate=true;gt.repeat.set(.35,.35);gn.repeat.set(.35,.35);
-const top=new THREE.MeshStandardMaterial({map:gt,normalMap:gn,color:new THREE.Color(TH.bd).convertSRGBToLinear(),roughness:.95,envMapIntensity:.5}),side=mat(0x5a4632);
+// board: one surface whose shader blends grass, a dirt shoulder and the cobbled road from a blurred mask of the road cells (r = road, g = wider shoulder), with ragged edges from noise and the cobbles' own shape
+const BMK=(()=>{const PX=24,mw=(W+2)*PX,mh=(H+2)*PX,A=new Float32Array(mw*mh);for(const k of road){const[c,r]=k.split(',').map(Number);if(c<-1||r<-1||c>W||r>H)continue;for(let y=(r+1)*PX;y<(r+2)*PX;y++)for(let x=(c+1)*PX;x<(c+2)*PX;x++)A[y*mw+x]=1;}
+// separable box blur, run twice, edges clamped
+const blur=(src,rad)=>{let a=src.slice(),t=new Float32Array(a.length);for(let p=0;p<2;p++){for(let y=0;y<mh;y++){let acc=0;for(let x=-rad;x<=rad;x++)acc+=a[y*mw+clamp(x,0,mw-1)];for(let x=0;x<mw;x++){t[y*mw+x]=acc/(2*rad+1);acc+=a[y*mw+Math.min(x+rad+1,mw-1)]-a[y*mw+Math.max(x-rad,0)];}}
+for(let x=0;x<mw;x++){let acc=0;for(let y=-rad;y<=rad;y++)acc+=t[clamp(y,0,mh-1)*mw+x];for(let y=0;y<mh;y++){a[y*mw+x]=acc/(2*rad+1);acc+=t[Math.min(y+rad+1,mh-1)*mw+x]-t[Math.max(y-rad,0)*mw+x];}}}return a;};
+const R1=blur(A,3),R2=blur(A,9),D=new Uint8Array(mw*mh*4);for(let i=0;i<mw*mh;i++){D[i*4]=R1[i]*255;D[i*4+1]=R2[i]*255;D[i*4+3]=255;}
+const t=new THREE.DataTexture(D,mw,mh,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.needsUpdate=true;return t;})();
+{const gt=GTX.a.clone(),gn=GTX.n.clone();gt.needsUpdate=gn.needsUpdate=true;
+const lc=c=>new THREE.Color(c).convertSRGBToLinear(),U={uMask:{value:BMK},uNz:{value:NZT},uRA:{value:TX.road.a},uRN:{value:TX.road.n},uDA:{value:TX.dirt.a},uDN:{value:TX.dirt.n},
+uGC:{value:lc(TH.bd)},uRC:{value:lc(TH.rd).multiply(TH.gt=='dirt'?new THREE.Color(1.2,1.16,1.1):new THREE.Color(.86,.82,.76))},uDC:{value:lc(TH.gr[4]).lerp(lc(TH.gr[1]),.35).multiplyScalar(1.5)},uMR:{value:new THREE.Vector4(W/2+1,H/2+1,W+2,H+2)},uEd:{value:new THREE.Vector2(W/2+.2,H/2+.2)}};
+const top=new THREE.MeshStandardMaterial({map:gt,normalMap:gn,roughness:.95,envMapIntensity:.5});
+top.onBeforeCompile=sh=>{Object.assign(sh.uniforms,U);
+sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vWP;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWP=(modelMatrix*vec4(transformed,1.)).xz;');
+sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vWP;uniform sampler2D uMask,uNz,uRA,uRN,uDA,uDN;uniform vec3 uGC,uRC,uDC;uniform vec4 uMR;uniform vec2 uEd;\nvec3 lin(vec3 c){return pow(c,vec3(2.2));}')
+.replace('#include <map_fragment>',`vec2 P=vWP;vec3 nb=texture2D(uNz,P*.07).rgb,nf=texture2D(uNz,P*.31).rgb;vec2 mk=texture2D(uMask,(P+uMR.xy)/uMR.zw).rg;
+vec3 grass=lin(mix(texture2D(map,P*.35).rgb,texture2D(map,vec2(P.y,-P.x)*.23+.37).rgb,smoothstep(.35,.65,nb.r)))*uGC*mix(.8,1.12,nb.g);
+vec3 rs=texture2D(uRA,P).rgb,ra=lin(rs);float rh=dot(rs,vec3(.33));vec3 da=lin(texture2D(uDA,P*.45).rgb)*uDC;
+float wr=smoothstep(.44,.56,mk.r+(nf.b-.5)*.2+(nf.g-.5)*.16+(rh-.42)*.4);
+float wd=max(smoothstep(.04,.42,mk.g+(nf.g-.5)*.3)*.9,smoothstep(.7,.82,nb.b+(nf.b-.5)*.2)*.5)*(1.-wr);
+vec3 rc=mix(ra*uRC*mix(.82,1.1,nb.g)*mix(.9,1.1,nf.r),da*.7,smoothstep(.36,.22,rh))*mix(1.,.8,smoothstep(.75,.6,mk.r));
+vec3 col=mix(grass,da,wd);col=mix(col,rc,wr);
+float ed=min(uEd.x-abs(P.x),uEd.y-abs(P.y));col*=mix(.6,1.,smoothstep(0.,.45,ed));diffuseColor.rgb*=col;`)
+.replace('#include <roughnessmap_fragment>','float roughnessFactor=roughness*mix(1.,.86,wr);')
+.replace('texture2D( normalMap, vUv ).xyz * 2.0 - 1.0','normalize(mix(mix(texture2D(normalMap,P*.35).xyz*2.-1.,texture2D(uDN,P*.45).xyz*2.-1.,wd),(texture2D(uRN,P).xyz*2.-1.)*vec3(1.3,1.3,1.),wr))');};
+const side=mat(0x5a4632);
 const pl=part(sc,'box',[side,side,top,side,side,side],W+.4,.3,H+.4,0,-.15,0);pl.castShadow=false;pl.receiveShadow=true;L1(pl);}
+// the breach and gate cells lie outside the board, so they keep a cobbled slab of their own
 const RDM=PBR(TX.road,TH.rd);
-for(const k of road){const[c,r]=k.split(',').map(Number);flat(RDM,1.01,.06,1.01,cx(c),0,cz(r));}
 for(const o of[...ENT,GATE])flat(RDM,1.01,.2,1.01,cx(o.c),-.07,cz(o.r));
 const PADG=new THREE.CircleGeometry(.07,16);PADG.rotateX(-PI/2);const PADM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.28,depthWrite:false}),pads=[];
 for(let c=0;c<W;c++)for(let r=0;r<H;r++){if(road.has(c+','+r)||blk.has(c+','+r))continue;const m=L1(new THREE.Mesh(PADG,PADM));m.position.set(cx(c),.02,cz(r));sc.add(m);pads.push({c,r,m});}
 function updPads(){for(const p of pads)p.m.visible=!g.sel&&free(p.c,p.r);}
 function spot(m){for(;;){const c=Math.floor(rnd(0,W)),r=Math.floor(rnd(0,H)),rd=road.has(c+','+r);if(m==0&&(rd||blk.has(c+','+r))||m==1&&!rd)continue;const dx=rnd(-.5,.5),dz=rnd(-.5,.5);if(!rd&&Math.hypot(dx,dz)<.4)continue;return{x:cx(c)+dx,z:cz(r)+dz,y:rd?.03:0};}}
-const cb=[];for(const k of road){const[c,r]=k.split(',').map(Number);for(const[dx,dz]of[[1,0],[-1,0],[0,1],[0,-1]]){if(road.has((c+dx)+','+(r+dz))||c+dx<0||c+dx>=W||r+dz<0||r+dz>=H)continue;for(const o of[-.25,.25])cb.push({x:cx(c)+dx*.47+(dz?o:0),z:cz(r)+dz*.47+(dx?o:0),dx,dz});}}
-scatter('box',mat(0xffffff),cb.length,i=>{const q=cb[i];return{x:q.x,y:-.01,z:q.z,sx:q.dz?.46:.1,sy:.12,sz:q.dx?.46:.1,col:[0xf7f2e6,0xece5d6,0xd9d0bd][i%3]};});
-scatter('sph',mat(0xffffff),150,i=>{const p=spot(1);return{x:p.x,y:p.y+.01,z:p.z,sx:rnd(.05,.1),sy:.02,sz:rnd(.05,.1),col:[0xfff4d0,0xd9c48e,0xc9b27a][i%3]};});
+const cb=[];for(const k of road){const[c,r]=k.split(',').map(Number);for(const[dx,dz]of[[1,0],[-1,0],[0,1],[0,-1]]){if(road.has((c+dx)+','+(r+dz))||c+dx<0||c+dx>=W||r+dz<0||r+dz>=H)continue;for(const o of[-.34,-.12,.1,.32])if(Math.random()<.7)cb.push({x:cx(c)+dx*rnd(.44,.5)+(dz?o:0),z:cz(r)+dz*rnd(.44,.5)+(dx?o:0),dx,dz});}}
+scatter('box',mat(P.st2),cb.length,i=>{const q=cb[i],l=rnd(.1,.2);return{x:q.x,y:-.01,z:q.z,sx:q.dz?l:rnd(.07,.11),sy:rnd(.07,.11),sz:q.dx?l:rnd(.07,.11),ry:rnd(-.3,.3),col:[0xc8c0b0,0xa8a090,0x8e887c,0xb4aa96][i%4]};});
+scatter('oct',mat(0xffffff),70,i=>{const p=spot(1),s2=rnd(.03,.06);return{x:p.x,y:.005,z:p.z,sx:s2,sy:s2*.5,ry:rnd(0,6),col:[0xb8ac94,0x9a8e78,0x857a68][i%3]};});
 if(TH.peb)scatter('oct',mat(0xffffff),TH.peb,i=>{const p=spot(0),s2=rnd(.03,.08);return{x:p.x,y:s2*.3,z:p.z,sx:s2,sy:s2*.6,ry:rnd(0,6),col:[TH.gr[3],TH.gr[1],TH.gr[2]][i%3]};});
 const WT={value:0},WN=TX.grain.n.clone();WN.needsUpdate=true;WN.repeat.set(10,10);
 function windify(m){m.onBeforeCompile=sh=>{sh.uniforms.uT=WT;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uT;').replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nfloat ph=instanceMatrix[3].x*.7+instanceMatrix[3].z*.9;\n#else\nfloat ph=position.x*3.+position.z*3.;\n#endif\ntransformed.x+=sin(uT*2.2+ph)*.05*position.y;transformed.z+=cos(uT*1.7+ph)*.035*position.y;');};return m;}
