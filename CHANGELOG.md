@@ -4,6 +4,7 @@ All changes to Castle Defense, newest first. Each entry says what changed for th
 
 ## 2026-10-26
 - **Moodier colours:** the world has a darker, more natural look – earthier grass, a softer sky, deeper water and toned-down colours everywhere – while torches, magic and fireworks still glow.
+- The new colours were a little too grey and dark, so they're now a bit brighter and livelier while staying natural.
 - Right-click anywhere to deselect the tower you have selected.
 - **New look:** the whole interface has been redesigned. The battlefield now fills the screen, with the controls floating on top as sleek glass panels in gold and dark wood tones. On phones the controls sit neatly below the battlefield.
 - **Tower stats:** the info panel now shows each defender's DPS, damage, fire rate and range, with bars so you can compare towers at a glance. Selected towers also show what the next upgrade gives you, in green.

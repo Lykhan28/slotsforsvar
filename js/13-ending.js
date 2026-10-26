@@ -30,7 +30,7 @@ const FSPOTS=[[8.2,2.9,.2],[12.8,2.9,.2],[8.2,2.9,4.8],[12.8,2.9,4.8],[10.5,2.4,
 function startEnd(win){FS=win?3:1;AM=win?0:2;cine={tx:10.4,tz:2.5,dist:win?15:14,az:win?-.3:-.45,pol:.78};endS={win,t:0,nx:.2,fi:0,sp:FSPOTS};}
 function endReset(){FS=1;AM=1;cine=null;endS=null;for(const a of rockets)sc.remove(a.sp);rockets.length=0;for(const a of fws)sc.remove(a.sp);fws.length=0;for(const a of smk){sc.remove(a.m);a.m.material.dispose();}smk.length=0;
 for(const a of chunks)sc.remove(a.m);chunks.length=0;for(const d of dynF){sc.remove(d.f);sc.remove(d.f2);sc.remove(d.g3);}dynF.length=0;
-if(KEEP&&KEEP0){KEEP.visible=true;KEEP.position.set(KEEP0.x,KEEP0.y,KEEP0.z);KEEP.rotation.set(0,0,0);KEEP.scale.set(1,1,1);}fireL.intensity=0;R.toneMappingExposure=1.05;sun.intensity=1.55;}
+if(KEEP&&KEEP0){KEEP.visible=true;KEEP.position.set(KEEP0.x,KEEP0.y,KEEP0.z);KEEP.rotation.set(0,0,0);KEEP.scale.set(1,1,1);}fireL.intensity=0;R.toneMappingExposure=EXPO;sun.intensity=SUN0;}
 function endAnim(dt){
 if(cine){const k=1-Math.exp(-dt*1.6);tx+=(cine.tx-tx)*k;tz+=(cine.tz-tz)*k;dist+=(cine.dist-dist)*k;az+=(cine.az-az)*k;pol+=(cine.pol-pol)*k;setCam();}
 for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.t+=dt;const p=Math.min(1,r.t/r.d),py=.3+(r.ty-.3)*(1-Math.pow(1-p,2)),px=r.x+r.vx*r.t,pz=r.z+r.vz*r.t;r.sp.position.set(px,py,pz);
@@ -43,7 +43,7 @@ d.pt-=dt;if(d.pt<=0){d.pt=rnd(.18,.3);puff(d.x+rnd(-.1,.1),d.y+.3,d.z+rnd(-.1,.1
 if(!endS)return;const E=endS;E.t+=dt;
 if(E.win){E.nx-=dt;if(E.nx<=0){E.nx=rnd(.25,.7);rocket(rnd(8.6,12.4),rnd(.8,4.2),FW_COL[Math.random()*6|0]);}return;}
 while(E.fi<E.sp.length&&E.t>E.fi*.28+.3){const q=E.sp[E.fi++];dynFire(q[0],q[1]-.15,q[2],q[1]>4?1.5:1.1);snd('crackle');}
-const k4=Math.min(1,E.t/4);fireL.intensity=Math.min(2.4,E.t*.7)*(1+.15*Math.sin(tt*11));R.toneMappingExposure=1.05-.3*k4;sun.intensity=1.55-.7*k4;if(Math.random()<dt*6)snd('crackle');
+const k4=Math.min(1,E.t/4);fireL.intensity=Math.min(2.4,E.t*.7)*(1+.15*Math.sin(tt*11));R.toneMappingExposure=EXPO-.3*k4;sun.intensity=SUN0-.7*k4;if(Math.random()<dt*6)snd('crackle');
 const ct=E.t-2.6;if(ct>0&&KEEP){if(!E.cs){E.cs=1;snd('collapse');}
 if(ct<.9){const j=.03*ct;KEEP.position.x=KEEP0.x+rnd(-j,j);KEEP.position.z=KEEP0.z+rnd(-j,j);KEEP.rotation.z=rnd(-.012,.012);
 if(Math.random()<dt*14){chunk(11.9+rnd(-.5,.5),rnd(3.2,5.2),2.5+rnd(-.5,.5),rnd(.06,.14),rnd(-.5,.5),0,rnd(-.5,.5));puff(11.9+rnd(-.6,.6),rnd(.2,1),2.5+rnd(-.6,.6),.25);}}
