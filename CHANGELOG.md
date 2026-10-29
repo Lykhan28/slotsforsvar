@@ -3,6 +3,7 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **New enemy: Bat swarms** (from wave 6). A flock of bats that ignores the road and flies straight from the breach to the castle gate, so they arrive much sooner than anything on foot. Only **Archers, the Ballista, the Wizard and the Storm Tower** can hit them – Catapult boulders and Alchemist flasks can't reach them. The tower card shows "🦇 Hits flyers" or "Ground only", and the next-wave preview warns when bats are coming.
 - **New enemy: Shieldbearer** (from wave 8). A stocky goblin behind a big tower shield that blocks three quarters of the damage from arrows and Ballista bolts that hit it from the front. You'll hear a clang and see grey numbers when it blocks. Shoot it from the side or behind, or use catapults, magic, poison or lightning, which go around the shield.
 - **New enemy: Goblin Shaman** (from wave 10). It leans on a skull staff, and every few seconds it sends out a green pulse that heals the enemies around it (green numbers show how much). Dragons only get a little of it. Take the Shaman down first!
 - The next-wave preview lists what the new enemies do, along with the other enemies' resistances.

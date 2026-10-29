@@ -50,6 +50,7 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 | Dragon (boss) | 30 | 12 | 50 |
 | Shieldbearer (guard) | 40 | 1.4 | 8 |
 | Goblin Shaman (shaman) | 45 | 0.9 | 9 |
+| Bat swarm (bat, flying) | 60 | 0.6 | 5 |
 
 ## Damage types and resistances
 Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each enemy type has resistances (`E[type].rs`, the share of that type's damage it shrugs off). `dmul(e,k)` in js/09-game.js applies them to every hit, including poison and each jump of the lightning chain.
@@ -71,6 +72,7 @@ Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each en
 | Dragon | – | – | −50% | – |
 | Shieldbearer | −75% from Archers and the Ballista when hit from the front | – | – | – |
 | Shaman | – | – | – | – |
+| Bat swarm | flying: Catapult can't hit it | – | flying: Alchemist can't hit it | – |
 
 Damage numbers are red for a full hit, **grey** when the enemy resisted part of it, and **pale gold** when the Ballista pierced armour. The next-wave preview has a line listing the coming enemies' resistances (hover an enemy icon for the same). Knights were cut from 2.6× to 1.8× health when they got their armour: against physical damage they are as tough as a 3.6× enemy, against everything else weaker than before.
 
@@ -78,9 +80,13 @@ Damage numbers are red for a full hit, **grey** when the enemy resisted part of 
 
 **Shieldbearer:** its tower shield blocks `shd` = 75% of an Archer arrow's or Ballista bolt's damage when the shot comes at its front: the shot's direction of travel is within about 70° of head-on to the way it is walking (`shBlk()` in js/09-game.js). Shots from the side or behind, Catapult boulders (they come down from above) and all magic, poison and lightning damage go around it. A blocked hit gives sparks, a clang and a grey number. The Ballista pierces armour but not the shield.
 
+**Flying enemies (Bat swarm):** an enemy with `fy` (its flying height) ignores the road and flies in a straight line from where its breach's road starts to where the road ends at the gate (`FPATHS` in js/01-config.js, one per breach, so on levels 7–8 they come from both breaches). On Greenmeadow the flight is 836 long against 1920 for the road (44%). Only towers with `air` can target it: **Archers, Ballista, Wizard and Storm Tower** (the Wizard banishes it back along its flight line, and Storm chains reach it). Catapult boulders and Alchemist flasks never target it, and their splash and poison skip it. Reaching the gate costs one life. The tower inspector shows "🦇 Hits flyers" or "Ground only" on every attacking tower.
+
 **Goblin Shaman:** every 4 s (`HEAL.cd`, the first pulse 1.5 s after it appears) it sends out a green pulse that heals every other living enemy within 75 (`HEAL.r`, 1.25 tiles) by `hl` = 3% of that enemy's max health (Dragons by a third of that). It doesn't heal itself, and healing never goes above max health. Healed enemies show a green +number.
 
-Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon. From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot, and the Shaman wins a slot both would take).
+Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon. From wave 6 every 6th enemy (positions 2, 8, 14, …) is a bat swarm. From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot; when two of them would take the same slot, the Shaman wins over the Shieldbearer and both win over a bat swarm).
+
+**Simulator check for bat swarms** (`--keep-going`, lives lost before → after): `level1-example` 9 → 12, `level1-physical` 14 → 15, `level1-mixed` 13 → 7, `level4-mixed` 84 → 73 (defeat on wave 19 instead of 18). Bat health is very sensitive: at 0.5× the swarms were free gold, at 0.8× `level1-example` lost on wave 20, at 1.0× with speed 70 two of the Level 1 runs did. 0.6× keeps the overall difficulty about where it was. The reference layouts all have Archers and Storm Towers on the board centre, which the flight line crosses; a Catapult/Alchemist-heavy build would suffer more.
 
 **Simulator check for the new enemies** (`--keep-going`, lives lost after the armour change → with Shieldbearers and Shamans): `level1-example` 12 → 9, `level1-physical` 12 → 14, `level1-mixed` 8 → 13, `level4-mixed` 68 → 84 (defeat on wave 18 instead of 19). All the Level 1 runs still win; the extra losses fall in waves 18–20, where the reference layouts stop building and sit on 1000+ unspent gold. A first try that healed 8% every 3 s lost the mixed run on wave 20, so the heal was cut to 3% every 4 s and the Shieldbearer's health from 1.6× to 1.4×.
 

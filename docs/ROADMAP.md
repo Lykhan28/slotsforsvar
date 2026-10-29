@@ -67,7 +67,7 @@ Introduce damage types (physical, magic, fire/poison, lightning) for towers and 
 Add two new enemies in the existing code-built style (see the enemy notes in CLAUDE.md – bakeE, rig names, no material swaps): a Shieldbearer whose tower shield blocks most frontal arrow/ballista damage, and a goblin Shaman who heals nearby enemies with a visible green pulse. Add them to waveMix from mid-game waves.
 ```
 
-- [ ] **11. Flying enemy**
+- [x] **11. Flying enemy**
 ```text
 Add a flying enemy (bat swarm or small wyvern) that flies straight from the breach to the gate, ignoring the road. Only Archers, Ballista, Storm and Wizard can hit flyers (not Catapult or Alchemist). Show this in the tower inspector and the next-wave preview.
 ```

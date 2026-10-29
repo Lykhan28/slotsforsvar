@@ -1,7 +1,7 @@
 // ---------- UI ----------
 const DS={arrow:'Fires at 1, 2 or 3 enemies at once, depending on its level.',cannon:'Hurls boulders that hit everything in an area and slow enemies for 1 second.',frost:'Teleports enemies back down the road, starting with the one closest to the castle. Bosses resist.',ballista:'Huge range and hits hard, piercing armour. Goes for the toughest enemy unless you tell it otherwise.',storm:'Chain lightning strikes 5, 6 or 7 enemies and stuns them for a moment. Lightning ignores armour.',alch:'Lobs poison flasks that deal damage over time in an area.',banner:'Nearby towers deal +20% damage.',vault:'Earns gold at the end of every wave.'};
 const ROLE={arrow:'Multi-shot',cannon:'Area · Slow',frost:'Control',ballista:'Sniper',storm:'Chain',alch:'Poison · Area',banner:'Support',vault:'Economy'};
-const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon'],guard:['🧱','Shieldbearers','shields stop arrows from the front'],shaman:['🧙','Shamans','heal nearby enemies']};
+const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon'],guard:['🧱','Shieldbearers','shields stop arrows from the front'],shaman:['🧙','Shamans','heal nearby enemies'],bat:['🦇','Bat swarms','fly straight to the gate; Catapults and Alchemists can’t hit them']};
 // an enemy type's resistances (E[type].rs, see DTY in js/01-config.js) and special ability (FOE[type][2]) as text, e.g. "−50% physical"
 const resTxt=t=>Object.keys(E[t].rs).map(d=>(E[t].rs[d]>0?'−':'+')+Math.round(Math.abs(E[t].rs[d])*100)+'% '+DTY[d][0].toLowerCase()).concat(FOE[t][2]||[]).join(', ');
 let offMsg=0,hov=null;const TK=Object.keys(T),TC2={arrow:'#5cd17a',cannon:'#d98a3c',frost:'#9a6bff',ballista:'#e8e8e8',storm:'#4fd0ff',alch:'#9cff4a',banner:'#ff5a5a',vault:'#ffd24a'};
@@ -33,6 +33,7 @@ const c={arrow:[a.n+(a.n>1?' targets':' target')],cannon:['Splash '+tiles(tp.sp)
 ballista:['Longest range'],storm:['Chains '+a.n+' enemies','Stuns 0.2s'],alch:['Poison 3s','Splash 0.75 tiles'],
 banner:[t?'Boosting '+g.tw.filter(o=>o!==t&&!T[o.k].sup&&!T[o.k].inc&&Math.hypot(o.x-t.x,o.y-t.y)<=a.r).length+' towers':'Stacks with other banners'],vault:['Pays for itself in '+Math.ceil(tp.c/(tp.inc*l))+' waves']}[k].map(s=>'<span class="chip">'+s+'</span>');
 if(atk&&!t)c.unshift('<span class="chip">Targets: '+TGM[tm][0]+'</span>');
+if(atk)c.push(tp.air?'<span class="chip" title="Can shoot flying enemies">🦇 Hits flyers</span>':'<span class="chip lo" title="Can’t hit flying enemies">Ground only</span>');
 if(atk)c.unshift('<span class="chip dty" title="Damage type">'+DTY[tp.dt][1]+' '+DTY[tp.dt][0]+(tp.pr?' · pierces armour':tp.dt=='light'?' · ignores armour':'')+'</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');
 return h+'<div class="chips">'+c.join('')+'</div>';}
