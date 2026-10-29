@@ -14,16 +14,16 @@
     "up 5,2",
     "up 5,4",
     "ballista 10,4",
-    "up 8,2",
-    "up 3,4",
+    "up 8,2 crossbow",
+    "up 3,4 crossbow",
     "storm 7,4",
     "up 6,2",
     "up 4,4",
     "alch 4,2",
     "up 3,5",
-    "up 6,2",
+    "up 6,2 tempest",
     "up 7,4",
-    "up 5,2",
-    "up 5,4"
+    "up 5,2 fire",
+    "up 5,4 fire"
   ]
 }

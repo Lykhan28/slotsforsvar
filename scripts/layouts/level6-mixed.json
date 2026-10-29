@@ -3,7 +3,7 @@
   "note": "Barrow Moor: archers and a catapult inside the long bottom stretch, then storm, alchemist, ballista and a banner. Reference run for the ghosts.",
   "build": [
     "arrow 3,5", "arrow 11,5", "cannon 5,5", "arrow 7,5", "up 3,5", "up 11,5", "storm 9,5", "alch 3,4", "up 5,5",
-    "ballista 7,4", "up 9,5", "banner 6,5", "up 7,5", "up 3,4", "storm 11,4", "up 3,5", "up 11,5", "up 9,5", "up 7,4",
-    "up 11,4", "frost 3,7", "up 5,5", "up 7,5", "up 11,4", "up 7,4", "up 3,4"
+    "ballista 7,4", "up 9,5", "banner 6,5", "up 7,5", "up 3,4", "storm 11,4", "up 3,5 crossbow", "up 11,5 crossbow", "up 9,5 tempest", "up 7,4",
+    "up 11,4", "frost 3,7", "up 5,5 fire", "up 7,5 crossbow", "up 11,4 tempest", "up 7,4", "up 3,4"
   ]
 }

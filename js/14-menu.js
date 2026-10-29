@@ -25,10 +25,10 @@ const inGame=()=>!g.over&&(g.wave>0||g.tw.length>0);
 const RUNK='sfrun'+LVN;let runS='';
 function savedRun(i){try{const d=JSON.parse(localStorage.getItem('sfrun'+i));return d&&d.v===1&&d.wave>=0&&d.wave<MAXW&&d.lives>0&&Array.isArray(d.tw)?d:null;}catch(e){return null;}}
 function saveRun(){if(g.over){if(runS!==null){runS=null;try{localStorage.removeItem(RUNK);}catch(e){}}return;}
-if(g.run||!(g.wave>0||g.tw.length))return;const s=JSON.stringify({v:1,gold:g.gold,lives:g.lives,wave:g.wave,spd:g.spd,tw:g.tw.map(t=>[t.k,t.c,t.r,t.l,t.inv,t.tm||null,t.bw===g.wave?1:0])});
+if(g.run||!(g.wave>0||g.tw.length))return;const s=JSON.stringify({v:1,gold:g.gold,lives:g.lives,wave:g.wave,spd:g.spd,tw:g.tw.map(t=>[t.k,t.c,t.r,t.l,t.inv,t.tm||null,t.bw===g.wave?1:0,t.br!=null?t.br:null])});
 if(s===runS)return;runS=s;try{localStorage.setItem(RUNK,s);}catch(e){}}
 function loadRun(){const d=savedRun(LVN);if(!d||inGame())return;g.gold=Math.max(0,+d.gold||0);g.lives=Math.min(20,d.lives);g.wave=d.wave|0;g.spd=[1,2,3].includes(d.spd)?d.spd:1;
-for(const[k,c,r,l,inv,tm,nu]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,r,clamp(l|0,1,3),+inv||T[k].c);if(TGM[tm])t.tm=tm;if(nu)t.bw=g.wave;}ui();}
+for(const[k,c,r,l,inv,tm,nu,br]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,r,clamp(l|0,1,3),+inv||T[k].c,BRN[k]&&BRN[k][br]?br:null);if(TGM[tm])t.tm=tm;if(nu)t.bw=g.wave;}ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
 function mPage(p){MENU.pg=p;for(const k of['main','levels','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
 $('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+(inGame()?' · '+(g.run?'paused on wave '+g.wave+' of '+MAXW:g.wave?'wave '+g.wave+' of '+MAXW+' cleared':'getting ready'):'');

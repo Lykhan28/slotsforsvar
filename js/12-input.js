@@ -4,7 +4,8 @@ function cellAt(ev){const r=C.getBoundingClientRect();nd.set((ev.clientX-r.left)
 if(!ray.ray.intersectPlane(pl,pt))return null;return{c:Math.floor(pt.x+W/2),r:Math.floor(pt.z+H/2)};}
 const free=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&!road.has(c+','+r)&&!blk.has(c+','+r)&&!g.tw.some(t=>t.c==c&&t.r==r);
 // put a tower on the board (also used to restore a saved run)
-function addTw(k,c,r,l,inv){const t={k,c,r,x:c*S+S/2,y:r*S+S/2,l,cd:0,inv};buildTower(t);g.tw.push(t);return t;}
+// br = level-3 upgrade branch (BRN), or null
+function addTw(k,c,r,l,inv,br){const t={k,c,r,x:c*S+S/2,y:r*S+S/2,l,cd:0,inv,br:br==null?null:br};buildTower(t);g.tw.push(t);return t;}
 function tap(ev){if(g.over)return;const k=cellAt(ev);if(!k)return;const ex=g.tw.find(t=>t.c==k.c&&t.r==k.r);
 if(ex){g.sel=g.sel===ex?null:ex;selRng();ui();return;}
 g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}

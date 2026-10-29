@@ -7,8 +7,9 @@ const BH=.18,TSC=[P.st,P.st2,P.st3];// TSC: textured stone; the loose stones on 
 function seg(p,c,a,b,r){const d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];return eBone(p,c,r*.9,r,Math.hypot(...d),a[0],a[1],a[2],d[0],d[1],d[2]);}
 // a ring lying flat (torus), optionally glowing
 function ring(p,c,r,y,th,e,x,z){const m=eM(p,TORL,c,x||0,y,z||0,PI/2,0,0,e);m.scale.set(r,r,th||r);return m;}
-// a little crewman: tunic colour tun, hood colour hat (0x9aa3b0 = an iron kettle hat instead); bow=true draws a bow with an arrow nocked and a quiver on the back
-function chibi(h,x,z,tun,hat,bow){const sk=0xffd9b0,lt=0x45301d,dk=0x2a1a10,G=new THREE.Group();G.position.set(x,0,z);h.add(G);
+// a little crewman: tunic colour tun, hood colour hat (0x9aa3b0 = an iron kettle hat instead); bow=true draws a bow with an arrow nocked and a quiver on the back,
+// bow=2 a tall longbow, bow=3 a crossbow held level (no quiver)
+function chibi(h,x,z,tun,hat,bow){const xb=bow==3;const sk=0xffd9b0,lt=0x45301d,dk=0x2a1a10,G=new THREE.Group();G.position.set(x,0,z);h.add(G);
 for(const k of[-1,1]){eM(G,capG(.016,.019,.075,8),0x3a3a48,k*.026,.115,0);eM(G,rboxG(.036,.032,.064,.012),lt,k*.026,.017,.008);}
 eM(G,lathG([[0,.095],[.058,.1],[.054,.15],[.047,.2],[.038,.245],[0,.256]],12),tun,0,0,0);eM(G,rboxG(.05,.1,.008,.003),hat,0,.18,.046,-.1);
 ring(G,lt,.053,.14,.06);eM(G,rboxG(.018,.016,.008,.003),0xffc93c,0,.14,.055);
@@ -19,8 +20,10 @@ for(const k of[-1,1]){eSp(G,0xffffff,.011,.009,.006,k*.02,.326,.041);eSp(G,0x1b1
 eSp(G,0xf0c090,.009,.01,.01,0,.314,.05);eM(G,rboxG(.014,.004,.005,.0015),0x7a3030,0,.296,.044);
 if(hat==0x9aa3b0){eM(G,domG(.054,.5),hat,0,.33,-.004);eM(G,lathG([[.082,.326],[.08,.334],[.052,.338]],14),hat,0,0,0);}
 else{eSp(G,hat,.054,.045,.054,0,.34,-.006);horn(G,hat,0,.37,-.02,.032,.1,3,PI-.35,0,-.35,0);eM(G,rboxG(.006,.045,.02,.002),0xb3202a,.035,.37,-.02,0,0,-.5);}
-if(bow){const bw=new THREE.Group();bw.rotation.y=-PI/2;bw.position.set(0,.19,.16);part(bw,'arc',P.wd2,.16,.16,.16,0,0,0).rotation.z=-PI/2;G.add(bw);
-eCy(G,0xf0e6c8,.003,.32,0,.19,.16);eCy(G,P.wd2,.005,.2,0,.19,.18,PI/2);eCnD(G,0xdfe6ee,.012,.04,0,.19,.3,0,0,1);
+if(xb){eM(G,rboxG(.032,.03,.22,.006),P.wd2,0,.19,.12);eM(G,rboxG(.02,.012,.16,.003),0x2b3342,0,.21,.13);part(G,'arc',0x5a5a68,.1,.06,.1,0,.2,.2).rotation.x=PI/2;
+eCy(G,0xf0e6c8,.003,.2,0,.2,.2,0,0,PI/2);eCnD(G,0xdfe6ee,.012,.04,0,.22,.27,0,0,1);}
+else if(bow){const L=bow==2?1.5:1,bw=new THREE.Group();bw.rotation.y=-PI/2;bw.position.set(0,.19,.16);bw.scale.set(1,L,1);part(bw,'arc',P.wd2,.16,.16,.16,0,0,0).rotation.z=-PI/2;G.add(bw);
+eCy(G,0xf0e6c8,.003,.32*L,0,.19,.16);eCy(G,P.wd2,.005,.2,0,.19,.18,PI/2);eCnD(G,0xdfe6ee,.012,.04,0,.19,.3,0,0,1);
 const q=eCy(G,0x6b4a2b,.022,.12,-.04,.22,-.065);q.rotation.x=.25;for(let i=0;i<3;i++){eCy(G,P.wd2,.004,.05,-.04+(i-1)*.01,.3,-.075);eM(G,rboxG(.004,.02,.012,.0015),P.rd,-.04+(i-1)*.01,.33,-.075);}}}
 // the stone plinth every tower stands on: a ring of rough blocks round a flagstone top, with rubble at the foot
 function plinth(g){part(g,'cyl',P.st2,.43,.1,.43,0,.05,0);for(let i=0;i<12;i++){const a=i/12*2*PI+.13;eM(g,rboxG(.21,.13+rnd(-.012,.012),.1,.025),TSC[i%3],.4*Math.sin(a),.065,.4*Math.cos(a),0,a,0);}
@@ -46,33 +49,50 @@ function barrel(g,x,y,z,s){eM(g,lathG([[.0,0],[.05,0],[.06,.05],[.05,.1],[0,.1]]
 function hbanner(g,x,y,z,a,c,w,h){const B=new THREE.Group();B.position.set(x,y,z);B.rotation.y=a;g.add(B);eCy(B,P.wd2,.008,w+.06,0,0,0,0,0,PI/2);
 eM(B,memG('bn'+ek([w,h]),[[-w/2,0],[w/2,0],[w/2,-h],[0,-h*.8],[-w/2,-h]]),matDS(c),0,0,.006);eM(B,memG('bb'+ek([w,h]),[[-w/2-.008,0],[w/2+.008,0],[w/2+.008,-h-.01],[0,-h*.8-.01],[-w/2-.008,-h-.01]]),matDS(P.gd),0,0,.003);
 eM(B,shpG('crest',[[0,.05],[.035,.02],[.03,-.04],[0,-.06],[-.03,-.04],[-.035,.02]],.006,.002),P.gd,0,-h*.42,.012);}
-function buildTower(t){if(t.m)sc.remove(t.m);const g=new THREE.Group(),l=t.l,hs=1+.2*(l-1),h=new THREE.Group(),ac=[P.rd,P.bl,P.gd][l-1],grp=[];
+// b = the level-3 upgrade branch (t.br, BRN in js/01-config.js): 0 or 1, -1 for none; each branch changes the model
+function buildTower(t){if(t.m)sc.remove(t.m);const g=new THREE.Group(),l=t.l,hs=1+.2*(l-1),h=new THREE.Group(),ac=[P.rd,P.bl,P.gd][l-1],grp=[],b=l>=3&&t.br!=null?t.br:-1;
 t.arm=t.flag=t.stf=t.ball=t.rcl=t.spin=null;t.aura=null;t.fl=[];t.aimG=h;h.userData.keep=true;g.position.set(wx(t.x),0,wz(t.y));blob(g,.62);plinth(g);
 if(t.k=='arrow'){// archers: a stone tower with a level-coloured band, slits, ivy, a barrel of spare arrows and shields hung on the merlons
 const a=.8*hs,y=BH+a,R=shaft(g,.36,a,P.st,1);part(g,'cyl',ac,.33,.06,.33,0,BH+a*.55,0);for(const an of[PI/2,-PI/2,PI,PI*.25])slit(g,R,a,an==PI*.25?.32:.78,an);door(g,.36);
 parapet(g,.34,y,8);torch(g,-.37,BH+a*.35,.1,t.fl);barrel(g,.2,y+.08,-.16,1);for(let i=0;i<6;i++){const x=.2+rnd(-.025,.025),z=-.16+rnd(-.025,.025);eCy(g,P.wd2,.005,.16,x,y+.22,z);eM(g,rboxG(.004,.03,.014,.0015),i%2?P.rd:0xf2f2f2,x,y+.28,z);}
 if(l>=2)for(const an of[PI/4,-PI/4,PI*.75,-PI*.75]){const x=.38*Math.sin(an),z=.38*Math.cos(an);eM(g,eg('shld',()=>new THREE.CylinderGeometry(.055,.055,.014,14)),ac,x,y+.13,z).quaternion.setFromUnitVectors(YUP,new THREE.Vector3(Math.sin(an),0,Math.cos(an)));eSp(g,P.gd,.014,.014,.01,x*1.04,y+.13,z*1.04);}
-h.position.y=y+.08;chibi(h,0,0,0x3fae6b,P.rd,true);if(l>=2)chibi(h,-.16,-.1,0x3b86e0,P.bl,true);if(l>=3)chibi(h,.16,-.1,0xffb020,P.gd,true);t.flag=flag(g,0,y+.1,-.3,ac,.9);}
+h.position.y=y+.08;
+if(b==0){// Longbowmen: three hooded archers in forest green with tall longbows, a bundle of long arrows and a green banner on a high pole
+for(const[x,z]of[[0,0],[-.16,-.1],[.16,-.1]])chibi(h,x,z,0x3f7d3a,0x2d5f2b,2);for(let i=0;i<7;i++){const x=-.2+rnd(-.02,.02),z=.14+rnd(-.02,.02);eCy(g,P.wd2,.005,.3,x,y+.25,z);eM(g,rboxG(.004,.03,.014,.0015),0x2d5f2b,x,y+.38,z);}
+ring(g,P.wd2,.035,y+.2,.3,0,-.2,.14);t.flag=flag(g,0,y+.1,-.3,0x2d6a3a,1.4);}
+else if(b==1){// Crossbow Nest: a roofed wooden hoarding round the top, crossbowmen in iron hats, a spanning winch and a crate of bolts
+for(let i=0;i<10;i++){const an=i/10*2*PI,x=.45*Math.sin(an),z=.45*Math.cos(an);eM(g,rboxG(.27,.17,.03,.008),[P.wd,0x7a4a26][i%2],x,y+.12,z,0,an,0);eM(g,rboxG(.3,.02,.12,.006),P.wd2,x*1.04,y+.22,z*1.04,-.5,an,0);
+eCy(g,P.wd2,.012,.3,.39*Math.sin(an+.31),y+.07,.39*Math.cos(an+.31));if(i%2)eM(g,rboxG(.025,.07,.035,.004),0x14101e,x*1.005,y+.12,z*1.005,0,an,0);}
+for(const[x,z]of[[0,0],[-.16,-.1],[.16,-.1]])chibi(h,x,z,0x8a2f2a,0x9aa3b0,3);eM(g,rboxG(.14,.07,.09,.01),P.wd,.2,y+.12,-.16);for(let i=0;i<5;i++)eCy(g,0x5a3a1e,.006,.12,.16+i*.02,y+.17,-.16,PI/2);
+eCy(g,0x5a5a68,.03,.14,-.2,y+.14,-.12,0,0,PI/2);t.flag=flag(g,0,y+.1,-.3,0x6a2a2a,1);}
+else{chibi(h,0,0,0x3fae6b,P.rd,true);if(l>=2)chibi(h,-.16,-.1,0x3b86e0,P.bl,true);if(l>=3)chibi(h,.16,-.1,0xffb020,P.gd,true);t.flag=flag(g,0,y+.1,-.3,ac,.9);}}
 else if(t.k=='frost'){// wizard: a lilac tower ringed with glowing runes, lit windows, a side turret with a balcony, a magic circle on top and the wizard himself
+// colours: robe, hat brim, hat, runes (+glow), crystal (+glow), rings (+glow), light, flag – the Archmage in violet and gold, the Time Warden in amber and bronze
+const WC2=[[0x6a2a9a,0x3a1a6a,0x5a2a8a,0xd9a8ff,0x8a3aff,0xe0b8ff,0x8a3aff,P.gd,0x886600,0xb36bff,0x6a2a9a],[0x9a6a2a,0x5a3a12,0x7a4a1a,0xffd27a,0xcc8a1a,0xffe2a0,0xcc8a1a,P.gd,0x886600,0xffb43a,0x8a5a1e]][b]||
+[0x3b5bdb,0x2a3a9a,0x4a4ad0,0x6af0ff,0x1aa8c8,0x9ff7ff,0x1aa8c8,0xaee6ff,0x2277bb,0x66e0ff,0x4a62b8],[rob,brm,hat,rn,rne,cr,cre,rg,rge,lt,fc]=WC2;
 const a=.9*hs,y=BH+a,R=shaft(g,.3,a,0xcdbdf5,0);part(g,'cyl',P.pu,.275,.06,.275,0,BH+a*.35,0);part(g,'cyl',P.pu,.26,.06,.26,0,BH+a*.72,0);
-for(const f of[.5,.86])ring(g,0x6af0ff,R(f),BH+a*f,.035,0x1aa8c8);
+for(const f of[.5,.86])ring(g,rn,R(f),BH+a*f,.035,rne);
 for(const[f,an]of[[.5,0],[.5,PI],[.85,PI/2],[.85,-PI/2]])win(g,R(f)*Math.sin(an),BH+a*f,R(f)*Math.cos(an),.06,.14,an,0xfff0a0,0xffd24a);door(g,.3,0x4a3a7a);
-parapet(g,.3,y,8,P.pu,0x5a3fa8);ring(g,0x6af0ff,.2,y+.085,.06,0x1aa8c8);for(let i=0;i<5;i++){const an=i/5*2*PI;eM(g,rboxG(.23,.008,.012,.002),0x9ff7ff,.08*Math.sin(an+.6),y+.087,.08*Math.cos(an+.6),0,an+PI/2,0,0x1aa8c8);}
+parapet(g,.3,y,8,P.pu,0x5a3fa8);ring(g,rn,.2,y+.085,.06,rne);for(let i=0;i<5;i++){const an=i/5*2*PI;eM(g,rboxG(.23,.008,.012,.002),cr,.08*Math.sin(an+.6),y+.087,.08*Math.cos(an+.6),0,an+PI/2,0,rne);}
 const tx=-.25,tz=-.16;part(g,'tap',0xcdbdf5,.12,a*.8,.12,tx,BH+a*.4,tz);part(g,'cyl',P.pu,.13,.04,.13,tx,BH+a*.8,tz);part(g,'cone',RF(P.pu),.17,.34,.17,tx,BH+a*.8+.17,tz);
 for(let i=0;i<10;i++){const an=i/10*2*PI;eM(g,rboxG(.04,.03,.012,.004),P.pu,tx+.165*Math.sin(an),BH+a*.8+.015,tz+.165*Math.cos(an),0,an,0);}
 eSp(g,P.gd,.03,.03,.03,tx,BH+a*.8+.36,tz,0x886600);eCnD(g,P.gd,.012,.08,tx,BH+a*.8+.42,tz,0,1,0);win(g,tx,BH+a*.55,tz+.1,.05,.1,0,0xfff0a0,0xffd24a);
 part(g,'cyl',P.st2,.16,.03,.16,.2,BH+a*.62,-.05);for(let i=0;i<5;i++){const an=-.4+i*.45;eCy(g,P.wd2,.008,.08,.2+.15*Math.sin(an+.9),BH+a*.62+.05,-.05+.15*Math.cos(an+.9));}
 const wiz=new THREE.Group();wiz.position.set(0,y+.07,0);wiz.userData.keep=true;const sk=0xffd9b0;
-eM(wiz,lathG([[0,0],[.11,0],[.1,.06],[.075,.16],[.05,.22],[0,.24]],14),0x3b5bdb,0,0,0);ring(wiz,0xffc93c,.08,.13,.1);for(let i=0;i<6;i++){const an=i*1.1,r=.1-.004*i;eSp(wiz,P.gd,.012,.012,.005,r*Math.sin(an),.03+i*.02,r*Math.cos(an),0x886600);}
-for(const k of[-1,1]){seg(wiz,0x3b5bdb,[k*.06,.2,0],[k*.085,.13,.05],.025);}eSp(wiz,sk,.018,.018,.018,-.085,.12,.06);
+eM(wiz,lathG([[0,0],[.11,0],[.1,.06],[.075,.16],[.05,.22],[0,.24]],14),rob,0,0,0);ring(wiz,0xffc93c,.08,.13,.1);for(let i=0;i<6;i++){const an=i*1.1,r=.1-.004*i;eSp(wiz,P.gd,.012,.012,.005,r*Math.sin(an),.03+i*.02,r*Math.cos(an),0x886600);}
+for(const k of[-1,1]){seg(wiz,rob,[k*.06,.2,0],[k*.085,.13,.05],.025);}eSp(wiz,sk,.018,.018,.018,-.085,.12,.06);
 eSp(wiz,sk,.065,.068,.065,0,.28,0);eCnD(wiz,0xf2f2f2,.05,.13,0,.205,.055,0,-1,.25);for(const k of[-1,1]){eCnD(wiz,0xf2f2f2,.03,.09,k*.035,.22,.05,k*.3,-1,.2);eSp(wiz,0x1b1b2b,.012,.016,.01,k*.025,.29,.058);eM(wiz,rboxG(.035,.012,.012,.004),0xf2f2f2,k*.026,.312,.055,0,0,-k*.2);eCnD(wiz,0xf2f2f2,.012,.05,k*.03,.262,.06,k,-.4,.3);}
-eSp(wiz,0xf0c090,.014,.016,.016,0,.275,.065);eM(wiz,lathG([[.0,.325],[.14,.325],[.13,.34],[0,.345]],16),0x2a3a9a,0,0,0);horn(wiz,0x4a4ad0,0,.33,0,.08,.32,4,PI,0,-.25,0);ring(wiz,0xffc93c,.075,.355,.08);
-const stf=new THREE.Group();stf.position.set(.1,.15,.04);stf.userData.keep=true;eCy(stf,P.wd2,.012,.34,0,.1,.05);eM(stf,eg('oct',()=>new THREE.OctahedronGeometry(1)),0x9ff7ff,0,.3,.05,0,0,0,0x1aa8c8).scale.set(.045,.065,.045);
+eSp(wiz,0xf0c090,.014,.016,.016,0,.275,.065);eM(wiz,lathG([[.0,.325],[.14,.325],[.13,.34],[0,.345]],16),brm,0,0,0);horn(wiz,hat,0,.33,0,.08,.32,4,PI,0,-.25,0);ring(wiz,0xffc93c,.075,.355,.08);
+const stf=new THREE.Group();stf.position.set(.1,.15,.04);stf.userData.keep=true;eCy(stf,P.wd2,.012,.34,0,.1,.05);eM(stf,eg('oct',()=>new THREE.OctahedronGeometry(1)),cr,0,.3,.05,0,0,0,cre).scale.set(.045,.065,.045);
 for(let i=0;i<3;i++)eCnD(stf,P.wd2,.01,.06,.025*Math.sin(i*2.1),.26,.05+.025*Math.cos(i*2.1),Math.sin(i*2.1),1.4,Math.cos(i*2.1));eSp(stf,sk,.02,.02,.02,0,0,.05);
 wiz.add(stf);t.stf=stf;g.add(wiz);t.aimG=wiz;grp.push(wiz,stf);
-h.position.y=y+.62;part(h,'oct',0x9ff7ff,.1,.14,.1,0,0,0,0x1aa8c8);glow(h,0,0,0,.8,0x66e0ff);part(h,'tor',0xaee6ff,.22,.22,.22,0,0,0,0x2277bb).rotation.x=PI/2.6;part(h,'tor',0xaee6ff,.2,.2,.2,0,0,0,0x2277bb).rotation.x=-PI/3;
-const ns=2+2*l;for(let i=0;i<ns;i++){const an=i/ns*2*PI;part(h,'oct',0xaee6ff,.045,.065,.045,.28*Math.sin(an),.05*Math.sin(i*2),.28*Math.cos(an),0x2277bb);}
-t.flag=flag(g,0,y+.1,-.3,0x4a62b8,.8);}
+h.position.y=y+.62;
+// the floating focus: a crystal (the Archmage's is bigger, with a third ring), or for the Time Warden an hourglass in a bronze frame with gold discs for satellites
+if(b==1){for(const k of[-1,1]){part(h,'cone',cr,.085,.12,.085,0,k*.065,0,cre).rotation.x=k<0?0:PI;part(h,'cyl',rg,.11,.025,.11,0,k*.14,0,rge);}for(let i=0;i<3;i++){const an=i/3*2*PI;part(h,'cyl',0x8a5a1e,.012,.28,.012,.1*Math.sin(an),0,.1*Math.cos(an));}}
+else part(h,'oct',cr,b==0?.14:.1,b==0?.2:.14,b==0?.14:.1,0,0,0,cre);
+glow(h,0,0,0,b==0?1.1:.8,lt);part(h,'tor',rg,.22,.22,.22,0,0,0,rge).rotation.x=PI/2.6;part(h,'tor',rg,.2,.2,.2,0,0,0,rge).rotation.x=-PI/3;if(b==0)part(h,'tor',rg,.26,.26,.26,0,0,0,rge).rotation.z=PI/2.2;
+const ns=b==0?10:2+2*l;for(let i=0;i<ns;i++){const an=i/ns*2*PI,x=.28*Math.sin(an),yy=.05*Math.sin(i*2),z=.28*Math.cos(an);if(b==1)part(h,'cyl',rg,.04,.012,.04,x,yy,z,rge).rotation.x=PI/2;else part(h,'oct',b==0?cr:rg,.045,.065,.045,x,yy,z,b==0?cre:rge);}
+t.flag=flag(g,0,y+.1,-.3,fc,.8);}
 else if(t.k=='ballista'){// ballista: a squat buttressed tower; on top a turntable with a heavy crossbow – curved limbs, a taut string, a winch and the bolt (t.ball) – that recoils (t.rcl)
 const a=.55*hs,y=BH+a,R=shaft(g,.36,a,P.st,0);part(g,'cyl',0x4a5568,.33,.06,.33,0,BH+a*.6,0);door(g,.36);for(const an of[PI/2,-PI/2,PI])slit(g,R,a,.6,an);
 for(const an of[PI/4,-PI/4,PI*.75,-PI*.75]){const r=.38;eM(g,shpG('butt',[[0,0],[.1,0],[0,.4]],.08,.01),P.st2,r*Math.sin(an),BH,r*Math.cos(an),0,an-PI/2,0).scale.y=a/.5;}
@@ -89,11 +109,14 @@ else if(t.k=='storm'){// storm tower: copper-banded walls with pipes and blue wi
 const a=hs,y=BH+a,R=shaft(g,.3,a,0xaebdd6,0);for(const f of[.3,.62,.9])part(g,'cyl',0xb87333,R(f)-.002,.05,R(f)-.002,0,BH+a*f,0);
 for(const an of[2.3,-2.3])eCy(g,0xb87333,.018,a*.95,(R(.5)+.02)*Math.sin(an),BH+a*.5,(R(.5)+.02)*Math.cos(an),-.12*Math.cos(an),0,.12*Math.sin(an));
 for(const[f,an]of[[.45,0],[.45,PI],[.78,PI/2],[.78,-PI/2]])win(g,R(f)*Math.sin(an),BH+a*f,R(f)*Math.cos(an),.05,.13,an,0xbfe9ff,0x66ccff);door(g,.3,0x3a4a6a);
-parapet(g,.3,y,8,0xaebdd6);for(let i=0;i<4;i++){const an=i*PI/2+PI/4,x=.26*Math.sin(an),z=.26*Math.cos(an);eCy(g,0xb87333,.02,.3,x,y+.2,z);for(let j=0;j<3;j++)eCy(g,0xe9dfc4,.034,.02,x,y+.12+j*.04,z);eSp(g,0xb87333,.03,.03,.03,x,y+.36,z);}
+// Tempest: eight rods and a small storm cloud circling over the orb; Thunderlord: a bigger violet orb in a crown of copper spikes
+parapet(g,.3,y,8,0xaebdd6);const nr=b==0?8:4;for(let i=0;i<nr;i++){const an=i*2*PI/nr+PI/nr,x=.26*Math.sin(an),z=.26*Math.cos(an);eCy(g,0xb87333,.02,.3,x,y+.2,z);for(let j=0;j<3;j++)eCy(g,0xe9dfc4,.034,.02,x,y+.12+j*.04,z);eSp(g,0xb87333,.03,.03,.03,x,y+.36,z);}
 ring(g,0xb87333,.27,y+.34,.27);eCy(g,0x5a5a68,.03,.12,0,y+.42,0);for(let i=0;i<6;i++)ring(g,0xb87333,.05-i*.005,y+.46+i*.035,.12);eCnD(g,0xb87333,.03,.36,0,y+.72,0,0,1,0);
-h.position.y=y+.22;part(h,'sph',0x9fe8ff,.1,.1,.1,0,0,0,0x2aa8ff);glow(h,0,0,0,.9,0x66ccff);
+h.position.y=y+.22;const tl=b==1,oc=tl?0xc8c0ff:0x9fe8ff,oe=tl?0x5a3aff:0x2aa8ff;part(h,'sph',oc,tl?.14:.1,tl?.14:.1,tl?.14:.1,0,0,0,oe);glow(h,0,0,0,tl?1.3:.9,tl?0x8a7aff:0x66ccff);
+if(tl)for(let i=0;i<5;i++){const an=i/5*2*PI;eCnD(g,0xb87333,.035,.42,.24*Math.sin(an),y+.5,.24*Math.cos(an),-Math.sin(an)*.35,1,-Math.cos(an)*.35);eSp(g,P.gd,.03,.03,.03,.2*Math.sin(an),y+.72,.2*Math.cos(an),0x886600);}
 const sp=new THREE.Group();sp.userData.keep=true;h.add(sp);t.spin=sp;grp.push(sp);eM(sp,TORL,0xb87333,0,0,0,PI/2.3).scale.setScalar(.2);eM(sp,TORL,0xb87333,0,0,0,-PI/2.3).scale.setScalar(.2);
-for(let i=0;i<4;i++){const an=i*PI/2;eSp(sp,0x9fe8ff,.02,.02,.02,.2*Math.sin(an),0,.2*Math.cos(an),0x2aa8ff);}
+for(let i=0;i<4;i++){const an=i*PI/2;eSp(sp,oc,.02,.02,.02,.2*Math.sin(an),0,.2*Math.cos(an),oe);}
+if(b==0)for(let i=0;i<7;i++){const an=i/7*2*PI,s=rnd(.07,.1);eSp(sp,[0x5a6070,0x6a7284,0x4a5060][i%3],s,s*.7,s,.13*Math.sin(an),.3+rnd(-.02,.03),.13*Math.cos(an));}
 t.aimG=new THREE.Group();if(l>=2)t.flag=flag(g,0,y+.1,-.3,0x4a62b8,.8);}
 else if(t.k=='alch'){// alchemist: a green tower overgrown with ivy; on top a bubbling cauldron over a fire, a copper still, a shelf of glowing potions and the alchemist with a flask (t.ball)
 const a=.75*hs,y=BH+a,R=shaft(g,.35,a,0x8fd8b8,1);part(g,'cyl',0x3e8f6a,.32,.06,.32,0,BH+a*.5,0);
@@ -132,14 +155,22 @@ else{// catapult: a planked deck with spoked wheels, an A-frame and axle, the th
 for(let i=0;i<7;i++)eM(g,rboxG(.088,.05,.62,.008),[P.wd,0x7a4a26,P.wd][i%3],(i-3)*.092,BH+.025,0);for(const z of[-.24,.24])eM(g,rboxG(.72,.05,.07,.01),P.wd2,0,BH+.075,z);
 for(const sx of[-1,1])for(const sz of[-1,1]){const W=new THREE.Group();W.position.set(sx*.38,BH+.13,sz*.22);W.rotation.y=PI/2;g.add(W);eM(W,TORL,0x5a3a1e,0,0,0).scale.setScalar(.13);eM(W,TORL,0x2b3342,0,0,0).scale.set(.14,.14,.08);
 for(let i=0;i<6;i++){const an=i*PI/3;eCy(W,P.wd2,.012,.12,.06*Math.sin(an),.06*Math.cos(an),0,0,0,-an);}eCy(W,0x5a3a1e,.035,.06,0,0,0,PI/2);eSp(g,P.gd,.035,.035,.035,sx*.42,BH+.13,sz*.22);}
-for(let i=0;i<6;i++){const p=[[0,0],[.1,0],[.05,0],[-.05,.0],[0,.08],[.05,.08]][i];eSp(g,0x9aa3b0,.055,.055,.055,.2+p[0],BH+.1+p[1]*.85,.3-p[0]*.2);}
+// Fire Pots: clay pots with burning plugs and an iron brazier; Boulder: a pile of big rough rocks; otherwise round stones
+if(b==0){for(let i=0;i<5;i++){const p=[[0,0],[.1,0],[-.06,.04],[.05,.09],[.16,.08]][i],x=.2+p[0],z=.3-p[1]*.6;eM(g,lathG([[0,0],[.04,.005],[.05,.04],[.035,.08],[.018,.09],[0,.09]],10),0xa0522d,x,BH+.05,z);eSp(g,0xffa040,.016,.012,.016,x,BH+.145,z,0xff6a00);}
+eCy(g,0x2b3342,.012,.18,-.3,BH+.14,.12);eM(g,lathG([[.02,0],[.08,.02],[.1,.07],[.095,.08]],10),0x2b3342,-.3,BH+.22,.12);flame(g,-.3,BH+.26,.12,.9,t.fl);}
+else if(b==1){for(let i=0;i<4;i++){const p=[[0,0],[.14,.02],[.06,.12],[-.08,.08]][i],s=rnd(.075,.095);eSp(g,[0x8a8a84,0x7a7670,0x9a958a][i%3],s,s*.85,s,.2+p[0],BH+.06+s*.6,.28-p[1]*.5);}}
+else for(let i=0;i<6;i++){const p=[[0,0],[.1,0],[.05,0],[-.05,.0],[0,.08],[.05,.08]][i];eSp(g,0x9aa3b0,.055,.055,.055,.2+p[0],BH+.1+p[1]*.85,.3-p[0]*.2);}
 eCy(g,0x5a5a68,.035,.16,0,BH+.14,-.3,0,0,PI/2);for(let i=0;i<4;i++){const an=i*PI/2;eCy(g,P.wd2,.008,.1,.1,BH+.14+.05*Math.cos(an),-.3+.05*Math.sin(an),an,0,0);}
 const cg=new THREE.Group();cg.position.set(-.15,BH,-.38);g.add(cg);chibi(cg,0,0,0xd9534f,0x9aa3b0,false);
 h.position.y=BH+.09;for(const x of[-.2,.2]){for(const s of[-1,1])eM(h,rboxG(.06,.44,.06,.012),P.wd,x,.2,s*.08,-s*.28);eM(h,rboxG(.05,.04,.22,.01),P.wd2,x,.16,0);eM(h,rboxG(.08,.06,.08,.01),0x2b3342,x,.4,0);}
 eCy(h,0x5a5a68,.03,.5,0,.4,0,0,0,PI/2);
 const arm=new THREE.Group();arm.position.y=.4;arm.userData.keep=true;eM(arm,rboxG(.08,.08,1.1,.02),P.wd,0,0,.1);for(const z of[-.05,.25,.45])ring(arm,0x6b4a2b,.055,0,.05,0,0,z).rotation.set(0,0,0);eM(arm,rboxG(.1,.1,.05,.01),0x5a5a68,0,0,.1);
-eM(arm,rboxG(.26,.24,.24,.03),P.wd2,0,-.12,-.45);for(const o of[-.08,.08])eM(arm,rboxG(.27,.025,.25,.006),0x2b3342,0,-.12+o,-.45);for(let i=0;i<4;i++)eSp(arm,0x8a8578,.05,.04,.05,(i%2-.5)*.1,.02,-.45+(i>>1)*.1-.05);
-eM(arm,lathG([[0,-.06],[.08,-.05],[.11,0],[.1,.01]],12),P.wd2,0,-.08,.66);const ball=part(arm,'sph',0x9aa3b0,.075,.075,.075,0,-.02,.66);ball.userData.keep=true;h.add(arm);t.arm=arm;t.ball=ball;grp.push(arm);
+// the Boulder's counterweight is a bigger iron-bound box and the arm gets extra iron bands
+if(b==1){eM(arm,rboxG(.34,.32,.3,.03),P.wd2,0,-.16,-.45);for(const o of[-.1,0,.1])eM(arm,rboxG(.35,.025,.31,.006),0x2b3342,0,-.16+o,-.45);for(const z of[.15,.35,.55])ring(arm,0x2b3342,.06,0,.06,0,0,z).rotation.set(0,0,0);}
+else eM(arm,rboxG(.26,.24,.24,.03),P.wd2,0,-.12,-.45);for(const o of[-.08,.08])eM(arm,rboxG(.27,.025,.25,.006),0x2b3342,0,-.12+o,-.45);for(let i=0;i<4;i++)eSp(arm,0x8a8578,.05,.04,.05,(i%2-.5)*.1,.02,-.45+(i>>1)*.1-.05);
+const bs=b==1?1.6:1;eM(arm,lathG([[0,-.06],[.08,-.05],[.11,0],[.1,.01]].map(q=>[q[0]*bs,q[1]*bs]),12),P.wd2,0,-.08,.66);
+const ball=b==0?new THREE.Group():part(arm,'sph',b==1?0x8a8a84:0x9aa3b0,.075*bs,.07*bs,.075*bs,0,-.02+.03*(bs-1),.66);ball.userData.keep=true;
+if(b==0){ball.position.set(0,-.06,.66);arm.add(ball);eM(ball,lathG([[0,0],[.045,.005],[.06,.045],[.04,.09],[.02,.1],[0,.1]],10),0xa0522d,0,0,0);part(ball,'cone',0xffb040,.03,.08,.03,0,.13,0,0xff6a00);glow(ball,0,.12,0,.35,0xff8a2a);grp.push(ball);}h.add(arm);t.arm=arm;t.ball=ball;grp.push(arm);
 if(l>=2)t.flag=flag(g,-.32,BH+.1,.3,P.rd,.8);}
 for(let i=0;i<l-1;i++)ring(g,P.gd,.46,.07+i*.05,.25,0x885500);
 if(l==3)part(h,'sph',P.gd,.06,.06,.06,0,t.k=='frost'?.3:.5,0,0x886600);

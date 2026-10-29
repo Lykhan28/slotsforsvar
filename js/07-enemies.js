@@ -284,8 +284,8 @@ part(a,'box',P.wd2,.016*k,.016*k,L,0,0,-L/2);part(a,'box',P.rd,.05*k,.012,.06,0,
 a.position.set(-lx*R0+rnd(-.03,.03),yy,-lz*R0+rnd(-.03,.03));a.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(lx,rnd(-.15,.15),lz).normalize());
 e.body.add(a);e.stuck.push({a,t:0,sc:e.type=='boss'?1.8:1});if(e.stuck.length>7){const o=e.stuck.shift();e.body.remove(o.a);}}
 // hit feedback; damage numbers are grey when the enemy resisted part of the hit (or a Shieldbearer's shield blocked it: sparks and a clang), pale gold when the Ballista pierced its armour
-function hf(o,h,d,kind,dx,dy){const bl=shBlk(o,kind,dx||0,dy||0)<1;snd(bl?'block':'h_'+kind);if(bl){o.sbk=1;burst(o.x,o.y,0xffe6a0,5,1,.45);}o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
-if(d>0&&txts.length<40){const rs=o.rs[T[kind].dt]||0;popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),dmul(o,kind)<1||bl?'#a9a9a9':rs>0?'#ffe08a':'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[o.type];}
+function hf(o,h,d,kind,dx,dy,br){const bl=shBlk(o,kind,dx||0,dy||0)<1;snd(bl?'block':'h_'+kind);if(bl){o.sbk=1;burst(o.x,o.y,0xffe6a0,5,1,.45);}o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
+if(d>0&&txts.length<40){const rs=o.rs[T[kind].dt]||0;popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),dmul(o,kind,br)<1||bl?'#a9a9a9':rs>0?'#ffe08a':'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[o.type];}
 burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x8a6a44,necro:0x3a2a44,skel:0xd8d0bc}[o.type],o.type=='tank'?5:3,.8,.5);
 if((kind=='arrow'||kind=='ballista')&&!o.phz)stick(o,dx||0,dy||1,kind=='ballista');else if(kind=='cannon')o.stn=1;else if(kind=='storm')o.shk=2.8;}
 const TXY={norm:1,fast:1.15,tank:1.4,boss:2.3,guard:1.1,shaman:1.15,bat:1.55,sapper:1.15,troll:1.9,ghost:1.25,imp:.95,king:1.6,ram:1.4,necro:2.1,skel:1};
@@ -389,17 +389,40 @@ e.m.rotation.z=rz;e.m.position.set(e.bx+ox+(boss?(Math.random()-.5)*.04:0),py,e.
 if(boss&&e.rig.W0){e.rig.W0.rotation.z=-1.1*f;e.rig.W1.rotation.z=1.1*f;}
 e.m.scale.set(sx*s2,sy*s2,sx*s2);
 if(p>=1){sc.remove(e.m);if(e.gm)e.gm.forEach(m=>m.dispose());if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}}}
-function volley(t,s){const ts=[];for(const e of g.en)if(e.hp>0&&!e.out&&(!e.fy||T[t.k].air)&&dmul(e,t.k)>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
-ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow'),w:i*.07}));}
+function volley(t,s){const ts=[],br=brn(t);for(const e of g.en)if(e.hp>0&&!e.out&&(!e.fy||T[t.k].air)&&dmul(e,t.k,br)>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
+ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',br,d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow',br),w:i*.07}));}
 const bolts=[];
-function bolt(x1,y1,h1,x2,y2,h2){const g2=new THREE.Group(),a=new THREE.Vector3(wx(x1),h1,wz(y1)),b=new THREE.Vector3(wx(x2),h2,wz(y2)),ps=[a],up=new THREE.Vector3(0,1,0);
+function bolt(x1,y1,h1,x2,y2,h2,hv){const g2=new THREE.Group(),a=new THREE.Vector3(wx(x1),h1,wz(y1)),b=new THREE.Vector3(wx(x2),h2,wz(y2)),ps=[a],up=new THREE.Vector3(0,1,0);
 for(let i=1;i<7;i++){const q=a.clone().lerp(b,i/7);q.x+=rnd(-.08,.08);q.y+=rnd(-.08,.08);q.z+=rnd(-.08,.08);ps.push(q);}ps.push(b);
-for(let i=0;i<ps.length-1;i++){const d=ps[i+1].clone().sub(ps[i]),L=d.length(),m=new THREE.Mesh(geo('cyl'),bm(0x8fd6ff));m.layers.set(1);m.position.copy(ps[i]).add(ps[i+1]).multiplyScalar(.5);m.quaternion.setFromUnitVectors(up,d.normalize());m.scale.set(.022,L,.022);g2.add(m);}
-glow(g2,b.x,b.y,b.z,.45,0x3f9aff);sc.add(g2);bolts.push({g:g2,t:0});}
-function zap(t,best,s){const hit=[best],n=T.storm.ch+t.l-1;let cur=best;
+for(let i=0;i<ps.length-1;i++){const d=ps[i+1].clone().sub(ps[i]),L=d.length(),m=new THREE.Mesh(geo('cyl'),bm(0x8fd6ff));m.layers.set(1);m.position.copy(ps[i]).add(ps[i+1]).multiplyScalar(.5);m.quaternion.setFromUnitVectors(up,d.normalize());m.scale.set(hv?.036:.022,L,hv?.036:.022);g2.add(m);}
+glow(g2,b.x,b.y,b.z,hv?.7:.45,hv?0x7a6aff:0x3f9aff);sc.add(g2);bolts.push({g:g2,t:0});}
+// branches: Tempest (b.ch) chains to more enemies, Thunderlord stuns every enemy it hits for b.stn s (bosses a third)
+function zap(t,best,s){const b=brn(t),hit=[best],n=T.storm.ch+t.l-1+(b&&b.ch||0);let cur=best;
 for(let i=1;i<n;i++){let nx=null,nd=90;for(const o of g.en){if(o.hp<=0||o.out||hit.includes(o))continue;const dd=Math.hypot(o.x-cur.x,o.y-cur.y);if(dd<nd){nd=dd;nx=o;}}if(!nx)break;hit.push(nx);cur=nx;}
-let f={x:t.x,y:t.y,h:t.head.position.y},dm=s.d;for(const o of hit){const dd=dm*dmul(o,'storm');o.hp-=dd;hf(o,.2,dd,'storm');o.stun=.2;const h=o.fy||.45;bolt(f.x,f.y,f.h,o.x,o.y,h);f={x:o.x,y:o.y,h};dm*=.92;}}
+let f={x:t.x,y:t.y,h:t.head.position.y},dm=s.d;for(const o of hit){const dd=dm*dmul(o,'storm');o.hp-=dd;hf(o,.2,dd,'storm');o.stun=b&&b.stn?Math.max(o.stun,b.stn*(o.bs?.34:1)):.2;const h=o.fy||.45;bolt(f.x,f.y,f.h,o.x,o.y,h,b&&b.stn);f={x:o.x,y:o.y,h};dm*=.92;}}
+// ground zones from addZone() in js/09-game.js: Fire Pots' burning ground (scorch, glow and flames) and the Time Warden's amber field (a dome and turning rune ring);
+// zoneAnim() fades them out over their last second
+function zoneFx(z){const G=new THREE.Group(),R=z.r/60;G.position.set(wx(z.x),.02,wz(z.y));sc.add(G);z.fl=[];
+const disc=(c,r,o,y)=>{const m=L1(new THREE.Mesh(eg('zd',()=>new THREE.CircleGeometry(1,28)),new THREE.MeshBasicMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending})));
+m.rotation.x=-PI/2;m.position.y=y;m.scale.setScalar(r);m.userData.o=o;G.add(m);return m;};
+if(z.k=='fire'){disc(0xff5a10,R,.45,.01);disc(0xffb040,R*.55,.35,.02);for(let i=0;i<5;i++){const a=i/5*2*PI+rnd(0,1),d=i?R*rnd(.35,.7):0;flame(G,d*Math.sin(a),0,d*Math.cos(a),rnd(.8,1.3),z.fl,.5);}}
+else{disc(0xffb43a,R,.12,.01);const rg=L1(new THREE.Mesh(RG,new THREE.MeshBasicMaterial({color:new THREE.Color(0xffd27a).convertSRGBToLinear(),transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending})));
+rg.rotation.x=-PI/2;rg.position.y=.03;rg.scale.setScalar(R);rg.userData.o=.6;G.add(rg);
+const dm=L1(new THREE.Mesh(eg('zdm',()=>new THREE.SphereGeometry(1,24,10,0,2*PI,0,PI/2)),new THREE.MeshBasicMaterial({color:new THREE.Color(0xffc060).convertSRGBToLinear(),transparent:true,opacity:.1,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending})));
+dm.scale.set(R,R*.45,R);dm.userData.o=.1;G.add(dm);const sp=new THREE.Group();G.add(sp);z.sp=sp;
+for(let i=0;i<8;i++){const a=i/8*2*PI,m=L1(new THREE.Mesh(geo('oct'),bm(0xffd27a)));m.scale.set(.03,.05,.03);m.position.set(R*.9*Math.sin(a),.08,R*.9*Math.cos(a));sp.add(m);}
+glow(G,0,.2,0,R*.6,0xffb43a);}
+return G;}
+function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}
+function zoneAnim(dt){for(const z of g.zn){const k=clamp(z.t,0,1);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*k*(z.k=='fire'?.85+.15*Math.sin(tt*9+m.id):1);});
+z.fl.forEach((f,i)=>{const b=f.userData.b;if(b)f.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});if(z.sp){z.sp.rotation.y-=dt*.8;z.sp.position.y=Math.sin(tt*2)*.03;}}}
 function buffs(){for(const t of g.tw)t.buff=1;for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r;for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r)t.buff+=.2+.1*(s.l-1);}}
-function mkBullet(k){if(k=='ballista'){const a=new THREE.Group();part(a,'box',P.wd2,.04,.04,.55,0,0,0);part(a,'cone',0xdfe6ee,.055,.14,.055,0,0,.33).rotation.x=PI/2;part(a,'box',P.rd,.1,.012,.1,0,0,-.25);part(a,'box',P.rd,.012,.1,.1,0,0,-.25);sc.add(a);return a;}
+// br = the tower's upgrade branch: Crossbow Nest bolts, Fire Pots (a glowing clay pot), the Boulder (twice the size), Archmage/Time Warden orbs
+function mkBullet(k,br){const bi=br?BRN[k].indexOf(br):-1;
+if(k=='arrow'&&bi==1){const a=new THREE.Group();part(a,'box',0x5a3a1e,.035,.035,.24,0,0,0);part(a,'cone',0x9aa3b0,.05,.08,.05,0,0,.15).rotation.x=PI/2;part(a,'box',0x2b3342,.06,.012,.05,0,0,-.1);part(a,'box',0x2b3342,.012,.06,.05,0,0,-.1);sc.add(a);return a;}
+if(k=='cannon'&&bi==0){const q=new THREE.Group();part(q,'sph',0xa0522d,.1,.11,.1,0,0,0);part(q,'cyl',0x6b3a1e,.04,.05,.04,0,.1,0);part(q,'cone',0xffb040,.05,.12,.05,0,.18,0,0xff6a00);glow(q,0,.1,0,.6,0xff8a2a);sc.add(q);return q;}
+if(k=='cannon'&&bi==1)return part(sc,'sph',0x8a8a84,.22,.2,.22,0,0,0);
+if(k=='frost'&&bi>=0){const q=new THREE.Group(),c=bi?0xffd27a:0xd9a8ff;part(q,'sph',c,.08,.08,.08,0,0,0,bi?0xcc8a1a:0x8a3aff);glow(q,0,0,0,.55,bi?0xffb43a:0xb36bff);sc.add(q);return q;}
+if(k=='ballista'){const a=new THREE.Group();part(a,'box',P.wd2,.04,.04,.55,0,0,0);part(a,'cone',0xdfe6ee,.055,.14,.055,0,0,.33).rotation.x=PI/2;part(a,'box',P.rd,.1,.012,.1,0,0,-.25);part(a,'box',P.rd,.012,.1,.1,0,0,-.25);sc.add(a);return a;}
 if(k=='alch'){const q=new THREE.Group();part(q,'sph',0xbaff8a,.075,.09,.075,0,0,0,0x3fbf1f);part(q,'cyl',P.wd2,.025,.03,.025,0,.1,0);glow(q,0,0,0,.4,0x7cff4a);sc.add(q);return q;}if(k=='arrow'){const a=new THREE.Group();part(a,'box',P.wd2,.025,.025,.3,0,0,0);part(a,'cone',0xdfe6ee,.04,.09,.04,0,0,.18).rotation.x=PI/2;part(a,'box',P.rd,.05,.012,.07,0,0,-.13);part(a,'box',P.rd,.012,.05,.07,0,0,-.13);sc.add(a);return a;}
 if(k=='cannon')return part(sc,'sph',0x9aa3b0,.12,.11,.12,0,0,0);const q=new THREE.Group();part(q,'sph',0xd8f4ff,.07,.07,.07,0,0,0,0x66ccff);glow(q,0,0,0,.45,0x66e0ff);sc.add(q);return q;}

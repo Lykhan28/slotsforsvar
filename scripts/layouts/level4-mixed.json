@@ -4,6 +4,6 @@
   "build": [
     "arrow 4,3", "arrow 6,5", "cannon 6,3", "arrow 4,5", "up 4,3", "up 6,5", "alch 7,5", "storm 4,1",
     "ballista 9,5", "up 6,3", "up 7,5", "up 4,1", "banner 7,4", "up 9,5", "storm 10,7", "up 4,5",
-    "up 4,3", "up 6,5", "up 4,1", "up 10,7", "up 9,5", "up 10,7", "up 7,5", "up 6,3", "frost 12,5", "up 4,5"
+    "up 4,3 crossbow", "up 6,5 crossbow", "up 4,1 tempest", "up 10,7", "up 9,5", "up 10,7 tempest", "up 7,5", "up 6,3 fire", "frost 12,5", "up 4,5 crossbow"
   ]
 }

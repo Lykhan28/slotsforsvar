@@ -78,6 +78,12 @@ kbd{display:inline-block;min-width:20px;padding:2px 6px;border-radius:6px;border
 .chip.lo{color:var(--ink3);border-style:dashed}
 #sel{display:none;gap:8px}
 .tgm{display:grid;gap:5px}.tgm .seg{display:flex;width:auto;padding:2px}.tgm .seg button{flex:1 1 auto;height:26px;font-size:11.5px;padding:0 4px;white-space:nowrap}
+/* level-3 path picker (brs/brc, built in infoHTML()): two compact cards side by side (the description is the tooltip), click one to buy it */
+.brs{display:grid;gap:5px}.brc{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.brc button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:8px 9px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);cursor:pointer;transition:background .15s,border-color .15s}
+.brc button:hover{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent)}.brc button.poor{cursor:not-allowed;opacity:.7}.brc button.poor:hover{border-color:var(--line2);background:rgba(255,255,255,.05)}
+.brc .bi{font-size:14px;line-height:1}.brc b{font-size:13px}.brc .bl{font-size:11px;font-weight:700;color:var(--gold2)}
+.brc .bc{margin-top:auto;padding-top:2px;font-size:12px;font-weight:700;color:var(--gold)}.brc .bc svg{width:12px;height:12px;vertical-align:-2px;margin-right:2px}.brc .poor .bc{color:var(--bad)}
 
 .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.06);color:var(--ink);font:700 13.5px var(--ui);cursor:pointer;transition:background .15s,transform .1s,filter .15s}
 .btn svg{width:16px;height:16px}

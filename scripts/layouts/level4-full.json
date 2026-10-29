@@ -1,5 +1,5 @@
 {
  "level": 4,
  "note": "Mirefen: a sensible all-round build that keeps spending its gold (more towers and upgrades to the end) – the reference run for the hand-designed waves. A player who builds about this well should win, losing more lives on later levels.",
- "build": [ "arrow 4,3", "arrow 6,5", "cannon 6,3", "arrow 4,5", "up 4,3", "up 6,5", "alch 7,5", "storm 4,1", "ballista 9,5", "up 6,3", "up 7,5", "up 4,1", "banner 7,4", "up 9,5", "storm 10,7", "up 4,5", "up 4,3", "up 6,5", "up 4,1", "up 10,7", "up 9,5", "up 10,7", "up 7,5", "up 6,3", "frost 12,5", "up 4,5", "arrow 6,4", "up 6,4", "up 6,4", "storm 4,4", "up 4,4", "up 4,4", "ballista 10,5", "up 10,5", "up 10,5", "up 7,4", "up 7,4", "up 12,5", "up 12,5", "cannon 3,3", "up 3,3", "up 3,3"]
+ "build": [ "arrow 4,3", "arrow 6,5", "cannon 6,3", "arrow 4,5", "up 4,3", "up 6,5", "alch 7,5", "storm 4,1", "ballista 9,5", "up 6,3", "up 7,5", "up 4,1", "banner 7,4", "up 9,5", "storm 10,7", "up 4,5", "up 4,3 crossbow", "up 6,5 crossbow", "up 4,1 tempest", "up 10,7", "up 9,5", "up 10,7 tempest", "up 7,5", "up 6,3 fire", "frost 12,5", "up 4,5 crossbow", "arrow 6,4", "up 6,4", "up 6,4 crossbow", "storm 4,4", "up 4,4", "up 4,4 tempest", "ballista 10,5", "up 10,5", "up 10,5", "up 7,4", "up 7,4", "up 12,5", "up 12,5 archmage", "cannon 3,3", "up 3,3", "up 3,3 fire"]
 }

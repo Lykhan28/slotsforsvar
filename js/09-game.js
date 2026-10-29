@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
-function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying])sc.remove(a.m);
-g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
+function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn])sc.remove(a.m);
+g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
 function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
@@ -19,7 +19,7 @@ function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;g.wt=0;g.q=waveQ(g.wave);ui();}
 // each breach has its own road (PATHS); the wave alternates between them
 function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
-g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
+g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
 // targeting modes: a tower shoots the enemy in range with the highest tscore(); t.tm is the player's choice, else the tower type's default (T[k].tm), else First
@@ -27,26 +27,31 @@ const TGM={first:['First','Closest to the castle'],last:['Last','Furthest from t
 const tmode=t=>t.tm||T[t.k].tm||'first';
 // strong is plain health (ties keep the first found, as before); fast breaks ties by progress
 const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m=='fast'?e.s+prog(e)*1e-6:-Math.hypot(e.x-t.x,e.y-t.y);
-const stat=t=>({d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1),r:T[t.k].r+10*(t.l-1),f:T[t.k].f});
-// damage multiplier for tower type k hitting enemy e (its resistance to the tower's damage type; the Ballista pierces physical armour)
-const dmul=(e,k)=>{const t=T[k].dt;return t=='phys'&&T[k].pr?1:1-(e.rs[t]||0);};
+// the upgrade branch a level-3 tower took (BRN in js/01-config.js), or null
+const brn=t=>t.l>=3&&t.br!=null&&BRN[t.k]?BRN[t.k][t.br]:null;
+const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1),r:T[t.k].r+10*(t.l-1)+(b&&b.rg||0),f:T[t.k].f*(b&&b.fm||1)};};
+// damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista and Crossbow Nest pierce physical armour);
+// b.dt overrides the damage type (the Fire Pots' burning ground is fire)
+const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;return t=='phys'&&(T[k].pr||b&&b.pr)?1:1-(e.rs[t]||0);};
 // Shieldbearer: an Archer arrow or Ballista bolt flying at its front (within ~70° of head-on; dx,dy = the shot's travel direction) loses e.shd of its damage
 const shBlk=(e,k,dx,dy)=>{if(!e.shd||(k!='arrow'&&k!='ballista'))return 1;const L=Math.hypot(dx,dy);return L>0&&-(dx*Math.sin(e.dir)+dy*Math.cos(e.dir))/L>.34?1-e.shd:1;};
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;if(e.sum){e.smt-=dt;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=dt;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=dt;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
+zones(dt);
+for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
 if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.lv||1;}}
-buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t);let best=null,bp=-Infinity;
-for(const e of g.en){if(e.hp<=0||e.out||(t.k=='frost'&&e.bn>0)||(e.fy&&!T[t.k].air)||dmul(e,t.k)<=0)continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=tscore(t,e,tm);if(p>bp){bp=p;best=e;}}}
-if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k)}));}}}
+buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t),br=brn(t);let best=null,bp=-Infinity;
+// a Wizard skips enemies it can't banish yet; a Time Warden skips enemies already in a time field
+for(const e of g.en){if(e.hp<=0||e.out||(t.k=='frost'&&(br&&br.tz?e.tf<1:e.bn>0))||(e.fy&&!T[t.k].air)||dmul(e,t.k,br)<=0)continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=tscore(t,e,tm);if(p>bp){bp=p;best=e;}}}
+if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,br,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k,br)}));}}}
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0||e.out){b.dead=1;continue;}
 const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
-if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch')>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch'));o.hit=.15;}fx(e.x,e.y,0x7cff4a,.1,.75,.5,.1,true);burst(e.x,e.y,0x7cff4a,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=T.cannon.sp){const dd=b.d*dmul(o,'cannon');o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);}
-else{const dd=b.d*dmul(e,b.k)*shBlk(e,b.k,e.x-b.x,e.y-b.y);e.hp-=dd;hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y);if(b.k=='frost')banish(e,b.l);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
+if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch')>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch'));o.hit=.15;}fx(e.x,e.y,0x7cff4a,.1,.75,.5,.1,true);burst(e.x,e.y,0x7cff4a,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');const br=b.br||{};for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon')*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
+else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y);e.hp-=dd;hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
 const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{g.gold+=e.rw;snd('coin');popText(e.x,e.y,'+'+e.rw,'#ffd24a');burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
 for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
@@ -84,9 +89,20 @@ for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
+// Wizard hit: a plain or Archmage Wizard banishes (the Archmage also everyone within grp of the target); a Time Warden leaves a time field instead
+function wizHit(e,b){const br=b.br||{};if(br.tz){addZone({k:'time',x:e.x,y:e.y,r:br.tz[0],t:br.tz[1],d0:br.tz[1],f:br.tz[2]});return;}banish(e,b.l);
+if(br.grp)for(const o of g.en)if(o!==e&&o.hp>0&&!o.out&&!(o.bn>0)&&Math.hypot(o.x-e.x,o.y-e.y)<=br.grp){const dd=b.d*dmul(o,'frost');o.hp-=dd;hf(o,.2,dd,'frost');banish(o,b.l);}}
+// ground zones (g.zn, drawn by zoneFx() in js/07-enemies.js): the Fire Pots' burning ground ('fire': z.d fire damage per second to ground enemies in it)
+// and the Time Warden's field ('time': enemies in it move at z.f of their speed – bosses lose only a third as much – and their abilities tick slower too; e.tf, read by update())
+const FIRE={dt:'fire'};
+function addZone(z){z.m=zoneFx(z);g.zn.push(z);}
+function zones(dt){for(const e of g.en)e.tf=1;if(!g.zn.length)return;
+for(const z of g.zn){z.t-=dt;for(const e of g.en){if(e.hp<=0||e.out||(e.fy&&z.k=='fire')||Math.hypot(e.x-z.x,e.y-z.y)>z.r)continue;
+if(z.k=='fire'){e.hp-=z.d*dmul(e,'cannon',FIRE)*dt;e.lk='cannon';if(Math.random()<dt*3)burst(e.x,e.y,0xff8a1f,1,.4,.4);}else e.tf=Math.min(e.tf,1-(1-z.f)*(e.bs?.34:1));}}
+for(const z of g.zn)if(z.t<=0)zoneEnd(z);g.zn=g.zn.filter(z=>z.t>0);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
-for(const e of g.en)animEnemy(e,dt);animDying(dt);
+for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;

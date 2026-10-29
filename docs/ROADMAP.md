@@ -99,7 +99,7 @@ Replace the formula waves with hand-designed waves per level (a data table in js
 
 ## Phase 3 – Towers
 
-- [ ] **17. Upgrade branches, part 1**
+- [x] **17. Upgrade branches, part 1**
 ```text
 Add a branch choice at the level-3 upgrade for Archers (Longbowmen: range / Crossbow nest: armour piercing), Catapult (Fire pots: burning ground / Boulder: big single hit), Wizard (Archmage: banishes a group / Time Warden: slows time in an area) and Storm (Tempest: more jumps / Thunderlord: long stun). Each branch gets a visible model change. Update tstat(), infoHTML() and GAME_DESIGN.md.
 ```

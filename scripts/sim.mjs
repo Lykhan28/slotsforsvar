@@ -33,7 +33,9 @@ Options:
 Build steps, done in order as soon as there is enough gold (a step waits until it can be paid for,
 and the steps after it wait too):
   <tower> c,r      build a tower on cell c,r: arrow cannon frost ballista storm alch banner vault
-  up c,r           upgrade the tower on c,r (max level 3)
+  up c,r [BRANCH]  upgrade the tower on c,r (max level 3). Archers, Catapult, Wizard and Storm Tower pick a branch at level 3, by the start
+                   of its name: longbow crossbow / fire boulder / archmage time / tempest thunder (also on a level-3 tower without one).
+                   Without a branch they get a plain level 3, as before branches – not possible in the game, kept for comparisons
   sell c,r         sell the tower on c,r (60% back; a full refund if it was built in this same break, like Undo in the game)
   target c,r MODE  set the targeting of the tower on c,r: first last strong fast close (free, done at once)
   wave N           wait until the break before wave N`;
@@ -82,7 +84,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
@@ -116,7 +118,7 @@ vm.runInContext(extractLine(input, /^const free=.*$/m, 'const free', 'js/12-inpu
 const run = code => vm.runInContext(code, ctx);
 if (opt.hp) run(`LV.hp=${opt.hp}`);
 if (opt.gold) run(`LV.gold=${opt.gold}`);
-const LV = run('LV'), T = run('T'), W = run('W'), H = run('H'), MAXW = run('MAXW');
+const LV = run('LV'), T = run('T'), BRN = run('BRN'), W = run('W'), H = run('H'), MAXW = run('MAXW');
 // one letter per enemy type, as in the wave tables (WC in js/01-config.js)
 const WL = Object.fromEntries(Object.entries(run('WC')).map(([l, k]) => [k, l]));
 const mixS = m => Object.entries(m).map(([k, n]) => n + (WL[k] || '?')).join(' ');
@@ -161,6 +163,7 @@ const parsed = steps.map((s, n) => {
   if (k == 'wave') return { k, wave: +a, s };
   if (b === undefined) die(`build step "${s}" needs a cell like 3,2`);
   if (k == 'target') { const M = run('TGK'); if (!M.includes(tm)) die(`build step "${s}": targeting must be one of ${M.join(', ')}`); return { k, c: +a, r: +b, tm, s }; }
+  if (k == 'up') return { k, c: +a, r: +b, br: tm && tm.toLowerCase(), s };
   if (tm !== undefined) die(`build step "${s}": unexpected "${tm}"`);
   if (k != 'up' && k != 'sell' && !T[k]) die(`build step "${s}": unknown tower "${k}" (${Object.keys(T).join(', ')})`);
   return { k, c: +a, r: +b, s };
@@ -182,9 +185,18 @@ function doSteps(inBreak) {
     const t = G.tw.find(t => t.c == st.c && t.r == st.r);
     if (st.k == 'up') {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
+      // the branch, by the start of its name without spaces (BRN in js/01-config.js); same rules as upTw() in js/10-ui.js
+      let bi = null;
+      if (st.br) {
+        const B = BRN[t.k]; if (!B) die(`build step "${st.s}": ${T[t.k].n} has no upgrade branches`);
+        bi = B.findIndex(b => b.n.toLowerCase().replace(/\s/g, '').startsWith(st.br));
+        if (bi < 0) die(`build step "${st.s}": ${T[t.k].n} branches are ${B.map(b => b.n).join(', ')}`);
+        if (t.l == 3 && t.br == null) { t.br = bi; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: 0 }); pc++; continue; }
+        if (t.l < 2) die(`build step "${st.s}": a branch is picked on the upgrade to level 3 (this tower is level ${t.l})`);
+      }
       if (t.l >= 3) { warn.push(`"${st.s}": already level 3 – skipped`); pc++; continue; }
       const c = run('upCost')(t); if (G.gold < c) return;
-      G.gold -= c; t.inv += c; t.l++; spent += c; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++; continue;
+      G.gold -= c; t.inv += c; t.l++; if (bi != null) t.br = bi; spent += c; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++; continue;
     }
     if (st.k == 'target') {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
@@ -233,7 +245,7 @@ const result = {
   level, levelName: LV.n, won: !failed, failedOnWave: failed, wavesPlayed: waves.length,
   livesLeft: Math.max(0, lives()), livesLost: LIFE0 - lives(), goldLeft: G.gold, goldSpent: spent,
   gameTimeSeconds: +time.toFixed(1), stepsDone: pc, stepsTotal: parsed.length,
-  towers: G.tw.map(t => ({ k: t.k, c: t.c, r: t.r, l: t.l })), waves, gold, builds: log, warnings: warn,
+  towers: G.tw.map(t => ({ k: t.k, c: t.c, r: t.r, l: t.l, br: t.br != null ? run('BRN')[t.k][t.br].n : undefined })), waves, gold, builds: log, warnings: warn,
 };
 
 if (opt.json) { console.log(JSON.stringify(result, null, 2)); process.exit(0); }
