@@ -119,7 +119,7 @@ storm:[{n:'Tempest',ic:'🌪️',ds:'Lightning jumps between many more enemies.'
 ballista:[{n:'Skewer',ic:'🗡️',ds:'Bolts punch straight through, hitting every enemy in a line behind the target.',sk:3},{n:'Giant Slayer',ic:'💀',ds:'Double damage to bosses, Black Knights, Trolls and other big enemies.',gs:2}],
 alch:[{n:'Acid Brew',ic:'⚗️',ds:'Acid eats armour: enemies it hits lose their physical resistance and take extra physical damage for a while.',ac:4},{n:'Plague',ic:'☠️',ds:'When a poisoned enemy dies, the poison spreads to the enemies around it.',pl:65}],
 banner:[{n:'War Drums',ic:'🥁',ds:'Towers in range also attack faster.',hs:.2},{n:'Blessed Standard',ic:'🌟',ds:'Towers in range ignore enemy resistances (but not immunities).',hr:1}],
-barracks:[{n:'Knights\' Hall',ic:'🐎',ds:'Three armoured knights: much tougher, harder-hitting, and they shrug off part of every blow – even a boss\'s.',shp:2.2,dm:1.6,arm:.5},{n:'Warband',ic:'🪓',ds:'Four axe fighters instead of three, and a fallen one is back twice as fast.',sn:4,rsf:.5}],
+barracks:[{n:'Knights\' Hall',ic:'🐎',ds:'Three armoured knights: much tougher, harder-hitting, and they shrug off half of every blow.',shp:2.2,dm:1.6,arm:.5},{n:'Warband',ic:'🪓',ds:'Four axe fighters instead of three, and a fallen one is back twice as fast.',sn:4,rsf:.5}],
 vault:[{n:'Royal Bank',ic:'🏦',ds:'Also pays interest on your unspent gold at the end of each wave.',it:[.05,60]},{n:'Bounty Office',ic:'📜',ds:'Enemies killed within its range give extra gold.',bty:.3,rg:70}]};
 // Acid Brew: extra physical damage while an enemy's armour is eaten away (e.ac > 0)
 const ACID=.15;

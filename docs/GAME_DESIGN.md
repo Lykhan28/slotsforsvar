@@ -65,7 +65,7 @@ No tower has a plain level 3: when a level-2 one is selected, the inspector show
 | Banner Tower | **Blessed Standard** | Towers in range ignore enemy resistances – but not immunities (Fire Imps stay immune to fire) | white and gold banners, a white herald, a glowing halo above the tower |
 | Treasury | **Royal Bank** | At the end of each wave, also pays 5% of your gold (after the wave's income), up to 60 | stacks of gold bars round the foot, a royal-blue flag |
 | Treasury | **Bounty Office** | Enemies killed within its range (2.2 tiles) give +30% gold, rounded up (the best office counts, they don't stack) | a notice board of wanted posters, a bounty hunter, crossed swords over the door, a dark red flag |
-| Barracks | **Knights' Hall** | Three knights: ×2.2 health, +60% damage, and they take 50% less damage from every hit, bosses' too | a blue roof, a stand of armour with a lance and pennant; knights in silver plate with red plumes and blue kite shields |
+| Barracks | **Knights' Hall** | Three knights: ×2.2 health, +60% damage, and they take 50% less damage from every hit | a blue roof, a stand of armour with a lance and pennant; knights in silver plate with red plumes and blue kite shields |
 | Barracks | **Warband** | Four fighters instead of three (the fourth marches out at once; they guard a square round the rally point), back in 3 s instead of 6 | a dark shingled roof, a horned skull over the door, crossed axes and a fire pit; fighters in fur with horned helmets and axes |
 
 The chosen path is saved with the run. A level-3 tower from a save made before branches existed can pick its path for free.
@@ -88,7 +88,9 @@ A knight on horseback who is on every level from the start (`g.hero`). He waits 
 | Rallying Cry 📯 | every 20 s | towers within 150 attack 35% faster for 6 s (they glow gold) |
 | Divine Smite ⚡ | **once a wave** | every enemy within 160, flyers too: 10× his damage as lightning (ignores armour), stunned 1 s; he is healed fully |
 
-Stunned enemies don't hit back (soldiers and the hero both). **During a wave the tower dock is replaced by the hero bar**: his card (level, health, xp; click it to centre the camera on him) and the four ability tiles with their cooldowns; the inspector shows him when nothing is selected, or the hovered ability.
+Stunned enemies don't hit back (soldiers and the hero both).
+
+**Reading his fights:** during a wave a ring on the ground shows his reach round the spot he holds – faint white while he waits, gold while he's fighting – and a red ring marks the enemy he's fighting. Every sword stroke is a big overhead chop (his sword is drawn larger than the soldiers'): he raises it, leans into the blow while the horse rocks forward, a bright slash arc flashes in front of him and the enemy sparks as it's hit. **During a wave the tower dock is replaced by the hero bar**: his card (level, health, xp; click it to centre the camera on him) and the four ability tiles with their cooldowns; the inspector shows him when nothing is selected, or the hovered ability.
 
 **Simulator check:** the sim plays the hero and casts his abilities the way a player would (`--no-cast` turns that off, `--no-hero` removes him; a `hero c,r` step sends him). Reference layouts, with him waiting by the gate and the new "build between waves only" rule (before → after): `level1-mixed` 5 → 0, `level3-full` 5 → 3, `level4-mixed` 9 → 5, `level7-mixed` 14 → 11, the rest unchanged; without the hero the new build rule alone only changed `level2-full` (0 → 5). Sent to a good road cell from the start: `level4-mixed` 9 → 0 (cell 5,5; 5 without abilities), `level7-mixed` 14 → 7 (8,6) – he reaches level 5 in most of those runs.
 
@@ -97,9 +99,9 @@ A guardhouse (90 gold) that must stand **next to the road** (a road cell within 
 
 - Each soldier guards a post round the rally point. When a ground enemy comes within 60 of the rally point it runs at it – enemies nobody holds yet first, then the one closest to the castle – and fights. The first soldier to reach an enemy **blocks** it: it stops walking, turns to the soldier and hits it every second. More soldiers can gang up on one enemy, but it only hits the one blocking it.
 - Soldiers: 80 / 120 / 160 health at level 1/2/3, 7 / 11 / 15 physical damage a swing every second (Banners and War Drums boost them; the damage goes through resistances like any physical hit). Out of a fight they heal 8% of their health a second.
-- Enemy hits on a soldier: `4 × 1.12^wave × √(goblin health multiple)`, ×3 for bosses (bosses can be blocked, but they cut through soldiers fast).
+- Enemy hits on a soldier: `4 × 1.12^wave × √(goblin health multiple)`, ×3 for bosses (bosses ×3 – that only matters for the hero now, since soldiers don't fight bosses).
 - A soldier at 0 health falls (dust, a clank) and comes back from the Barracks after 8 s (6 s at level 3); a stunned Barracks (Sapper) doesn't send new soldiers until the stun wears off.
-- **Flyers ignore them** (soldiers never go for bats), and a faded Ghost slips out of their grip. An enemy that's banished away is let go. Selling the Barracks releases everything it holds.
+- **Flyers ignore them** (soldiers never go for bats), a faded Ghost slips out of their grip, and **bosses can't be blocked by a Barracks** – soldiers leave them alone (only the hero can take a boss on). An enemy that's banished away is let go. Selling the Barracks releases everything it holds.
 - It has no targeting mode and doesn't count on the coverage map (its range tint shows where the rally point can go).
 - **Level-3 paths** (Knights' Hall / Warband, table above). Simulator check (`level4-mixed` / `level6-mixed` / `level7-mixed` with a Barracks built early and taken to level 3; plain → Knights → Warband lives lost): 6,4 on level 4: 6 → 2 → 3; 3,3 on level 6: 12 → 7 → 17; 10,8 on level 7: 12 → 18 → 8. A first Knights' Hall (×1.8 health, +40%, −40% damage taken) was weaker than the Warband everywhere and was buffed. **Hold enemies inside your towers' range:** with the rally point beside the breach (3,1 on level 4), knights held the Trolls of the "Troll march" there, out of reach of every tower, until late in the wave – their goblins then poured out at once and 8 leaked (5 → 13 lives). Strong blockers in the wrong place make things worse.
 

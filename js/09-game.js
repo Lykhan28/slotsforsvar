@@ -1,6 +1,6 @@
 // ---------- game ----------
 let g;
-function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)sc.remove(g.hero.m);
+function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
 g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
@@ -128,7 +128,7 @@ if(!ride&&!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||Mat
 if(e){h.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=h;}}
 const gx=e?e.x:h.tx,gy=e?e.y:h.ty,dx=gx-h.x,dy=gy-h.y,L=Math.hypot(dx,dy),stop=e?HERO.rg:0;h.mv=0;
 if(L>.01)h.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(HERO.sp*dt,L-stop)/L;h.x+=dx*k;h.y+=dy*k;h.mv=1;}
-if(e&&L<=HERO.rg+6){if(e.bk!==h&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=h;h.cd-=dt;if(h.cd<=0){h.cd=HERO.f;h.sw=1;const dd=s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.15,dd,'barracks',dx,dy);}
+if(e&&L<=HERO.rg+6){if(e.bk!==h&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=h;h.cd-=dt;if(h.cd<=0){h.cd=HERO.f;h.sw=1;const dd=s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.15,dd,'barracks',dx,dy);heroHit(h,e);}
 if(e.bk===h&&!(e.stun>0)){e.dir=Math.atan2(h.x-e.x,h.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;h.hp-=edmg(e)*(1-HERO.arm);h.hit=.2;if(h.hp<=0){h.rs=HERO.rsp;heroRel(h);heroFx(-1,h,[]);}}}}
 else if(!e)h.hp=Math.min(h.max,h.hp+h.max*HERO.reg*dt);}
 // ability i (0..3): returns false when it can't be used now (dead, on cooldown, Divine Smite used this wave or no wave running)
@@ -145,7 +145,7 @@ heroFx(i,h,near);return true;}
 // Each soldier guards a post round the rally point; when a ground enemy comes within BAR.eng of the rally point it runs at it (unblocked ones first, then the one
 // closest to the castle) and fights. The first soldier to reach an enemy blocks it (e.bk): it stops walking and hits back at that soldier every BAR.ecd s for edmg().
 // A soldier at 0 health falls and comes back from the tower after BAR.rsp s (not while the Barracks is stunned); out of a fight it heals BAR.reg of its health a second.
-// Flyers and faded Ghosts are ignored. Soldier damage comes from stat() (level, banners) and goes through dmul() like any physical hit. Models: solSync() in js/07-enemies.js
+// Flyers, faded Ghosts and bosses are ignored – bosses can't be blocked by a Barracks (the hero can). Soldier damage comes from stat() (level, banners) and goes through dmul() like any physical hit. Models: solSync() in js/07-enemies.js
 const BAR={n:3,hp:80,rsp:8,sp:75,eng:60,rg:22,reg:.08,ecd:1,near:90};
 // soldier health and count, respawn time and the share of enemy damage taken – the level-3 branch (BRN.barracks) changes them
 const solHp=t=>BAR.hp*(1+.5*(t.l-1))*((brn(t)||{}).shp||1),solN=t=>(brn(t)||{}).sn||BAR.n,solRs=t=>BAR.rsp*(t.l>=3?.75:1)*((brn(t)||{}).rsf||1),solArm=t=>1-((brn(t)||{}).arm||0);
@@ -168,8 +168,8 @@ function soldiers(dt){for(const t of g.tw){if(!t.sol)continue;const s=stat(t),mx
 while(t.sol.length<solN(t))t.sol.push({i:t.sol.length,x:t.x,y:t.y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});
 for(const d of t.sol){if(d.max!==mx){d.hp+=mx-d.max;d.max=mx;}
 if(d.hp<=0){if(!(t.stun>0))d.rs-=dt;if(d.rs<=0){d.hp=mx;d.x=t.x;d.y=t.y;d.cd=0;}continue;}
-let e=d.e;if(e&&(e.hp<=0||e.out||Math.hypot(e.x-t.rp.x,e.y-t.rp.y)>BAR.eng*1.6)){if(e.bk===d)e.bk=null;e=d.e=null;}
-if(!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||Math.hypot(o.x-t.rp.x,o.y-t.rp.y)>BAR.eng)continue;const p=prog(o)-(o.bk&&o.bk.hp>0&&o.bk!==d?1e6:0);if(p>bp){bp=p;e=o;}}
+let e=d.e;if(e&&(e.hp<=0||e.out||e.bs||Math.hypot(e.x-t.rp.x,e.y-t.rp.y)>BAR.eng*1.6)){if(e.bk===d)e.bk=null;e=d.e=null;}
+if(!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||o.bs||Math.hypot(o.x-t.rp.x,o.y-t.rp.y)>BAR.eng)continue;const p=prog(o)-(o.bk&&o.bk.hp>0&&o.bk!==d?1e6:0);if(p>bp){bp=p;e=o;}}
 if(e){d.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=d;}}
 const g2=e?{x:e.x,y:e.y}:post(t,d),dx=g2.x-d.x,dy=g2.y-d.y,L=Math.hypot(dx,dy),stop=e?BAR.rg:0,m=BAR.sp*dt;d.mv=0;
 if(L>.01)d.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(m,L-stop)/L;d.x+=dx*k;d.y+=dy*k;d.mv=1;}

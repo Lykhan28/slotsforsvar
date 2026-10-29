@@ -451,21 +451,36 @@ for(const k of[-1,1]){eM(B,memG('hcap',[[-.26,0],[.26,0],[.24,-.18],[0,-.21],[-.
 eM(B,rboxG(.35,.03,.54,.012),P.bl,0,.765,.03);for(const k of[-1,1])eM(B,rboxG(.012,.02,.54,.004),P.gd,k*.172,.755,.03);eM(B,rboxG(.2,.05,.18,.02),0x5a3a1e,0,.8,0);eM(B,rboxG(.09,.02,.12,.008),0xc8ccd4,0,.94,.52,.7,0,0);
 const T=piv(B,'TL',0,.66,-.25);eBone(T,dk,.03,.05,.32,0,0,0,0,-1,-.6);
 [[.09,.22],[-.09,.22],[.09,-.18],[-.09,-.18]].forEach(([x,z],i)=>{const L=piv(B,'L'+i,x,.5,z);eM(L,capG(.025,.042,.42),hc,0,0,0);eCy(L,hf,.034,.05,0,-.43,0);eSp(L,0xe8dcc0,.033,.025,.033,0,-.38,0);});
-const R=new THREE.Group();R.userData.keep=true;R.position.set(0,.58,-.02);R.scale.setScalar(2.05);B.add(R);chibi(R,0,0,0x2f5a9a,0x9aa3b0,4,0xa02a24);const c=R.children[0],sw=R.getObjectByName('SW');
+const R=new THREE.Group();R.name='RD';R.userData.keep=true;R.position.set(0,.58,-.02);R.scale.setScalar(2.05);B.add(R);chibi(R,0,0,0x2f5a9a,0x9aa3b0,4,0xa02a24);const c=R.children[0],sw=R.getObjectByName('SW');
 eCnD(c,P.rd,.024,.11,0,.38,-.02,0,1,-.35);eTor(c,P.gd,.056,.056,.04,0,.335,-.004).rotation.x=PI/2;eM(c,rboxG(.1,.13,.014,.02),0xa02a24,-.08,.15,.055);eM(c,rboxG(.016,.1,.004,.002),P.gd,-.08,.15,.063);eM(c,rboxG(.07,.016,.004,.002),P.gd,-.08,.17,.063);
 eM(c,memG('hcape',[[-.05,0],[.05,0],[.07,-.17],[-.07,-.17]]),matDS(0xa02a24),0,.25,-.055,.3,PI,0);for(const k of[-1,1])eSp(c,0xc8ccd4,.03,.022,.03,k*.06,.25,0);
-bakeE(R);bakeE(sw);for(let i=0;i<4;i++)bakeE(B.getObjectByName('L'+i));bakeE(T);bakeE(B);blob(G,.45);
+bakeE(R);bakeE(sw);sw.scale.setScalar(1.7);for(let i=0;i<4;i++)bakeE(B.getObjectByName('L'+i));bakeE(T);bakeE(B);blob(G,.45);
+// the slash: a bright arc in front of him that flashes on every sword stroke (heroSync)
+const sl=L1(new THREE.Mesh(new THREE.RingGeometry(.3,.56,20,1,-.2,PI*.8),new THREE.MeshBasicMaterial({color:new THREE.Color(0xffe9a8).convertSRGBToLinear(),transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending})));
+sl.name='SL';sl.position.set(.1,.95,.3);sl.rotation.y=PI/2;sl.visible=false;G.add(sl);
+// a second arc across it, so the stroke reads from the front and back too
+const sl2=sl.clone();sl2.name='SL2';sl2.position.set(0,.95,.42);sl2.rotation.set(0,0,0);G.add(sl2);
 const bg=L1(new THREE.Sprite(SB)),fg=L1(new THREE.Sprite(SF));bg.scale.set(.5,.08,1);bg.position.y=1.75;bg.renderOrder=10;bg.name='bb';fg.name='bar';fg.scale.set(.46,.055,1);fg.position.y=1.75;fg.renderOrder=11;G.add(bg,fg);
 return HTPL=G;}
 // the order marker: a gold ring where the hero was sent
 let HMK=null;
 function heroMark(x,y){fx(x,y,0xffe6a0,.15,.7,.5,.05,true);burst(x,y,0xffe6a0,6,.7,.1);}
-function heroSync(dt){const h=g.hero;if(!h)return;if(!h.m){h.m=heroTpl().clone(true);h.rig={};for(const n of['BD','TL','L0','L1','L2','L3','SW','bar','bb'])h.rig[n]=h.m.getObjectByName(n);h.rig.bar.material=SF.clone();h.vis=h.dir;sc.add(h.m);}
-const r=h.rig,on=h.hp>0;h.m.visible=on&&!g.over;if(!on)return;let dv=h.dir-h.vis;dv=Math.atan2(Math.sin(dv),Math.cos(dv));h.vis+=dv*Math.min(1,dt*10);
+function heroSync(dt){const h=g.hero;if(!h)return;if(!h.m){h.m=heroTpl().clone(true);h.rig={};for(const n of['BD','RD','TL','L0','L1','L2','L3','SW','SL','SL2','bar','bb'])h.rig[n]=h.m.getObjectByName(n);h.rig.bar.material=SF.clone();h.rig.SL.material=h.rig.SL.material.clone();h.rig.SL2.material=h.rig.SL.material;h.vis=h.dir;sc.add(h.m);
+// on the ground: his reach round the spot he holds (gold while he fights) and a red ring under the enemy he is fighting
+const rm=c=>L1(new THREE.Mesh(RG,new THREE.MeshBasicMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false})));h.rg=rm(0xffffff);h.tg=rm(0xff5a3a);
+for(const m of[h.rg,h.tg]){m.rotation.x=-PI/2;m.position.y=.03;sc.add(m);}}
+const r=h.rig,on=h.hp>0;h.m.visible=on&&!g.over;if(!on){h.rg.visible=h.tg.visible=false;return;}let dv=h.dir-h.vis;dv=Math.atan2(Math.sin(dv),Math.cos(dv));h.vis+=dv*Math.min(1,dt*10);
 h.m.position.set(wx(h.x),0,wz(h.y));h.m.rotation.y=h.vis;h.gp=(h.gp||0)+(h.mv?dt*11:0);const gp=h.gp,mv=h.mv&&dt>0;
 for(let i=0;i<4;i++)r['L'+i].rotation.x=mv?Math.sin(gp+(i<2?0:PI)+(i%2)*.6)*.7:0;r.BD.position.y=mv?Math.abs(Math.sin(gp))*.05:Math.sin(tt*2)*.005;r.BD.rotation.x=mv?Math.sin(gp)*.04:0;r.TL.rotation.x=Math.sin(tt*3)*.15+(mv?.4:0);
-if(h.sw>0)h.sw=Math.max(0,h.sw-dt*4);r.SW.rotation.x=h.sw>0?Math.sin((1-h.sw)*PI)*1.7:-.15;if(h.hit>0)h.hit-=dt;
+// a sword stroke (h.sw counts 1 → 0 in a third of a second): the sword goes up and back, then chops down and forward while he leans into it and the horse
+// rocks onto its forelegs; the slash arc flashes during the chop
+if(h.sw>0)h.sw=Math.max(0,h.sw-dt*3);const sk=h.sw>0,q=1-h.sw;r.SW.rotation.x=sk?(q<.35?-1.3*q/.35:-1.3+3.2*Math.min(1,(q-.35)/.35)):-.15;
+r.RD.rotation.x=sk?Math.sin(q*PI)*.32:0;if(sk)r.BD.rotation.x=-Math.sin(q*PI)*.07;r.SL.visible=r.SL2.visible=sk&&q>.38;if(r.SL.visible){const f=(q-.38)/.62;r.SL.material.opacity=Math.min(1,1.4*(1-f));r.SL.scale.setScalar(.85+f*.45);r.SL.rotation.z=-f*1.1;r.SL2.scale.setScalar(.75+f*.4);r.SL2.rotation.z=-.4-f*1.1;}if(h.hit>0)h.hit-=dt;
+const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2,showR=g.run&&!ride&&!g.over;h.rg.visible=showR;if(showR){h.rg.position.x=wx(h.tx);h.rg.position.z=wz(h.ty);h.rg.scale.setScalar(HERO.eng/60);h.rg.material.color.setHex(h.e?0xffd24a:0xffffff);h.rg.material.color.convertSRGBToLinear();h.rg.material.opacity=h.e?.55:.22;}
+const fe=h.e&&h.e.hp>0?h.e:null;h.tg.visible=!!fe&&!g.over;if(fe){h.tg.position.x=wx(fe.x);h.tg.position.z=wz(fe.y);h.tg.scale.setScalar(.38+Math.sin(tt*8)*.03);}
 const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:hr>.25?0xf1a43c:0xe74c3c);}}
+// each hit lands with a bright spark and a flash on the enemy
+function heroHit(h,e){const y=.55;burst(e.x,e.y,0xfff2c0,7,1.3,y);fx(e.x,e.y,0xffffff,.08,.45,.18,y);}
 function heroLvl(h){snd('upgrade');popText(h.x,h.y,'Level '+h.lv+'!','#ffe08a');burst(h.x,h.y,P.gd,16,1.5,.6);fx(h.x,h.y,0xffd24a,.2,1.2,.6,.1,true);}
 // ability looks: -1 the hero falls, 0 Shield Bash, 1 Lance Charge, 2 Rallying Cry, 3 Divine Smite; near = the enemies it hit
 function heroFx(i,h,near){if(i<0){snd('die_sol');burst(h.x,h.y,0xc8ccd4,12,1.2,.5);burst(h.x,h.y,0x7a4a2a,8,1,.3);return;}

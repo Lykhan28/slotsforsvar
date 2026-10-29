@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-30
+- **Sir Roland's attacks are easy to read now:** every stroke is a big overhead chop with a bright slash and sparks on the enemy, a ring on the ground shows how far he reaches (gold while he's fighting), and a red ring marks the enemy he's fighting.
+- **Bosses can't be blocked by the Barracks** any more – soldiers let them walk past. Only Sir Roland can stand in a boss's way.
 - **New: your hero, Sir Roland.** A knight on horseback who rides wherever you click on the road and holds the line there – he blocks and fights anything on foot, levels up (up to level 5) as enemies fall around him, and if he falls he rides back from the gate after 15 seconds. He has four abilities: **Shield Bash** (stuns everything around him), **Lance Charge** (hurls enemies back down the road), **Rallying Cry** (nearby towers attack faster) and **Divine Smite**, a blast of holy light that can be used once a wave and heals him fully.
 - **Waves are now hero time:** while a wave is on you can't build or sell towers – the tower bar turns into the hero's bar, with his health, level and ability buttons (keys 1–4). You can still upgrade towers mid-wave.
 
