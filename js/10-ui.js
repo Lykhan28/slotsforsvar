@@ -47,7 +47,9 @@ const AT=TK.filter(k=>!T[k].sup&&!T[k].inc),MX={dps:Math.max(...AT.flatMap(k=>ts
 const brPick=t=>!!t&&!!BRN[t.k]&&(t.l==2||t.l==3&&t.br==null);
 // what each branch changes, as a short line on its card
 function brLine(k,i,bf){const o=tstat(k,3,bf,i),b=o.b;return{arrow:['Range '+tiles(o.r)+' tiles','Pierces armour · +'+Math.round((b.dm-1)*100)+'% damage'],cannon:['Burns '+fmt(o.burn)+'/s for '+(b.fz||[])[1]+'s','Crushes for '+fmt(o.d*(b.bd||1))],
-frost:['Banishes all within '+tiles(b.grp||0)+' tiles','Slows to '+Math.round((b.tz||[0,0,0])[2]*100)+'% for '+(b.tz||[])[1]+'s'],storm:['Chains '+o.n+' enemies','Stuns '+b.stn+'s · chains '+o.n]}[k][i];}
+frost:['Banishes all within '+tiles(b.grp||0)+' tiles','Slows to '+Math.round((b.tz||[0,0,0])[2]*100)+'% for '+(b.tz||[])[1]+'s'],storm:['Chains '+o.n+' enemies','Stuns '+b.stn+'s · chains '+o.n],
+ballista:['Hits up to '+(1+(b.sk||0))+' in a line',fmt(o.d*(b.gs||1))+' to big enemies'],alch:['No armour for '+b.ac+'s','Spreads '+tiles(b.pl||0)+' tiles'],
+banner:['+'+Math.round((b.hs||0)*100)+'% attack speed','Ignores resistances'],vault:['Up to +'+(b.it||[])[1]+' gold a wave','+'+Math.round((b.bty||0)*100)+'% gold · '+tiles(o.r)+' tiles']}[k][i];}
 const bar=(v,n,mx)=>'<span class="sb">'+(n!=null?'<i class="nx" style="width:'+Math.min(100,n/mx*100)+'%"></i>':'')+'<i style="width:'+Math.min(100,v/mx*100)+'%"></i></span>';
 const row=(lb,val,nxt,b)=>'<div class="st'+(b?'':' nob')+'"><span class="sl">'+lb+'</span>'+(b||'')+'<span class="sv">'+val+(nxt!=null?'<em>→ '+nxt+'</em>':'')+'</span></div>';
 function infoHTML(k,t){const tp=T[k],l=t?t.l:1,bf=t?t.buff||1:1,a=tstat(k,l,bf,t&&t.br),bp=brPick(t),nx=t&&l<3&&!bp?tstat(k,l+1,bf):null,br=a.b,sm=s=>' <small>'+s+'</small>';
@@ -55,8 +57,8 @@ let h='<div class="ih"><div class="iic">'+tp.ic+'</div><div class="ihn"><b>'+tp.
 (t?'<div class="lv" title="Level '+l+' of 3">'+[1,2,3].map(i=>'<i'+(i<=l?' class="on"':'')+'></i>').join('')+'</div>':'<div class="cost'+(g.gold<tp.c?' poor':'')+'">'+COIN+tp.c+'</div>')+'</div>';
 if(!t)h+='<p class="ds">'+DS[k]+'</p>';
 h+='<div class="sts">';
-if(tp.sup){const p=l=>Math.round((.2+.1*(l-1))*100);h+=row('Boost','+'+p(l)+'%'+sm('damage'),nx&&'+'+p(l+1)+'%')+row('Range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
-else if(tp.inc)h+=row('Income','+'+tp.inc*l+sm('gold / wave'),nx&&'+'+tp.inc*(l+1));
+if(tp.sup){const p=l=>Math.round((.2+.1*(l-1))*100);h+=row('Boost','+'+p(l)+'%'+sm('damage'),nx&&'+'+p(l+1)+'%')+(br&&br.hs?row('Speed','+'+Math.round(br.hs*100)+'%'+sm('attack speed')):'')+(br&&br.hr?row('Blessing','No resistances'+sm('for towers in range')):'')+row('Range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
+else if(tp.inc)h+=row('Income','+'+tp.inc*l+sm('gold / wave'),nx&&'+'+tp.inc*(l+1))+(br&&br.it?row('Interest',Math.round(br.it[0]*100)+'%'+sm('of your gold, up to '+br.it[1])):'')+(br&&br.bty?row('Bounty','+'+Math.round(br.bty*100)+'%'+sm('gold for kills in range'))+row('Range',tiles(a.r)+sm('tiles'),null,bar(a.r,null,MX.r)):'');
 else{const ds=k=='arrow'&&a.n>1?'total':k=='storm'?'chain':k=='alch'||k=='cannon'?'per enemy':'';
 h+=row('DPS',fmt(a.dps)+(ds?sm(br&&br.bd?'on target':ds):''),nx&&fmt(nx.dps),bar(a.dps,nx&&nx.dps,MX.dps))+
 row('Damage',k=='arrow'?fmt(a.d)+sm('× '+a.n+' arrow'+(a.n>1?'s':'')):k=='alch'?fmt(a.d)+sm('/s for 3s'):k=='storm'?fmt(a.d)+sm('−8% per jump'):br&&br.bd?fmt(a.d*br.bd)+sm(fmt(a.d)+' splash'):fmt(a.d),nx&&fmt(nx.d))+(a.burn?row('Burn',fmt(a.burn)+sm('/s in the fire')):'')+
@@ -69,8 +71,8 @@ if(bp){const c=l==3?0:upCost(t);h+='<div class="brs"><span class="sl">'+(l==3?'C
 const atk=!tp.sup&&!tp.inc,tm=atk&&tmode(t||{k});if(t&&atk)h+='<div class="tgm"><span class="sl">Target</span><div class="seg" title="Targeting (T)">'+TGK.map(m=>'<button data-tm="'+m+'"'+(m==tm?' class="on"':'')+' title="'+TGM[m][1]+'">'+TGM[m][0]+'</button>').join('')+'</div></div>';
 const bz=br&&br.tz,c={arrow:[a.n+(a.n>1?' targets':' target')],cannon:[...(br&&br.bd?['×'+br.bd+' on its target']:[]),'Splash '+tiles(br&&br.sp||tp.sp)+' tiles','Slows '+20*l+'% for 1s',...(br&&br.fz?['🔥 Burning ground '+tiles(br.fz[0])+' tiles · '+br.fz[1]+'s']:[])],
 frost:bz?['⏳ Time field '+tiles(bz[0])+' tiles','Enemies at '+Math.round(bz[2]*100)+'% speed for '+bz[1]+'s','Bosses slowed ⅓ as much','No banish']:['Banish '+(.5+.5*l)+' tiles',...(br&&br.grp?['✨ Hits everyone within '+tiles(br.grp)+' tiles']:[]),'Bosses ⅓ as far','4s immunity'],
-ballista:['Longest range'],storm:['Chains '+a.n+' enemies',br&&br.stn?'Stuns '+br.stn+'s (bosses '+fmt(br.stn*.34)+'s)':'Stuns 0.2s'],alch:['Poison 3s','Splash 0.75 tiles'],
-banner:[t?'Boosting '+g.tw.filter(o=>o!==t&&!T[o.k].sup&&!T[o.k].inc&&Math.hypot(o.x-t.x,o.y-t.y)<=a.r).length+' towers':'Stacks with other banners'],vault:['Pays for itself in '+Math.ceil(tp.c/(tp.inc*l))+' waves']}[k].map(s=>'<span class="chip">'+s+'</span>');
+ballista:['Longest range',...(br&&br.sk?['🗡️ Goes through up to '+br.sk+' more enemies']:[]),...(br&&br.gs?['💀 ×'+br.gs+' to bosses, Black Knights and Trolls']:[])],storm:['Chains '+a.n+' enemies',br&&br.stn?'Stuns '+br.stn+'s (bosses '+fmt(br.stn*.34)+'s)':'Stuns 0.2s'],alch:['Poison 3s','Splash 0.75 tiles',...(br&&br.ac?['⚗️ Strips armour for '+br.ac+'s · +'+Math.round(ACID*100)+'% physical damage']:[]),...(br&&br.pl?['☠️ Poison spreads '+tiles(br.pl)+' tiles when a poisoned enemy dies']:[])],
+banner:[t?'Boosting '+g.tw.filter(o=>o!==t&&!T[o.k].sup&&!T[o.k].inc&&Math.hypot(o.x-t.x,o.y-t.y)<=a.r).length+' towers':'Stacks with other banners'],vault:['Pays for itself in '+Math.ceil(tp.c/(tp.inc*l))+' waves',...(t&&br&&br.it?['Interest now: +'+Math.min(br.it[1],Math.floor(g.gold*br.it[0]))]:[])]}[k].map(s=>'<span class="chip">'+s+'</span>');
 if(atk&&!t)c.unshift('<span class="chip">Targets: '+TGM[tm][0]+'</span>');
 if(!t&&BRN[k])c.push('<span class="chip hi" title="Pick one when upgrading to level 3">Level 3: '+BRN[k].map(b=>b.n).join(' or ')+'</span>');
 if(atk)c.push(tp.air?'<span class="chip" title="Can shoot flying enemies">🦇 Hits flyers</span>':'<span class="chip lo" title="Can’t hit flying enemies">Ground only</span>');

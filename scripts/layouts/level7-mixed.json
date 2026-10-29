@@ -4,6 +4,6 @@
   "build": [
     "arrow 6,5", "arrow 8,5", "cannon 5,5", "alch 6,3", "up 6,5", "up 8,5", "storm 8,7", "arrow 3,3", "up 5,5",
     "ballista 10,6", "up 6,3", "up 8,7", "banner 6,4", "storm 5,3", "up 3,3", "up 6,5 crossbow", "up 8,5 crossbow", "up 10,6", "up 5,3",
-    "up 8,7 tempest", "alch 8,3", "up 8,3", "up 5,5 fire", "up 6,3", "up 5,3 tempest", "up 10,6", "up 8,3"
+    "up 8,7 tempest", "alch 8,3", "up 8,3", "up 5,5 fire", "up 6,3 acid", "up 5,3 tempest", "up 10,6 giant", "up 8,3 acid"
   ]
 }

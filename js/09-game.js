@@ -29,10 +29,13 @@ const tmode=t=>t.tm||T[t.k].tm||'first';
 const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m=='fast'?e.s+prog(e)*1e-6:-Math.hypot(e.x-t.x,e.y-t.y);
 // the upgrade branch a level-3 tower took (BRN in js/01-config.js), or null
 const brn=t=>t.l>=3&&t.br!=null&&BRN[t.k]?BRN[t.k][t.br]:null;
-const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1),r:T[t.k].r+10*(t.l-1)+(b&&b.rg||0),f:T[t.k].f*(b&&b.fm||1)};};
+const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1),r:T[t.k].r+10*(t.l-1)+(b&&b.rg||0),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
+// the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
+const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 // damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista and Crossbow Nest pierce physical armour);
 // b.dt overrides the damage type (the Fire Pots' burning ground is fire)
-const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;return t=='phys'&&(T[k].pr||b&&b.pr)?1:1-(e.rs[t]||0);};
+// e.ac > 0 = Acid Brew ate its armour: physical damage ignores its resistance and does ACID extra; b.hr (Blessed Standard) ignores every resistance below 1
+const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;if(t=='phys'&&e.ac>0)return 1+ACID;return t=='phys'&&(T[k].pr||b&&b.pr)?1:1-(e.rs[t]||0)*(b&&b.hr&&e.rs[t]<1?0:1);};
 // Shieldbearer: an Archer arrow or Ballista bolt flying at its front (within ~70° of head-on; dx,dy = the shot's travel direction) loses e.shd of its damage
 const shBlk=(e,k,dx,dy)=>{if(!e.shd||(k!='arrow'&&k!='ballista'))return 1;const L=Math.hypot(dx,dy);return L>0&&-(dx*Math.sin(e.dir)+dy*Math.cos(e.dir))/L>.34?1-e.shd:1;};
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
@@ -40,25 +43,27 @@ function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
 zones(dt);
-for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
+for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
 if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.lv||1;}}
-buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t),br=brn(t);let best=null,bp=-Infinity;
+buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t),br=tbr(t);let best=null,bp=-Infinity;
 // a Wizard skips enemies it can't banish yet; a Time Warden skips enemies already in a time field
 for(const e of g.en){if(e.hp<=0||e.out||(t.k=='frost'&&(br&&br.tz?e.tf<1:e.bn>0))||(e.fy&&!T[t.k].air)||dmul(e,t.k,br)<=0)continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=tscore(t,e,tm);if(p>bp){bp=p;best=e;}}}
-if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,br,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k,br)}));}}}
+if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,br,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k,brn(t))}));}}}
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0||e.out){b.dead=1;continue;}
 const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
-if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch')>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch'));o.hit=.15;}fx(e.x,e.y,0x7cff4a,.1,.75,.5,.1,true);burst(e.x,e.y,0x7cff4a,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');const br=b.br||{};for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon')*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
-else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y);e.hp-=dd;hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
+if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');const br=b.br||{},c=br.ac?0xd8f03a:br.pl?0xa06ad0:0x7cff4a;for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch',br)>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch',br));o.hit=.15;if(br.ac)o.ac=br.ac;if(br.pl)o.pg=br.pl;}fx(e.x,e.y,c,.1,.75,.5,.1,true);burst(e.x,e.y,c,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');const br=b.br||{};for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon',br)*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
+else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y)*big(e,b.br);e.hp-=dd;if(b.br&&b.br.sk)skewer(e,b);hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
-const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{g.gold+=e.rw;snd('coin');popText(e.x,e.y,'+'+e.rw,'#ffd24a');burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
+const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{const rw=e.rw+bounty(e);g.gold+=rw;snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
 for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trollSplit(e);
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
-if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
+if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}
+// Royal Bank: interest on the gold held after the wave's income
+for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.min(b.it[1],Math.floor(g.gold*b.it[0]));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
 // Sapper: once a tower stands within SAP.r it leaves the road, runs at it (40% faster) and blows up beside it, stunning it for SAP.st s (no gold for that);
 // if the tower is sold first it walks back to where it left the road. Returns true while it is off the road (update() then skips the road walk)
 const SAP={r:90,st:4};
@@ -89,9 +94,19 @@ for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
+// Giant Slayer: damage multiplier on big enemies (bosses, and types with at least 1.8× a goblin's health)
+const big=(e,b)=>b&&b.gs&&(e.bs||e.h>=1.8)?b.gs:1;
+// Skewer: the bolt carries on through its target and hits up to b.sk more enemies within 18 of its line, up to 150 beyond the target
+function skewer(e,b){const dx=e.x-b.x,dy=e.y-b.y,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,hit=[];
+for(const o of g.en){if(o===e||o.hp<=0||o.out||(o.fy&&!T[b.k].air))continue;const px=o.x-e.x,py=o.y-e.y,a=px*ux+py*uy;if(a<-10||a>150||Math.abs(px*uy-py*ux)>18)continue;hit.push([a,o]);}
+hit.sort((p,q)=>p[0]-q[0]);for(const[,o]of hit.slice(0,b.br.sk)){const dd=b.d*dmul(o,b.k,b.br)*shBlk(o,b.k,ux,uy)*big(o,b.br);o.hp-=dd;hf(o,.2,dd,b.k,ux,uy,b.br);}}
+// Bounty Office: extra gold for an enemy killed within its range (the best one counts, they don't stack)
+function bounty(e){let v=0;for(const t of g.tw){const b=brn(t);if(b&&b.bty&&!(t.stun>0)&&Math.hypot(e.x-t.x,e.y-t.y)<=stat(t).r)v=Math.max(v,Math.ceil(e.rw*b.bty));}return v;}
+// Plague: a poisoned enemy that dies passes its poison to every ground enemy within e.pg (who can spread it again)
+function plague(e){plagueFx(e,e.pg);for(const o of g.en)if(o!==e&&o.hp>0&&!o.fy&&!o.out&&dmul(o,'alch')>0&&Math.hypot(o.x-e.x,o.y-e.y)<=e.pg){o.pt=3;o.pd=Math.max(o.pd||0,e.pd);o.pg=e.pg;o.hit=.15;}}
 // Wizard hit: a plain or Archmage Wizard banishes (the Archmage also everyone within grp of the target); a Time Warden leaves a time field instead
 function wizHit(e,b){const br=b.br||{};if(br.tz){addZone({k:'time',x:e.x,y:e.y,r:br.tz[0],t:br.tz[1],d0:br.tz[1],f:br.tz[2]});return;}banish(e,b.l);
-if(br.grp)for(const o of g.en)if(o!==e&&o.hp>0&&!o.out&&!(o.bn>0)&&Math.hypot(o.x-e.x,o.y-e.y)<=br.grp){const dd=b.d*dmul(o,'frost');o.hp-=dd;hf(o,.2,dd,'frost');banish(o,b.l);}}
+if(br.grp)for(const o of g.en)if(o!==e&&o.hp>0&&!o.out&&!(o.bn>0)&&Math.hypot(o.x-e.x,o.y-e.y)<=br.grp){const dd=b.d*dmul(o,'frost',br);o.hp-=dd;hf(o,.2,dd,'frost');banish(o,b.l);}}
 // ground zones (g.zn, drawn by zoneFx() in js/07-enemies.js): the Fire Pots' burning ground ('fire': z.d fire damage per second to ground enemies in it)
 // and the Time Warden's field ('time': enemies in it move at z.f of their speed – bosses lose only a third as much – and their abilities tick slower too; e.tf, read by update())
 const FIRE={dt:'fire'};

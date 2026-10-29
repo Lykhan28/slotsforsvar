@@ -104,7 +104,7 @@ Replace the formula waves with hand-designed waves per level (a data table in js
 Add a branch choice at the level-3 upgrade for Archers (Longbowmen: range / Crossbow nest: armour piercing), Catapult (Fire pots: burning ground / Boulder: big single hit), Wizard (Archmage: banishes a group / Time Warden: slows time in an area) and Storm (Tempest: more jumps / Thunderlord: long stun). Each branch gets a visible model change. Update tstat(), infoHTML() and GAME_DESIGN.md.
 ```
 
-- [ ] **18. Upgrade branches, part 2**
+- [x] **18. Upgrade branches, part 2**
 ```text
 Add level-3 branch choices for Ballista, Alchemist, Banner Tower and Treasury, in the same style as the existing branches. Propose two interesting options for each and pick ones that fit the damage-type system.
 ```

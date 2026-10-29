@@ -104,11 +104,21 @@ banner:{n:'Banner Tower',ic:'🚩',c:120,r:120,d:0,f:99,sup:1},vault:{n:'Treasur
 // upgrade branches: the level-3 upgrade of these towers is a choice of two (t.br = 0/1; brn(t) in js/09-game.js gives the picked one). Numbers on top of the normal level 3:
 // dm/fm = damage/reload multiplier, rg = extra range, pr = pierces armour, ch = extra chain jumps, stn = stun per lightning hit (bosses a third),
 // bd = Catapult damage on the target it was aimed at (splash sp around it), fz = Catapult burning ground [radius, seconds, share of the shot's damage per second, fire],
-// grp = Wizard banishes everyone within that distance of its target, tz = Wizard time field [radius, seconds, speed left] instead of banishing
+// grp = Wizard banishes everyone within that distance of its target, tz = Wizard time field [radius, seconds, speed left] instead of banishing,
+// sk = Ballista bolt also hits up to that many enemies in a line behind its target, gs = damage multiplier on big enemies (bosses and E.h >= 1.8),
+// ac = Alchemist acid: seconds an enemy it hits has no physical armour (and takes ACID extra physical damage, dmul()), pl = poison spreads this far when a poisoned enemy dies,
+// hs = Banner: extra attack speed for towers in range, hr = Banner: towers in range ignore every resistance below 1 (immunities stay),
+// it = Treasury interest at the end of a wave [share of your gold, most per wave], bty = Treasury: extra share of gold for enemies killed in its range
 const BRN={arrow:[{n:'Longbowmen',ic:'🎯',ds:'Longbows reach much further.',rg:40},{n:'Crossbow Nest',ic:'🔩',ds:'Heavy bolts pierce armour and hit harder.',pr:1,dm:1.3}],
 cannon:[{n:'Fire Pots',ic:'🔥',ds:'Clay pots of burning pitch set the ground on fire for a few seconds.',fz:[50,3,.3]},{n:'Boulder',ic:'🪨',ds:'A huge boulder crushes the enemy it lands on; the splash is a little smaller.',bd:3,sp:48}],
 frost:[{n:'Archmage',ic:'✨',ds:'Banishes its target and every enemy close to it.',grp:60},{n:'Time Warden',ic:'⏳',ds:'Stops banishing. Each shot leaves a field of slowed time that holds enemies back.',tz:[80,4,.4]}],
-storm:[{n:'Tempest',ic:'🌪️',ds:'Lightning jumps between many more enemies.',ch:4},{n:'Thunderlord',ic:'🔨',ds:'Slower, heavier strikes that stun every enemy in the chain.',ch:-1,dm:2,fm:1.7,stn:1.2}]};
+storm:[{n:'Tempest',ic:'🌪️',ds:'Lightning jumps between many more enemies.',ch:4},{n:'Thunderlord',ic:'🔨',ds:'Slower, heavier strikes that stun every enemy in the chain.',ch:-1,dm:2,fm:1.7,stn:1.2}],
+ballista:[{n:'Skewer',ic:'🗡️',ds:'Bolts punch straight through, hitting every enemy in a line behind the target.',sk:3},{n:'Giant Slayer',ic:'💀',ds:'Double damage to bosses, Black Knights, Trolls and other big enemies.',gs:2}],
+alch:[{n:'Acid Brew',ic:'⚗️',ds:'Acid eats armour: enemies it hits lose their physical resistance and take extra physical damage for a while.',ac:4},{n:'Plague',ic:'☠️',ds:'When a poisoned enemy dies, the poison spreads to the enemies around it.',pl:65}],
+banner:[{n:'War Drums',ic:'🥁',ds:'Towers in range also attack faster.',hs:.2},{n:'Blessed Standard',ic:'🌟',ds:'Towers in range ignore enemy resistances (but not immunities).',hr:1}],
+vault:[{n:'Royal Bank',ic:'🏦',ds:'Also pays interest on your unspent gold at the end of each wave.',it:[.05,60]},{n:'Bounty Office',ic:'📜',ds:'Enemies killed within its range give extra gold.',bty:.3,rg:70}]};
+// Acid Brew: extra physical damage while an enemy's armour is eaten away (e.ac > 0)
+const ACID=.15;
 // air = can hit flying enemies (E[type].fy); Catapult and Alchemist can't
 // damage types: every attacking tower deals one (T[k].dt); pr = pierces armour (ignores physical resistance). An enemy's rs = the share of a type's damage it shrugs off
 // (negative would mean it takes extra). Nothing resists lightning, so the Storm Tower ignores armour. dmul() in js/09-game.js applies it

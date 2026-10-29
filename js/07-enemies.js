@@ -389,8 +389,8 @@ e.m.rotation.z=rz;e.m.position.set(e.bx+ox+(boss?(Math.random()-.5)*.04:0),py,e.
 if(boss&&e.rig.W0){e.rig.W0.rotation.z=-1.1*f;e.rig.W1.rotation.z=1.1*f;}
 e.m.scale.set(sx*s2,sy*s2,sx*s2);
 if(p>=1){sc.remove(e.m);if(e.gm)e.gm.forEach(m=>m.dispose());if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}}}
-function volley(t,s){const ts=[],br=brn(t);for(const e of g.en)if(e.hp>0&&!e.out&&(!e.fy||T[t.k].air)&&dmul(e,t.k,br)>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
-ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',br,d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow',br),w:i*.07}));}
+function volley(t,s){const ts=[],br=tbr(t);for(const e of g.en)if(e.hp>0&&!e.out&&(!e.fy||T[t.k].air)&&dmul(e,t.k,br)>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
+ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',br,d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow',brn(t)),w:i*.07}));}
 const bolts=[];
 function bolt(x1,y1,h1,x2,y2,h2,hv){const g2=new THREE.Group(),a=new THREE.Vector3(wx(x1),h1,wz(y1)),b=new THREE.Vector3(wx(x2),h2,wz(y2)),ps=[a],up=new THREE.Vector3(0,1,0);
 for(let i=1;i<7;i++){const q=a.clone().lerp(b,i/7);q.x+=rnd(-.08,.08);q.y+=rnd(-.08,.08);q.z+=rnd(-.08,.08);ps.push(q);}ps.push(b);
@@ -413,15 +413,20 @@ dm.scale.set(R,R*.45,R);dm.userData.o=.1;G.add(dm);const sp=new THREE.Group();G.
 for(let i=0;i<8;i++){const a=i/8*2*PI,m=L1(new THREE.Mesh(geo('oct'),bm(0xffd27a)));m.scale.set(.03,.05,.03);m.position.set(R*.9*Math.sin(a),.08,R*.9*Math.cos(a));sp.add(m);}
 glow(G,0,.2,0,R*.6,0xffb43a);}
 return G;}
+// Plague spreading from a dying enemy: a purple ring as wide as its reach
+function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x8a4ab0,10,1,.3);}
 function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}
 function zoneAnim(dt){for(const z of g.zn){const k=clamp(z.t,0,1);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*k*(z.k=='fire'?.85+.15*Math.sin(tt*9+m.id):1);});
 z.fl.forEach((f,i)=>{const b=f.userData.b;if(b)f.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});if(z.sp){z.sp.rotation.y-=dt*.8;z.sp.position.y=Math.sin(tt*2)*.03;}}}
-function buffs(){for(const t of g.tw)t.buff=1;for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r;for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r)t.buff+=.2+.1*(s.l-1);}}
+// banners: +damage to towers in range; War Drums also add attack speed (t.hs), a Blessed Standard sets t.bls (tbr() in js/09-game.js)
+function buffs(){for(const t of g.tw){t.buff=1;t.hs=1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
 // br = the tower's upgrade branch: Crossbow Nest bolts, Fire Pots (a glowing clay pot), the Boulder (twice the size), Archmage/Time Warden orbs
 function mkBullet(k,br){const bi=br?BRN[k].indexOf(br):-1;
 if(k=='arrow'&&bi==1){const a=new THREE.Group();part(a,'box',0x5a3a1e,.035,.035,.24,0,0,0);part(a,'cone',0x9aa3b0,.05,.08,.05,0,0,.15).rotation.x=PI/2;part(a,'box',0x2b3342,.06,.012,.05,0,0,-.1);part(a,'box',0x2b3342,.012,.06,.05,0,0,-.1);sc.add(a);return a;}
 if(k=='cannon'&&bi==0){const q=new THREE.Group();part(q,'sph',0xa0522d,.1,.11,.1,0,0,0);part(q,'cyl',0x6b3a1e,.04,.05,.04,0,.1,0);part(q,'cone',0xffb040,.05,.12,.05,0,.18,0,0xff6a00);glow(q,0,.1,0,.6,0xff8a2a);sc.add(q);return q;}
 if(k=='cannon'&&bi==1)return part(sc,'sph',0x8a8a84,.22,.2,.22,0,0,0);
+if(k=='ballista'&&bi>=0){const a=new THREE.Group(),c=bi?P.gd:0x5a5a68;part(a,'box',bi?0x6a2020:0x3a3a44,.05,.05,bi?.6:.75,0,0,0);part(a,'cone',c,.07,.18,.07,0,0,bi?.36:.44).rotation.x=PI/2;part(a,'box',bi?P.gd:0x2b3342,.11,.012,.1,0,0,bi?-.27:-.34);part(a,'box',bi?P.gd:0x2b3342,.012,.11,.1,0,0,bi?-.27:-.34);sc.add(a);return a;}
+if(k=='alch'&&bi>=0){const q=new THREE.Group(),c=bi?0xc8a0ff:0xeaff6a,em=bi?0x6a2a9a:0x8aa010;part(q,'sph',c,.075,.09,.075,0,0,0,em);part(q,'cyl',P.wd2,.025,.03,.025,0,.1,0);glow(q,0,0,0,.4,bi?0xa06ad0:0xd8f03a);sc.add(q);return q;}
 if(k=='frost'&&bi>=0){const q=new THREE.Group(),c=bi?0xffd27a:0xd9a8ff;part(q,'sph',c,.08,.08,.08,0,0,0,bi?0xcc8a1a:0x8a3aff);glow(q,0,0,0,.55,bi?0xffb43a:0xb36bff);sc.add(q);return q;}
 if(k=='ballista'){const a=new THREE.Group();part(a,'box',P.wd2,.04,.04,.55,0,0,0);part(a,'cone',0xdfe6ee,.055,.14,.055,0,0,.33).rotation.x=PI/2;part(a,'box',P.rd,.1,.012,.1,0,0,-.25);part(a,'box',P.rd,.012,.1,.1,0,0,-.25);sc.add(a);return a;}
 if(k=='alch'){const q=new THREE.Group();part(q,'sph',0xbaff8a,.075,.09,.075,0,0,0,0x3fbf1f);part(q,'cyl',P.wd2,.025,.03,.025,0,.1,0);glow(q,0,0,0,.4,0x7cff4a);sc.add(q);return q;}if(k=='arrow'){const a=new THREE.Group();part(a,'box',P.wd2,.025,.025,.3,0,0,0);part(a,'cone',0xdfe6ee,.04,.09,.04,0,0,.18).rotation.x=PI/2;part(a,'box',P.rd,.05,.012,.07,0,0,-.13);part(a,'box',P.rd,.012,.05,.07,0,0,-.13);sc.add(a);return a;}

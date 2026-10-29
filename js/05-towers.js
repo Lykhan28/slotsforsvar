@@ -97,14 +97,18 @@ else if(t.k=='ballista'){// ballista: a squat buttressed tower; on top a turntab
 const a=.55*hs,y=BH+a,R=shaft(g,.36,a,P.st,0);part(g,'cyl',0x4a5568,.33,.06,.33,0,BH+a*.6,0);door(g,.36);for(const an of[PI/2,-PI/2,PI])slit(g,R,a,.6,an);
 for(const an of[PI/4,-PI/4,PI*.75,-PI*.75]){const r=.38;eM(g,shpG('butt',[[0,0],[.1,0],[0,.4]],.08,.01),P.st2,r*Math.sin(an),BH,r*Math.cos(an),0,an-PI/2,0).scale.y=a/.5;}
 parapet(g,.35,y,8);
+// Skewer: iron limbs, a long iron bolt and a rack of spare spears; Giant Slayer: a red-painted bow with gold caps and a horned skull trophy over the door
+const lc=b==0?0x5a5a68:b==1?0x7a2a22:P.wd;
+if(b==0)for(let i=0;i<4;i++){const x=-.3+i*.035;eCy(g,0x5a5a68,.008,.62,x,y+.3,-.3,-.12,0,0);eCnD(g,0xdfe6ee,.016,.06,x,y+.61,-.34,0,1,-.1);}
+if(b==1){const sx=0,sy=BH+a*.8,sz=.4;eM(g,rboxG(.16,.12,.12,.04),0xe8e0c8,sx,sy,sz);eM(g,rboxG(.1,.05,.08,.02),0xd8d0bc,sx,sy-.07,sz+.04);for(const k of[-1,1]){eSp(g,0x1b1b2b,.022,.022,.012,k*.04,sy+.01,sz+.06);eCnD(g,0xe8e0c8,.025,.16,k*.09,sy+.06,sz,k,1.2,.3);}}
 h.position.y=y+.1;eCy(h,P.wd2,.07,.16,0,.08,0);eCy(h,P.wd,.13,.03,0,.015,0);for(let i=0;i<8;i++){const an=i/8*2*PI;eSp(h,0x2b3342,.01,.01,.01,.12*Math.sin(an),.032,.12*Math.cos(an));}
 const rc=new THREE.Group();rc.userData.keep=true;rc.position.y=.1;h.add(rc);t.rcl=rc;grp.push(rc);
-eM(rc,rboxG(.09,.07,.72,.015),P.wd,0,.1,.05);eM(rc,rboxG(.05,.02,.5,.006),P.wd2,0,.14,.12);for(const z of[-.2,.1,.36])eM(rc,rboxG(.1,.08,.02,.004),0x2b3342,0,.1,z);
-eM(rc,rboxG(.12,.1,.08,.015),P.wd2,0,.1,.38);for(const k of[-1,1]){seg(rc,P.wd,[k*.05,.1,.38],[k*.22,.1,.34],.03);seg(rc,P.wd,[k*.22,.1,.34],[k*.38,.1,.24],.024);eSp(rc,0x2b3342,.03,.03,.03,k*.38,.1,.24);
+eM(rc,rboxG(.09,.07,.72,.015),b==1?0x7a2a22:P.wd,0,.1,.05);eM(rc,rboxG(.05,.02,.5,.006),P.wd2,0,.14,.12);for(const z of[-.2,.1,.36])eM(rc,rboxG(.1,.08,.02,.004),0x2b3342,0,.1,z);
+eM(rc,rboxG(.12,.1,.08,.015),P.wd2,0,.1,.38);for(const k of[-1,1]){seg(rc,lc,[k*.05,.1,.38],[k*.22,.1,.34],.03);seg(rc,lc,[k*.22,.1,.34],[k*.38,.1,.24],.024);eSp(rc,b==1?P.gd:0x2b3342,.03,.03,.03,k*.38,.1,.24);
 seg(rc,0xf0e6c8,[k*.38,.1,.24],[0,.13,-.04],.004);}
 eCy(rc,0x5a5a68,.035,.22,0,.1,-.28,0,0,PI/2);for(const k of[-1,1])for(let i=0;i<4;i++){const an=i*PI/2;eCy(rc,P.wd2,.008,.09,k*.11,.1+.045*Math.cos(an),-.28+.045*Math.sin(an),an,0,0);}
-const bt=new THREE.Group();bt.userData.keep=true;rc.add(bt);eCy(bt,P.wd2,.016,.6,0,.155,.22,PI/2);eCnD(bt,0xdfe6ee,.035,.11,0,.155,.56,0,0,1);for(let i=0;i<3;i++)eM(bt,rboxG(.004,.05,.08,.002),P.rd,0,.155,-.05,i*PI/3*2);t.ball=bt;grp.push(bt);
-chibi(h,0,-.22,0xd9534f,0x9aa3b0,false);if(l>=2)t.flag=flag(g,-.3,y+.1,-.2,P.rd,.8);if(l>=3)chibi(h,.2,-.12,0xd9534f,0x9aa3b0,false);}
+const bt=new THREE.Group();bt.userData.keep=true;rc.add(bt);eCy(bt,b==0?0x5a5a68:P.wd2,.016,b==0?.72:.6,0,.155,b==0?.28:.22,PI/2);eCnD(bt,b==1?P.gd:0xdfe6ee,b>=0?.045:.035,b>=0?.14:.11,0,.155,b==0?.66:.56,0,0,1);for(let i=0;i<3;i++)eM(bt,rboxG(.004,.05,.08,.002),P.rd,0,.155,-.05,i*PI/3*2);t.ball=bt;grp.push(bt);
+chibi(h,0,-.22,0xd9534f,0x9aa3b0,false);if(l>=2)t.flag=flag(g,-.3,y+.1,-.2,b==0?0x5a5a68:b==1?0x6a1a1a:P.rd,b==1?1.1:.8);if(l>=3)chibi(h,.2,-.12,0xd9534f,0x9aa3b0,false);}
 else if(t.k=='storm'){// storm tower: copper-banded walls with pipes and blue windows; on top insulated copper rods, a coiled spire and the crackling orb with its spinning rings (t.spin)
 const a=hs,y=BH+a,R=shaft(g,.3,a,0xaebdd6,0);for(const f of[.3,.62,.9])part(g,'cyl',0xb87333,R(f)-.002,.05,R(f)-.002,0,BH+a*f,0);
 for(const an of[2.3,-2.3])eCy(g,0xb87333,.018,a*.95,(R(.5)+.02)*Math.sin(an),BH+a*.5,(R(.5)+.02)*Math.cos(an),-.12*Math.cos(an),0,.12*Math.sin(an));
@@ -119,24 +123,31 @@ for(let i=0;i<4;i++){const an=i*PI/2;eSp(sp,oc,.02,.02,.02,.2*Math.sin(an),0,.2*
 if(b==0)for(let i=0;i<7;i++){const an=i/7*2*PI,s=rnd(.07,.1);eSp(sp,[0x5a6070,0x6a7284,0x4a5060][i%3],s,s*.7,s,.13*Math.sin(an),.3+rnd(-.02,.03),.13*Math.cos(an));}
 t.aimG=new THREE.Group();if(l>=2)t.flag=flag(g,0,y+.1,-.3,0x4a62b8,.8);}
 else if(t.k=='alch'){// alchemist: a green tower overgrown with ivy; on top a bubbling cauldron over a fire, a copper still, a shelf of glowing potions and the alchemist with a flask (t.ball)
+// brew colours: liquid (+glow), light, flag – Acid Brew a sickly yellow, Plague a dark violet (with a beaked plague-doctor mask and skulls)
+const[lq,lqe,lg,fc2]=[[0xd8f03a,0x8aa010,0xd8f03a,0x9aa020],[0x9a5ac0,0x4a1a6a,0xa06ad0,0x4a2a5a]][b]||[0x7cff4a,0x3fbf1f,0x7cff4a,0x3e8f6a];
 const a=.75*hs,y=BH+a,R=shaft(g,.35,a,0x8fd8b8,1);part(g,'cyl',0x3e8f6a,.32,.06,.32,0,BH+a*.5,0);
-for(const an of[0,PI/2,-PI/2])win(g,R(.75)*Math.sin(an),BH+a*.75,R(.75)*Math.cos(an),.06,.14,an,0xc8ff9a,0x7cff4a);door(g,.35);parapet(g,.35,y,8,0x3e8f6a);
+for(const an of[0,PI/2,-PI/2])win(g,R(.75)*Math.sin(an),BH+a*.75,R(.75)*Math.cos(an),.06,.14,an,b>=0?lq:0xc8ff9a,lqe);door(g,.35);parapet(g,.35,y,8,0x3e8f6a);
 const cx=-.17,cz=-.1;eM(g,lathG([[0,.0],[.1,.02],[.15,.1],[.14,.2],[.12,.22],[.13,.23]],14),0x2a2a35,cx,y+.06,cz);ring(g,0x4a4a5a,.13,y+.29,.08,0,cx,cz);
 for(let i=0;i<3;i++){const an=i/3*2*PI;eCy(g,0x2a2a35,.012,.08,cx+.1*Math.sin(an),y+.1,cz+.1*Math.cos(an));}
-eCy(g,0x7cff4a,.12,.01,cx,y+.27,cz).material=mat(0x7cff4a,0x3fbf1f);for(let i=0;i<5;i++)eSp(g,0x9aff6a,.02,.02,.02,cx+rnd(-.07,.07),y+.28,cz+rnd(-.07,.07),0x3fbf1f);glow(g,cx,y+.33,cz,.5,0x7cff4a);flame(g,cx,y+.07,cz,.7,t.fl);
+eCy(g,lq,.12,.01,cx,y+.27,cz).material=mat(lq,lqe);for(let i=0;i<5;i++)eSp(g,b>=0?lq:0x9aff6a,.02,.02,.02,cx+rnd(-.07,.07),y+.28,cz+rnd(-.07,.07),lqe);glow(g,cx,y+.33,cz,b>=0?.7:.5,lg);
+if(b==0)for(const[x,z]of[[.3,.2],[-.32,.18]]){barrel(g,x,BH,z,1.3);eCy(g,lq,.055,.008,x,BH+.13,z).material=mat(lq,lqe);for(let i=0;i<3;i++)eSp(g,lq,.012,.02,.012,x+.06*Math.cos(i*2),BH+.08-i*.02,z+.06*Math.sin(i*2),lqe);}
+if(b==1)for(const[x,z]of[[.3,.22],[-.3,.24],[.38,-.05]]){eSp(g,0xe8e0c8,.045,.04,.045,x,BH+.04,z);for(const k of[-1,1])eSp(g,0x1b1b2b,.01,.012,.006,x+k*.016,BH+.045,z+.04);}flame(g,cx,y+.07,cz,.7,t.fl);
 seg(g,0xb87333,[cx+.08,y+.3,cz],[.02,y+.38,-.2],.012);seg(g,0xb87333,[.02,y+.38,-.2],[.12,y+.2,-.22],.01);eM(g,lathG([[0,0],[.04,.01],[.05,.05],[.02,.09],[.012,.12]],12),0xc8ff9a,.12,y+.08,-.22,0,0,0,0x2a8a1a);
 eM(g,rboxG(.22,.012,.07,.004),P.wd2,.2,y+.2,.12,0,.6,0);eM(g,rboxG(.22,.012,.07,.004),P.wd2,.2,y+.12,.12,0,.6,0);
 [[0xb48cf0,-.07],[0xffa94d,0],[0x66ccff,.07]].forEach(([c,o],i)=>{for(const yy of[.13,.21])eM(g,lathG([[0,0],[.022,.005],[.026,.025],[.01,.05],[.008,.065]],10),c,.2+o*Math.cos(.6),y+yy,.12-o*Math.sin(.6),0,0,0,c==0x66ccff?0x1a5a8a:0x222222);});
-h.position.y=y+.08;chibi(h,0,0,0x2f7d5a,0x4a2e7a,false);
-const stf=new THREE.Group();stf.position.set(.1,.12,.06);stf.userData.keep=true;h.add(stf);eSp(stf,0xffd9b0,.025,.025,.025,0,0,0);const fl2=part(stf,'sph',0x7cff4a,.05,.06,.05,0,.04,.05,0x3fbf1f);fl2.userData.keep=true;t.ball=fl2;t.stf=stf;grp.push(stf);
-if(l>=2)t.flag=flag(g,.3,y+.1,-.2,0x3e8f6a,.8);}
+h.position.y=y+.08;chibi(h,0,0,b==1?0x2a2a35:0x2f7d5a,b==1?0x1b1b2b:0x4a2e7a,false);if(b==1){eCnD(h,0xe8e0c8,.025,.12,0,.31,.07,0,-.35,1);eM(h,lathG([[0,.36],[.1,.36],[.1,.375],[.05,.38],[.045,.45],[0,.45]],14),0x1b1b2b,0,0,0);}
+const stf=new THREE.Group();stf.position.set(.1,.12,.06);stf.userData.keep=true;h.add(stf);eSp(stf,0xffd9b0,.025,.025,.025,0,0,0);const fl2=part(stf,'sph',lq,.05,.06,.05,0,.04,.05,lqe);fl2.userData.keep=true;t.ball=fl2;t.stf=stf;grp.push(stf);
+if(l>=2)t.flag=flag(g,.3,y+.1,-.2,fc2,.8);}
 else if(t.k=='banner'){// banner tower: sandstone with long swallow-tailed banners down three sides, pennant poles, a great flag and a herald with a horn; a golden ring spins on top (t.spin)
-const a=.85*hs,y=BH+a,R=shaft(g,.34,a,0xf2d9a0,0);part(g,'cyl',P.rd,.31,.07,.31,0,BH+a*.5,0);door(g,.34);
-for(const an of[0,PI*.67,-PI*.67])hbanner(g,(R(.9)+.025)*Math.sin(an),BH+a*.9,(R(.9)+.025)*Math.cos(an),an,ac,.14,a*.55);
+// War Drums: two big war drums and a drummer on top; Blessed Standard: white and gold banners, a white herald and a glowing halo
+const bc=b==1?0xf2efe6:ac,a=.85*hs,y=BH+a,R=shaft(g,.34,a,0xf2d9a0,0);part(g,'cyl',b==1?P.gd:P.rd,.31,.07,.31,0,BH+a*.5,0);door(g,.34);
+for(const an of[0,PI*.67,-PI*.67])hbanner(g,(R(.9)+.025)*Math.sin(an),BH+a*.9,(R(.9)+.025)*Math.cos(an),an,bc,.14,a*.55);
+if(b==0)for(const[x,z,s2]of[[-.15,-.04,1],[.06,-.2,.8]]){eM(g,lathG([[0,0],[.1,0],[.11,.06],[.1,.12],[0,.12]].map(q=>[q[0]*s2,q[1]*s2]),16),0xb3202a,x,y+.07,z);eCy(g,0xf0e0c0,.1*s2,.008,x,y+.07+.122*s2,z);for(const f of[.01,.11])ring(g,P.gd,.105*s2,y+.07+f*s2,.08,0,x,z);
+for(let i=0;i<6;i++){const an=i/6*2*PI;eCy(g,0xf0e0c0,.004,.1*s2,x+.105*s2*Math.sin(an),y+.07+.06*s2,z+.105*s2*Math.cos(an),.5,an,0);}}
 parapet(g,.34,y,8,P.st3);for(let i=0;i<4;i++){const an=i*PI/2+PI/4,x=.32*Math.sin(an),z=.32*Math.cos(an);eCy(g,P.wd2,.012,.34,x,y+.27,z);eSp(g,P.gd,.02,.02,.02,x,y+.45,z);
 eM(g,memG('pn',[[0,0],[.14,-.03],[0,-.07]]),matDS([P.rd,P.bl][i%2]),x,y+.42,z,0,an+PI/2,0);}
-t.flag=flag(g,0,y+.1,0,ac,1.5);h.position.y=y+.08;chibi(h,.14,.12,0xb3202a,P.gd,false);eM(h,lathG([[.0,0],[.012,0],[.016,.1],[.045,.16],[.05,.17]],12),P.gd,.14,.22,.18,PI/2.4);
-const sp=new THREE.Group();sp.userData.keep=true;g.add(sp);t.spin=sp;grp.push(sp);part(sp,'tor',P.gd,.28,.28,.28,0,y+.09,0,0x885500).rotation.x=PI/2;for(let i=0;i<6;i++){const an=i*PI/3;part(sp,'oct',[P.gd,0xb3202a,0x3b86e0][i%3],.03,.04,.03,.28*Math.sin(an),y+.09,.28*Math.cos(an),0x885500);}}
+t.flag=flag(g,0,y+.1,0,bc,1.5);h.position.y=y+.08;chibi(h,.14,.12,b==1?0xf2efe6:0xb3202a,P.gd,false);if(b==0){chibi(h,-.14,.14,0x8a2a22,0x9aa3b0,false);for(const k of[-1,1])eCnD(h,P.wd2,.008,.12,-.14+k*.04,.2,.2,k*.3,.6,1);}eM(h,lathG([[.0,0],[.012,0],[.016,.1],[.045,.16],[.05,.17]],12),P.gd,.14,.22,.18,PI/2.4);
+const sp=new THREE.Group();sp.userData.keep=true;g.add(sp);t.spin=sp;grp.push(sp);part(sp,'tor',P.gd,.28,.28,.28,0,y+.09,0,b==1?0xffc040:0x885500).rotation.x=PI/2;if(b==1){part(sp,'tor',0xfff2c0,.2,.2,.2,0,y+.75,0,0xffd24a).rotation.x=PI/2;glow(sp,0,y+.75,0,.9,0xffe08a);}for(let i=0;i<6;i++){const an=i*PI/3;part(sp,'oct',[P.gd,0xb3202a,0x3b86e0][i%3],.03,.04,.03,.28*Math.sin(an),y+.09,.28*Math.cos(an),0x885500);}}
 else if(t.k=='vault'){// treasury: a squat strongroom with an iron-studded door and big lock, a ribbed golden dome with a lantern, chests, sacks and stacks of coins round the foot; a coin spins on top (t.spin)
 const a=.5*hs,y=BH+a,R=shaft(g,.38,a,P.st,0);part(g,'cyl',P.gd,.35,.06,.35,0,BH+a*.55,0,0x442200);
 const D=new THREE.Group();D.position.set(0,BH,R(.1)+.01);g.add(D);eM(D,rboxG(.18,.24,.03,.008),0x2b3342,0,.12,0);for(let i=0;i<3;i++)for(let j=0;j<4;j++)eSp(D,0x7d8590,.008,.008,.006,(i-1)*.055,.04+j*.055,.016);
@@ -148,9 +159,15 @@ for(let i=0;i<6;i++){const an=i*1.05+.5;for(let j=0;j<1+i%3;j++)eCy(g,P.gd,.045,
 for(const[x,z,ry]of[[-.28,.3,.4],[.33,-.26,-.6]]){const C=new THREE.Group();C.position.set(x,BH,z);C.rotation.y=ry;g.add(C);eM(C,rboxG(.16,.08,.1,.01),P.wd,0,.04,0);eM(C,eg('lid',()=>new THREE.CylinderGeometry(.05,.05,.16,10,1,false,0,PI)),P.wd,0,.08,0,0,0,PI/2);
 for(const k of[-1,1])eM(C,rboxG(.016,.12,.106,.004),0x2b3342,k*.05,.06,0);for(let i=0;i<5;i++)eSp(C,P.gd,.02,.006,.02,rnd(-.06,.06),.13,rnd(-.03,.03));}
 eSp(g,0x9a6a3a,.06,.07,.06,.3,BH+.06,.22);eCy(g,0x45301d,.02,.02,.3,BH+.13,.22);
+// Royal Bank: stacks of gold bars round the foot and a royal-blue flag; Bounty Office: a notice board of wanted posters, a bounty hunter and crossed swords over the door
+if(b==0)for(const[x,z,ry]of[[-.6,.1,.3],[.3,.58,-.2],[.62,-.1,-.4]]){const B=new THREE.Group();B.position.set(x,0,z);B.rotation.y=ry;g.add(B);for(const[i,j,n]of[[0,0,3],[1,0,2],[2,0,1]])for(let q=0;q<n;q++)eM(B,rboxG(.14,.055,.07,.01),P.gd,(q-(n-1)/2)*.15,.03+i*.056,0,0,0,0,0xaa7700);}
+if(b==1){const N=new THREE.Group();N.position.set(-.42,BH-.08,.05);N.rotation.y=PI/2.4;g.add(N);for(const k of[-1,1])eCy(N,P.wd2,.015,.4,k*.13,.2,0);eM(N,rboxG(.32,.22,.02,.006),P.wd,0,.27,0);
+[[-.08,.29],[.07,.31],[0,.22]].forEach(([x,yy],i)=>{eM(N,rboxG(.08,.1,.004,.001),0xf0e2b8,x,yy,.013,0,0,(i-1)*.08);eSp(N,0x5a3a2a,.016,.018,.003,x,yy+.01,.016);eM(N,rboxG(.05,.006,.003,.001),0x3a2a1a,x,yy-.03,.016);});
+const hc=new THREE.Group();hc.position.set(.38,BH-.08,.14);g.add(hc);chibi(hc,0,0,0x4a3a2a,0x2a1a10,false);
+for(const k of[-1,1])eM(g,rboxG(.016,.24,.008,.003),0xb8c0c8,k*.04,BH+.32,R(.1)+.03,0,0,k*.7);}
 h.position.y=y+.4;const sp=new THREE.Group();sp.userData.keep=true;h.add(sp);t.spin=sp;grp.push(sp);part(sp,'cyl',P.gd,.12,.025,.12,0,0,0,0x885500).rotation.x=PI/2;part(sp,'cyl',0xffe27a,.08,.03,.08,0,0,0,0xaa7700).rotation.x=PI/2;
 eM(sp,shpG('crown',[[-.04,-.02],[.04,-.02],[.05,.03],[.025,.01],[0,.04],[-.025,.01],[-.05,.03]],.04,.004),P.gd,0,0,0,0,0,0,0x885500);glow(h,0,0,0,.8,0xffd24a);
-if(l>=2)t.flag=flag(g,-.32,BH+.1,0,P.gd,.8);}
+if(l>=2)t.flag=flag(g,-.32,BH+.1,0,b==0?0x2a4a9a:b==1?0x6a1a1a:P.gd,.8);}
 else{// catapult: a planked deck with spoked wheels, an A-frame and axle, the throwing arm (t.arm) with a banded counterweight crate and a sling cup holding the stone (t.ball), a winch, ammunition and a crewman
 for(let i=0;i<7;i++)eM(g,rboxG(.088,.05,.62,.008),[P.wd,0x7a4a26,P.wd][i%3],(i-3)*.092,BH+.025,0);for(const z of[-.24,.24])eM(g,rboxG(.72,.05,.07,.01),P.wd2,0,BH+.075,z);
 for(const sx of[-1,1])for(const sz of[-1,1]){const W=new THREE.Group();W.position.set(sx*.38,BH+.13,sz*.22);W.rotation.y=PI/2;g.add(W);eM(W,TORL,0x5a3a1e,0,0,0).scale.setScalar(.13);eM(W,TORL,0x2b3342,0,0,0).scale.set(.14,.14,.08);
