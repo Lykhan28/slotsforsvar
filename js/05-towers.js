@@ -176,12 +176,18 @@ const a=.42*hs,y=BH+a,R=shaft(g,.38,a,P.st,0);part(g,'cyl',ac,.36,.05,.36,0,BH+a
 part(g,'cyl',0xe8dcc0,.37,.24,.37,0,y+.12,0);for(let i=0;i<8;i++){const an=i/8*2*PI+PI/8;eM(g,rboxG(.035,.25,.02,.004),P.wd2,.375*Math.sin(an),y+.12,.375*Math.cos(an),0,an,0);
 eM(g,rboxG(.025,.3,.016,.003),P.wd2,.375*Math.sin(an+PI/8),y+.12,.375*Math.cos(an+PI/8),0,an+PI/8,i%2?.7:-.7);}
 for(const an of[0,PI/2,-PI/2])win(g,.38*Math.sin(an),y+.12,.38*Math.cos(an),.05,.09,an,0xfff0a0,0xffd24a);
-part(g,'cyl',P.wd2,.42,.03,.42,0,y+.245,0);part(g,'cone',RF(P.rd),.47,.42,.47,0,y+.47,0);eSp(g,P.gd,.03,.03,.03,0,y+.7,0,0x886600);
+// Knights' Hall: a blue roof, a knight's banner and a stand of armour with a lance; Warband: a dark shingled roof, a horned skull, crossed axes and a fire pit
+part(g,'cyl',P.wd2,.42,.03,.42,0,y+.245,0);part(g,'cone',RF(b==0?P.bl:b==1?0x5a4030:P.rd),.47,.42,.47,0,y+.47,0);
+if(b==0){const ax=.38,az=-.22;eCy(g,P.wd2,.012,.32,ax,BH+.16,az);eM(g,lathG([[0,0],[.06,.01],[.065,.08],[.05,.14],[0,.15]],12),0xc8ccd4,ax,BH+.12,az);eM(g,domG(.045,.5),0xc8ccd4,ax,BH+.29,az);eCnD(g,P.rd,.02,.08,ax,BH+.33,az,0,1,-.4);
+eCy(g,P.wd,.01,.7,ax-.1,BH+.35,az-.04,.12,0,.1);eCnD(g,0xdfe6ee,.02,.1,ax-.06,BH+.72,az,0,1,0);eM(g,memG('kn',[[0,0],[.16,-.03],[.16,-.11],[0,-.14]]),matDS(P.bl),ax-.1,BH+.66,az-.04,0,.3,0);}
+if(b==1){const fx=-.15,fz=.5;for(let i=0;i<7;i++){const an=i/7*2*PI;eSp(g,0x6a6a68,.035,.025,.035,fx+.08*Math.sin(an),.02,fz+.08*Math.cos(an));}flame(g,fx,.02,fz,.9,t.fl);
+const sz=R(.1)+.03;eSp(g,0xe8e0c8,.06,.05,.05,0,y+.02,sz);for(const k of[-1,1])eCnD(g,0xe8e0c8,.022,.14,k*.07,y+.06,sz,k,.9,.2);
+for(const k of[-1,1])eM(g,shpG('axe',[[0,0],[.06,-.03],[.07,.03],[.06,.07],[0,.04]],.008,.002),0xb8c0c8,k*.13,BH+a*.75,R(.75)+.02,0,0,k*.6);}eSp(g,P.gd,.03,.03,.03,0,y+.7,0,0x886600);
 for(const an of[PI*.3,-PI*.3]){const x=(R(.5)+.02)*Math.sin(an),z=(R(.5)+.02)*Math.cos(an);eM(g,eg('shld',()=>new THREE.CylinderGeometry(.055,.055,.014,14)),ac,x,BH+a*.55,z).quaternion.setFromUnitVectors(YUP,new THREE.Vector3(Math.sin(an),0,Math.cos(an)));
 eSp(g,P.gd,.014,.014,.01,x*1.04,BH+a*.55,z*1.04);for(const k of[-1,1])eM(g,rboxG(.012,.16,.006,.002),0xdfe6ee,x*1.06,BH+a*.55,z*1.06,0,an,k*.8);}
 const rx=-.36,rz=.18;eM(g,rboxG(.22,.03,.04,.006),P.wd2,rx,BH+.2,rz,0,.9,0);for(let i=0;i<4;i++){const o=(i-1.5)*.05;eCy(g,P.wd2,.007,.36,rx+o*Math.cos(.9),BH+.18,rz-o*Math.sin(.9));eCnD(g,0xdfe6ee,.012,.05,rx+o*Math.cos(.9),BH+.38,rz-o*Math.sin(.9),0,1,0);}
 eCy(g,P.wd2,.014,.3,.36,BH+.12,.2);eM(g,lathG([[0,0],[.05,.01],[.06,.07],[.045,.12],[0,.13]],10),0xc9a26a,.36,BH+.2,.2);eSp(g,0xc9a26a,.035,.035,.035,.36,BH+.36,.2);eCy(g,P.wd2,.008,.16,.36,BH+.24,.2,0,0,PI/2);
-h.position.y=y+.2;const sg=new THREE.Group();sg.position.set(.2,BH,.4);g.add(sg);chibi(sg,0,0,ac==P.gd?0xd9a520:0x8a2a22,0x9aa3b0,4,ac);t.flag=flag(g,.25,y+.36,-.25,ac,1);}
+h.position.y=y+.2;const sg=new THREE.Group();sg.position.set(.2,BH,.4);g.add(sg);chibi(sg,0,0,b==0?0xc8ccd4:b==1?0x7a5a3a:ac==P.gd?0xd9a520:0x8a2a22,0x9aa3b0,4,b==0?P.bl:b==1?0x6a4a2a:ac);t.flag=flag(g,.25,y+.36,-.25,b==0?P.bl:b==1?0x5a3a20:ac,1);}
 else{// catapult: a planked deck with spoked wheels, an A-frame and axle, the throwing arm (t.arm) with a banded counterweight crate and a sling cup holding the stone (t.ball), a winch, ammunition and a crewman
 for(let i=0;i<7;i++)eM(g,rboxG(.088,.05,.62,.008),[P.wd,0x7a4a26,P.wd][i%3],(i-3)*.092,BH+.025,0);for(const z of[-.24,.24])eM(g,rboxG(.72,.05,.07,.01),P.wd2,0,BH+.075,z);
 for(const sx of[-1,1])for(const sz of[-1,1]){const W=new THREE.Group();W.position.set(sx*.38,BH+.13,sz*.22);W.rotation.y=PI/2;g.add(W);eM(W,TORL,0x5a3a1e,0,0,0).scale.setScalar(.13);eM(W,TORL,0x2b3342,0,0,0).scale.set(.14,.14,.08);

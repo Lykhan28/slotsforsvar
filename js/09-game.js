@@ -101,7 +101,8 @@ e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e
 // A soldier at 0 health falls and comes back from the tower after BAR.rsp s (not while the Barracks is stunned); out of a fight it heals BAR.reg of its health a second.
 // Flyers and faded Ghosts are ignored. Soldier damage comes from stat() (level, banners) and goes through dmul() like any physical hit. Models: solSync() in js/07-enemies.js
 const BAR={n:3,hp:80,rsp:8,sp:75,eng:60,rg:22,reg:.08,ecd:1,near:90};
-const solHp=t=>BAR.hp*(1+.5*(t.l-1));
+// soldier health and count, respawn time and the share of enemy damage taken – the level-3 branch (BRN.barracks) changes them
+const solHp=t=>BAR.hp*(1+.5*(t.l-1))*((brn(t)||{}).shp||1),solN=t=>(brn(t)||{}).sn||BAR.n,solRs=t=>BAR.rsp*(t.l>=3?.75:1)*((brn(t)||{}).rsf||1),solArm=t=>1-((brn(t)||{}).arm||0);
 // enemy melee damage per hit on a soldier: grows with the wave; big enemies hit harder, bosses much harder
 const edmg=e=>4*Math.pow(1.12,g.wave)*(e.bs?3:Math.sqrt(e.h));
 // can a Barracks go on cell c,r: a road cell next to it
@@ -113,10 +114,12 @@ t.sol=[];for(let i=0;i<BAR.n;i++)t.sol.push({i,x:t.x,y:t.y,hp:solHp(t),max:solHp
 function setRally(t,x,y){t.rp={x,y};for(const d of t.sol){if(d.e&&d.e.bk===d)d.e.bk=null;d.e=null;}}
 // a Barracks is sold or undone: its soldiers let go of the enemies they hold
 function barGone(t){if(t.sol)for(const d of t.sol){if(d.e&&d.e.bk===d)d.e.bk=null;d.e=null;d.hp=0;}}
-const post=(t,d)=>{const a=d.i/BAR.n*2*PI+.5;return{x:t.rp.x+Math.sin(a)*16,y:t.rp.y+Math.cos(a)*16};};
+const post=(t,d)=>{const a=d.i/t.sol.length*2*PI+.5;return{x:t.rp.x+Math.sin(a)*16,y:t.rp.y+Math.cos(a)*16};};
 // is enemy e held by the soldier blocking it (alive and close enough)
 const held=e=>{const d=e.bk;return d.hp>0&&d.e===e&&Math.hypot(d.x-e.x,d.y-e.y)<=BAR.rg+6;};
 function soldiers(dt){for(const t of g.tw){if(!t.sol)continue;const s=stat(t),mx=solHp(t),br=tbr(t);
+// a Warband's extra fighter marches out of the Barracks
+while(t.sol.length<solN(t))t.sol.push({i:t.sol.length,x:t.x,y:t.y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});
 for(const d of t.sol){if(d.max!==mx){d.hp+=mx-d.max;d.max=mx;}
 if(d.hp<=0){if(!(t.stun>0))d.rs-=dt;if(d.rs<=0){d.hp=mx;d.x=t.x;d.y=t.y;d.cd=0;}continue;}
 let e=d.e;if(e&&(e.hp<=0||e.out||Math.hypot(e.x-t.rp.x,e.y-t.rp.y)>BAR.eng*1.6)){if(e.bk===d)e.bk=null;e=d.e=null;}
@@ -125,7 +128,7 @@ if(e){d.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=d;}}
 const g2=e?{x:e.x,y:e.y}:post(t,d),dx=g2.x-d.x,dy=g2.y-d.y,L=Math.hypot(dx,dy),stop=e?BAR.rg:0,m=BAR.sp*dt;d.mv=0;
 if(L>.01)d.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(m,L-stop)/L;d.x+=dx*k;d.y+=dy*k;d.mv=1;}
 if(e&&L<=BAR.rg+6){if(e.bk!==d&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=d;d.cd-=dt;if(d.cd<=0){d.cd=s.f;d.sw=1;const dd=s.d*dmul(e,t.k,br);e.hp-=dd;hf(e,.15,dd,t.k,dx,dy,br);}
-if(e.bk===d){e.dir=Math.atan2(d.x-e.x,d.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;d.hp-=edmg(e);d.hit=.2;if(d.hp<=0){d.rs=BAR.rsp*(t.l>=3?.75:1);e.bk=null;d.e=null;solDie(t,d);}}}}
+if(e.bk===d){e.dir=Math.atan2(d.x-e.x,d.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;d.hp-=edmg(e)*solArm(t);d.hit=.2;if(d.hp<=0){d.rs=solRs(t);e.bk=null;d.e=null;solDie(t,d);}}}}
 else if(!e)d.hp=Math.min(mx,d.hp+mx*BAR.reg*dt);}}}
 // Giant Slayer: damage multiplier on big enemies (bosses, and types with at least 1.8× a goblin's health)
 const big=(e,b)=>b&&b.gs&&(e.bs||e.h>=1.8)?b.gs:1;

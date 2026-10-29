@@ -110,6 +110,7 @@ barracks:{n:'Barracks',ic:'⚔️',c:90,r:130,d:7,f:1,dt:'phys',bar:1}};
 // sk = Ballista bolt also hits up to that many enemies in a line behind its target, gs = damage multiplier on big enemies (bosses and E.h >= 1.8),
 // ac = Alchemist acid: seconds an enemy it hits has no physical armour (and takes ACID extra physical damage, dmul()), pl = poison spreads this far when a poisoned enemy dies,
 // hs = Banner: extra attack speed for towers in range, hr = Banner: towers in range ignore every resistance below 1 (immunities stay),
+// shp = Barracks soldier health multiplier, arm = share of enemy damage a soldier shrugs off, sn = number of soldiers, rsf = respawn time multiplier,
 // it = Treasury interest at the end of a wave [share of your gold, most per wave], bty = Treasury: extra share of gold for enemies killed in its range
 const BRN={arrow:[{n:'Longbowmen',ic:'🎯',ds:'Longbows reach much further.',rg:40},{n:'Crossbow Nest',ic:'🔩',ds:'Heavy bolts pierce armour and hit harder.',pr:1,dm:1.3}],
 cannon:[{n:'Fire Pots',ic:'🔥',ds:'Clay pots of burning pitch set the ground on fire for a few seconds.',fz:[50,3,.3]},{n:'Boulder',ic:'🪨',ds:'A huge boulder crushes the enemy it lands on; the splash is a little smaller.',bd:3,sp:48}],
@@ -118,6 +119,7 @@ storm:[{n:'Tempest',ic:'🌪️',ds:'Lightning jumps between many more enemies.'
 ballista:[{n:'Skewer',ic:'🗡️',ds:'Bolts punch straight through, hitting every enemy in a line behind the target.',sk:3},{n:'Giant Slayer',ic:'💀',ds:'Double damage to bosses, Black Knights, Trolls and other big enemies.',gs:2}],
 alch:[{n:'Acid Brew',ic:'⚗️',ds:'Acid eats armour: enemies it hits lose their physical resistance and take extra physical damage for a while.',ac:4},{n:'Plague',ic:'☠️',ds:'When a poisoned enemy dies, the poison spreads to the enemies around it.',pl:65}],
 banner:[{n:'War Drums',ic:'🥁',ds:'Towers in range also attack faster.',hs:.2},{n:'Blessed Standard',ic:'🌟',ds:'Towers in range ignore enemy resistances (but not immunities).',hr:1}],
+barracks:[{n:'Knights\' Hall',ic:'🐎',ds:'Three armoured knights: much tougher, harder-hitting, and they shrug off part of every blow – even a boss\'s.',shp:2.2,dm:1.6,arm:.5},{n:'Warband',ic:'🪓',ds:'Four axe fighters instead of three, and a fallen one is back twice as fast.',sn:4,rsf:.5}],
 vault:[{n:'Royal Bank',ic:'🏦',ds:'Also pays interest on your unspent gold at the end of each wave.',it:[.05,60]},{n:'Bounty Office',ic:'📜',ds:'Enemies killed within its range give extra gold.',bty:.3,rg:70}]};
 // Acid Brew: extra physical damage while an enemy's armour is eaten away (e.ac > 0)
 const ACID=.15;

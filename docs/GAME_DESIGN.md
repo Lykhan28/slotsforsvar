@@ -44,7 +44,7 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 | Barracks | 90 | 130 (rally) | 7 a swing | 1.0 s | Three soldiers block enemies on foot at a movable rally point (see below) |
 
 ## Upgrade branches (level 3)
-No tower except the Barracks has a plain level 3 (the Barracks has no paths yet): when a level-2 one is selected, the inspector shows two cards instead of the Upgrade button (click one, or press B for the first / N for the second). Both paths get the normal level-3 +60% damage and +10 range, plus their own change and a new look. Numbers live in `BRN` in js/01-config.js;
+No tower has a plain level 3: when a level-2 one is selected, the inspector shows two cards instead of the Upgrade button (click one, or press B for the first / N for the second). Both paths get the normal level-3 +60% damage and +10 range, plus their own change and a new look. Numbers live in `BRN` in js/01-config.js;
 
 | Tower | Path | Effect | Look |
 |---|---|---|---|
@@ -64,6 +64,8 @@ No tower except the Barracks has a plain level 3 (the Barracks has no paths yet)
 | Banner Tower | **Blessed Standard** | Towers in range ignore enemy resistances – but not immunities (Fire Imps stay immune to fire) | white and gold banners, a white herald, a glowing halo above the tower |
 | Treasury | **Royal Bank** | At the end of each wave, also pays 5% of your gold (after the wave's income), up to 60 | stacks of gold bars round the foot, a royal-blue flag |
 | Treasury | **Bounty Office** | Enemies killed within its range (2.2 tiles) give +30% gold, rounded up (the best office counts, they don't stack) | a notice board of wanted posters, a bounty hunter, crossed swords over the door, a dark red flag |
+| Barracks | **Knights' Hall** | Three knights: ×2.2 health, +60% damage, and they take 50% less damage from every hit, bosses' too | a blue roof, a stand of armour with a lance and pennant; knights in silver plate with red plumes and blue kite shields |
+| Barracks | **Warband** | Four fighters instead of three (the fourth marches out at once; they guard a square round the rally point), back in 3 s instead of 6 | a dark shingled roof, a horned skull over the door, crossed axes and a fire pit; fighters in fur with horned helmets and axes |
 
 The chosen path is saved with the run. A level-3 tower from a save made before branches existed can pick its path for free.
 
@@ -80,6 +82,7 @@ A guardhouse (90 gold) that must stand **next to the road** (a road cell within 
 - A soldier at 0 health falls (dust, a clank) and comes back from the Barracks after 8 s (6 s at level 3); a stunned Barracks (Sapper) doesn't send new soldiers until the stun wears off.
 - **Flyers ignore them** (soldiers never go for bats), and a faded Ghost slips out of their grip. An enemy that's banished away is let go. Selling the Barracks releases everything it holds.
 - It has no targeting mode and doesn't count on the coverage map (its range tint shows where the rally point can go).
+- **Level-3 paths** (Knights' Hall / Warband, table above). Simulator check (`level4-mixed` / `level6-mixed` / `level7-mixed` with a Barracks built early and taken to level 3; plain → Knights → Warband lives lost): 6,4 on level 4: 6 → 2 → 3; 3,3 on level 6: 12 → 7 → 17; 10,8 on level 7: 12 → 18 → 8. A first Knights' Hall (×1.8 health, +40%, −40% damage taken) was weaker than the Warband everywhere and was buffed. **Hold enemies inside your towers' range:** with the rally point beside the breach (3,1 on level 4), knights held the Trolls of the "Troll march" there, out of reach of every tower, until late in the wave – their goblins then poured out at once and 8 leaked (5 → 13 lives). Strong blockers in the wrong place make things worse.
 
 **Simulator check:** none of the reference layouts has a Barracks, and they are unchanged. Added to `level4-mixed` (built early, upgraded to level 3) on every cell next to the road: lives lost 9 → 0 in the best spot (12,6, beside a long straight in the kill zone), 5 on most cells, 9–14 on cells beside the breach where soldiers fight alone. On `level7-mixed` it helps little (14 → 13): those losses are bats and bosses.
 

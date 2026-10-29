@@ -40,7 +40,7 @@ const fmt=v=>v<10?v.toFixed(1).replace(/\.0$/,''):''+Math.round(v),tiles=r=>(r/6
 // br = upgrade branch index (BRN) for level 3. The Boulder's dps is on the enemy it lands on; Fire Pots' burn (o.burn) is per second on each enemy standing in the fire
 function tstat(k,l,bf,br){const tp=T[k],b=l>=3&&br!=null&&BRN[k]?BRN[k][br]:null,s=stat({k,l,buff:bf||1,br}),o={d:s.d,r:s.r,rate:1/s.f,n:1,b};
 if(k=='arrow'){o.n=l;o.dps=s.d*l/s.f;}else if(k=='storm'){o.n=tp.ch+l-1+(b&&b.ch||0);let a=0,m=s.d;for(let i=0;i<o.n;i++){a+=m;m*=.92;}o.dps=a/s.f;}
-else if(tp.bar){o.n=BAR.n;o.dps=s.d*BAR.n/s.f;o.hp=BAR.hp*(1+.5*(l-1));o.rsp=BAR.rsp*(l>=3?.75:1);}
+else if(tp.bar){const q={k,l,br};o.n=solN(q);o.dps=s.d*o.n/s.f;o.hp=solHp(q);o.rsp=solRs(q);}
 else o.dps=k=='alch'?s.d:tp.sup||tp.inc?0:s.d*(b&&b.bd||1)/s.f;if(b&&b.fz)o.burn=s.d*b.fz[2];return o;}
 const tsts=(k,l)=>l>=3&&BRN[k]?BRN[k].map((_,i)=>tstat(k,l,1,i)):[tstat(k,l)];
 const AT=TK.filter(k=>!T[k].sup&&!T[k].inc),MX={dps:Math.max(...AT.flatMap(k=>tsts(k,3).map(o=>o.dps))),rate:Math.max(...AT.map(k=>tstat(k,1).rate)),r:Math.max(...TK.filter(k=>!T[k].inc).flatMap(k=>tsts(k,3).map(o=>o.r)))};
@@ -49,6 +49,7 @@ const brPick=t=>!!t&&!!BRN[t.k]&&(t.l==2||t.l==3&&t.br==null);
 // what each branch changes, as a short line on its card
 function brLine(k,i,bf){const o=tstat(k,3,bf,i),b=o.b;return{arrow:['Range '+tiles(o.r)+' tiles','Pierces armour · +'+Math.round((b.dm-1)*100)+'% damage'],cannon:['Burns '+fmt(o.burn)+'/s for '+(b.fz||[])[1]+'s','Crushes for '+fmt(o.d*(b.bd||1))],
 frost:['Banishes all within '+tiles(b.grp||0)+' tiles','Slows to '+Math.round((b.tz||[0,0,0])[2]*100)+'% for '+(b.tz||[])[1]+'s'],storm:['Chains '+o.n+' enemies','Stuns '+b.stn+'s · chains '+o.n],
+barracks:['×'+(b.shp||1)+' health · −'+Math.round((b.arm||0)*100)+'% damage taken',(b.sn||3)+' fighters · back in '+fmt(o.rsp||0)+'s'],
 ballista:['Hits up to '+(1+(b.sk||0))+' in a line',fmt(o.d*(b.gs||1))+' to big enemies'],alch:['No armour for '+b.ac+'s','Spreads '+tiles(b.pl||0)+' tiles'],
 banner:['+'+Math.round((b.hs||0)*100)+'% attack speed','Ignores resistances'],vault:['Up to +'+(b.it||[])[1]+' gold a wave','+'+Math.round((b.bty||0)*100)+'% gold · '+tiles(o.r)+' tiles']}[k][i];}
 const bar=(v,n,mx)=>'<span class="sb">'+(n!=null?'<i class="nx" style="width:'+Math.min(100,n/mx*100)+'%"></i>':'')+'<i style="width:'+Math.min(100,v/mx*100)+'%"></i></span>';
@@ -60,8 +61,8 @@ if(!t)h+='<p class="ds">'+DS[k]+'</p>';
 h+='<div class="sts">';
 if(tp.sup){const p=l=>Math.round((.2+.1*(l-1))*100);h+=row('Boost','+'+p(l)+'%'+sm('damage'),nx&&'+'+p(l+1)+'%')+(br&&br.hs?row('Speed','+'+Math.round(br.hs*100)+'%'+sm('attack speed')):'')+(br&&br.hr?row('Blessing','No resistances'+sm('for towers in range')):'')+row('Range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
 else if(tp.inc)h+=row('Income','+'+tp.inc*l+sm('gold / wave'),nx&&'+'+tp.inc*(l+1))+(br&&br.it?row('Interest',Math.round(br.it[0]*100)+'%'+sm('of your gold, up to '+br.it[1])):'')+(br&&br.bty?row('Bounty','+'+Math.round(br.bty*100)+'%'+sm('gold for kills in range'))+row('Range',tiles(a.r)+sm('tiles'),null,bar(a.r,null,MX.r)):'');
-else if(tp.bar){const up=t?t.sol.filter(d=>d.hp>0).length:BAR.n;h+=row('Soldiers',up+(t?sm('of '+BAR.n+' standing'):''))+row('Health',fmt(a.hp)+sm('each · back in '+fmt(a.rsp)+'s'),nx&&fmt(nx.hp))+
-row('DPS',fmt(a.dps)+sm('all three'),nx&&fmt(nx.dps),bar(a.dps,nx&&nx.dps,MX.dps))+row('Damage',fmt(a.d)+sm('a swing · '+fmt(1/a.rate)+'s'),nx&&fmt(nx.d))+row('Rally range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
+else if(tp.bar){const up=t?t.sol.filter(d=>d.hp>0).length:a.n;h+=row('Soldiers',up+(t?sm('of '+a.n+' standing'):''))+row('Health',fmt(a.hp)+sm('each · back in '+fmt(a.rsp)+'s'),nx&&fmt(nx.hp))+
+row('DPS',fmt(a.dps)+sm('all '+['three','four'][a.n-3]),nx&&fmt(nx.dps),bar(a.dps,nx&&nx.dps,MX.dps))+row('Damage',fmt(a.d)+sm('a swing · '+fmt(1/a.rate)+'s'),nx&&fmt(nx.d))+row('Rally range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
 else{const ds=k=='arrow'&&a.n>1?'total':k=='storm'?'chain':k=='alch'||k=='cannon'?'per enemy':'';
 h+=row('DPS',fmt(a.dps)+(ds?sm(br&&br.bd?'on target':ds):''),nx&&fmt(nx.dps),bar(a.dps,nx&&nx.dps,MX.dps))+
 row('Damage',k=='arrow'?fmt(a.d)+sm('× '+a.n+' arrow'+(a.n>1?'s':'')):k=='alch'?fmt(a.d)+sm('/s for 3s'):k=='storm'?fmt(a.d)+sm('−8% per jump'):br&&br.bd?fmt(a.d*br.bd)+sm(fmt(a.d)+' splash'):fmt(a.d),nx&&fmt(nx.d))+(a.burn?row('Burn',fmt(a.burn)+sm('/s in the fire')):'')+
@@ -75,7 +76,7 @@ const atk=!tp.sup&&!tp.inc,tm=atk&&tmode(t||{k});if(t&&atk&&!tp.bar)h+='<div cla
 const bz=br&&br.tz,c={arrow:[a.n+(a.n>1?' targets':' target')],cannon:[...(br&&br.bd?['×'+br.bd+' on its target']:[]),'Splash '+tiles(br&&br.sp||tp.sp)+' tiles','Slows '+20*l+'% for 1s',...(br&&br.fz?['🔥 Burning ground '+tiles(br.fz[0])+' tiles · '+br.fz[1]+'s']:[])],
 frost:bz?['⏳ Time field '+tiles(bz[0])+' tiles','Enemies at '+Math.round(bz[2]*100)+'% speed for '+bz[1]+'s','Bosses slowed ⅓ as much','No banish']:['Banish '+(.5+.5*l)+' tiles',...(br&&br.grp?['✨ Hits everyone within '+tiles(br.grp)+' tiles']:[]),'Bosses ⅓ as far','4s immunity'],
 ballista:['Longest range',...(br&&br.sk?['🗡️ Goes through up to '+br.sk+' more enemies']:[]),...(br&&br.gs?['💀 ×'+br.gs+' to bosses, Black Knights and Trolls']:[])],storm:['Chains '+a.n+' enemies',br&&br.stn?'Stuns '+br.stn+'s (bosses '+fmt(br.stn*.34)+'s)':'Stuns 0.2s'],alch:['Poison 3s','Splash 0.75 tiles',...(br&&br.ac?['⚗️ Strips armour for '+br.ac+'s · +'+Math.round(ACID*100)+'% physical damage']:[]),...(br&&br.pl?['☠️ Poison spreads '+tiles(br.pl)+' tiles when a poisoned enemy dies']:[])],
-banner:[t?'Boosting '+g.tw.filter(o=>o!==t&&!T[o.k].sup&&!T[o.k].inc&&Math.hypot(o.x-t.x,o.y-t.y)<=a.r).length+' towers':'Stacks with other banners'],barracks:['🛡️ Blocks enemies on foot',...(t?['🚩 Click the road in range to move the rally point']:['Must stand next to the road'])],vault:['Pays for itself in '+Math.ceil(tp.c/(tp.inc*l))+' waves',...(t&&br&&br.it?['Interest now: +'+Math.min(br.it[1],Math.floor(g.gold*br.it[0]))]:[])]}[k].map(s=>'<span class="chip">'+s+'</span>');
+banner:[t?'Boosting '+g.tw.filter(o=>o!==t&&!T[o.k].sup&&!T[o.k].inc&&Math.hypot(o.x-t.x,o.y-t.y)<=a.r).length+' towers':'Stacks with other banners'],barracks:['🛡️ Blocks enemies on foot',...(br&&br.arm?['🐎 Takes '+Math.round(br.arm*100)+'% less damage, even from bosses']:[]),...(br&&br.sn?['🪓 '+br.sn+' fighters, back twice as fast']:[]),...(t?['🚩 Click the road in range to move the rally point']:['Must stand next to the road'])],vault:['Pays for itself in '+Math.ceil(tp.c/(tp.inc*l))+' waves',...(t&&br&&br.it?['Interest now: +'+Math.min(br.it[1],Math.floor(g.gold*br.it[0]))]:[])]}[k].map(s=>'<span class="chip">'+s+'</span>');
 if(atk&&!t&&!tp.bar)c.unshift('<span class="chip">Targets: '+TGM[tm][0]+'</span>');
 if(!t&&BRN[k])c.push('<span class="chip hi" title="Pick one when upgrading to level 3">Level 3: '+BRN[k].map(b=>b.n).join(' or ')+'</span>');
 if(atk)c.push(tp.air?'<span class="chip" title="Can shoot flying enemies">🦇 Hits flyers</span>':'<span class="chip lo" title="Can’t hit flying enemies">Ground only</span>');

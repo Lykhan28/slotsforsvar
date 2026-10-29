@@ -417,14 +417,20 @@ return G;}
 // one template per level: a chibi soldier (js/05-towers.js) scaled up to goblin size, tunic and shield in the level colour, iron kettle hat,
 // the sword on its own pivot 'SW', and a small health bar; each soldier is a clone (t.sg holds a Barracks' soldiers)
 const STPL={},SOLC=[[0x8a2a22,P.rd],[0x2f5a9a,P.bl],[0xd9a520,P.gd]];
-function solTpl(l){if(STPL[l])return STPL[l];const G=new THREE.Group(),b=new THREE.Group();b.scale.setScalar(2.3);G.add(b);chibi(b,0,0,SOLC[l-1][0],0x9aa3b0,4,SOLC[l-1][1]);
-const sw=b.getObjectByName('SW');bakeE(b);bakeE(sw);blob(G,.3);
+// br = the level-3 branch (-1 none): Knights' Hall = silver plate, a red plume and a blue kite shield; Warband = fur, a horned helmet and an axe instead of the sword
+function solTpl(l,br){const key=l+'_'+br;if(STPL[key])return STPL[key];const G=new THREE.Group(),b=new THREE.Group();b.scale.setScalar(2.3);G.add(b);
+const[tc,shc]=br==0?[0xc8ccd4,P.bl]:br==1?[0x7a5a3a,0x6a4a2a]:SOLC[l-1];chibi(b,0,0,tc,0x9aa3b0,4,shc);const c=b.children[0],sw=b.getObjectByName('SW');
+if(br==0){eCnD(c,P.rd,.024,.11,0,.38,-.02,0,1,-.35);eM(c,rboxG(.1,.13,.014,.02),P.bl,-.08,.15,.055);eM(c,rboxG(.016,.1,.004,.002),P.gd,-.08,.15,.063);eM(c,rboxG(.07,.016,.004,.002),P.gd,-.08,.17,.063);
+for(const k of[-1,1])eSp(c,0xc8ccd4,.03,.022,.03,k*.06,.25,0);}
+if(br==1){for(const k of[-1,1])eCnD(c,0xe8e0c8,.016,.08,k*.055,.35,0,k,.9,0);sw.clear();eCy(sw,P.wd2,.009,.2,0,.08,0);eM(sw,shpG('axe',[[0,0],[.06,-.03],[.07,.03],[.06,.07],[0,.04]],.008,.002),0xb8c0c8,.005,.16,0,0,-PI/2,0);
+eSp(c,0x5a3a20,.07,.03,.06,0,.245,0);}
+bakeE(b);bakeE(sw);blob(G,.3);
 const bg=L1(new THREE.Sprite(SB)),fg=L1(new THREE.Sprite(SF));bg.scale.set(.36,.07,1);bg.position.y=1.05;bg.renderOrder=10;bg.name='bb';fg.name='bar';fg.scale.set(.33,.045,1);fg.position.y=1.05;fg.renderOrder=11;G.add(bg,fg);
-return STPL[l]=G;}
+return STPL[key]=G;}
 // the rally flag: shown on the rally point of the selected Barracks
 let RFL=null;
 function solSync(t,dt){if(!t.sg){t.sg=new THREE.Group();sc.add(t.sg);}
-for(const d of t.sol){if(!d.m||d.ml!==t.l){if(d.m)t.sg.remove(d.m);d.m=solTpl(t.l).clone(true);d.ml=t.l;d.swp=d.m.getObjectByName('SW');d.bar=d.m.getObjectByName('bar');d.bb=d.m.getObjectByName('bb');d.bar.material=SF.clone();t.sg.add(d.m);}
+const sb=t.l>=3&&t.br!=null?t.br:-1;for(const d of t.sol){if(!d.m||d.ml!==t.l||d.mb!==sb){if(d.m)t.sg.remove(d.m);d.m=solTpl(t.l,sb).clone(true);d.ml=t.l;d.mb=sb;d.swp=d.m.getObjectByName('SW');d.bar=d.m.getObjectByName('bar');d.bb=d.m.getObjectByName('bb');d.bar.material=SF.clone();t.sg.add(d.m);}
 const on=d.hp>0;d.m.visible=on;if(!on)continue;d.m.position.set(wx(d.x),d.mv&&dt>0?Math.abs(Math.sin(tt*13+d.i*2))*.06:0,wz(d.y));d.m.rotation.y=d.dir;
 if(d.sw>0)d.sw=Math.max(0,d.sw-dt*4);d.swp.rotation.x=d.sw>0?Math.sin((1-d.sw)*PI)*1.7:-.15;d.m.children[0].rotation.x=d.hit>0?-.15:0;if(d.hit>0)d.hit-=dt;
 const hr=Math.max(0,d.hp/d.max),full=hr>=.999;d.bar.visible=d.bb.visible=!full;if(!full){d.bar.scale.x=.33*Math.max(hr,.001);d.bar.center.set(.5/Math.max(hr,.001),.5);d.bar.material.color.setHex(hr>.5?0x4aa8ff:hr>.25?0xf1c40f:0xe74c3c);}}
