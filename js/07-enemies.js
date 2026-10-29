@@ -153,6 +153,29 @@ const BK=new THREE.Group();BK.position.set(0,.4,-.3);BK.rotation.x=-.25;TO.add(B
 for(const y of[-.08,.04,.14]){const r0=y<0?.17:y<.1?.195:.2;eTor(BK,bk2,r0,r0,.08,0,y,0).rotation.x=PI/2;}
 for(const i of[0,1]){const x=i?.08:-.08,G=piv(BK,'G'+i,x,.13,i?-.03:.03);G.userData.p=[x,.13,i?-.03:.03];G.scale.setScalar(.8);eSp(G,0x71903c,.075,.06,.065,0,0,0);eSp(G,i?0x8e2a2a:0x6b4a2b,.08,.04,.07,0,-.03,0);
 const H=new THREE.Group();H.position.set(0,.06,.02);G.add(H);gHead(H,i);eBone(G,0x71903c,.016,.02,.14,i?.07:-.07,.03,0,i?.6:-.6,1,.2);}}
+else if(type=='ghost'){hy=1.2;const gc=0xa9bcc6,gc2=0x7f95a3,dk=0x141a1f,bo=0xd8d0bc,ch=0x5d6168;
+// ghost: a hooded wraith in a tattered shroud floating above the ground (TO), a deep hood (HD) with a dark face and pale glowing eyes, bony hands reaching out (S/E),
+// a broken shackle on one wrist and a fluttering hem (HM); faint glow (GL). It is see-through, and fades almost out while it is out of reach
+const TO=piv(b,'TO',0,.38,0);eM(TO,lathG([[.06,.42],[.11,.4],[.15,.3],[.17,.15],[.2,0],[.24,-.15],[.26,-.2]],14),matDS(gc),0,0,0);
+const HM=piv(TO,'HM',0,-.2,0);for(let i=0;i<12;i++){const a=i/12*2*PI;eCnD(HM,i%2?gc:gc2,.05,.12+(i%3)*.04,Math.sin(a)*.24,-.02,Math.cos(a)*.24,Math.sin(a)*.25,-1,Math.cos(a)*.25);}
+const HD=piv(TO,'HD',0,.44,.02);eM(HD,domG(.14,.7),matDS(gc2),0,-.04,0);eSp(HD,dk,.085,.1,.03,0,.0,.115);eCnD(HD,gc2,.05,.12,0,.1,-.08,0,.5,-1);
+for(const k of[-1,1])eye(HD,k*.032,.01,.13,.017,0xcff6ff,0x4ac0e0);
+for(const n of[0,1])limb(TO,'S','E',n,n?.15:-.15,.3,.02,.14,.13,.035,.028,gc,gc,(k,l)=>{eCnD(k,gc2,.06,.09,0,-l*.75,0,0,-1,0);eSp(k,bo,.02,.025,.018,0,-l-.01,0);
+for(let i=0;i<3;i++)eBone(k,bo,.004,.005,.06,(i-1)*.012,-l-.025,.005,(i-1)*.25,-1,.3,4);if(!n){eTor(k,ch,.034,.034,.03,0,-l*.85,0).rotation.x=PI/2;for(let i=0;i<3;i++)eTor(k,ch,.012,.018,.01,.02,-l*.85-.025-i*.024,0).rotation.y=i%2?PI/2:0;}});
+glow(TO,0,.15,0,.8,0x4a90a8).name='GL';}
+else if(type=='imp'){hy=.95;const sk=0x8a3424,sk2=0x6a2418,bl=0xb0603a,hn=0x2a1a14;
+// fire imp: a small red devil with a pot belly, glowing ember cracks, curled horns, a flame crest (FL with glow GL), leathery wings (WI0/WI1), a spade-tipped tail (T0/T1) and a pitchfork
+const TO=piv(b,'TO',0,.3,0);eSp(TO,sk,.1,.11,.09,0,.09,0);eSp(TO,bl,.075,.08,.05,0,.06,.05);for(let i=0;i<5;i++){const a=i*1.3;eSp(TO,0xff7a2a,.012,.03,.008,Math.sin(a)*.09,.05+i*.025,Math.cos(a)*.08,0xff5a00);}
+const HD=piv(TO,'HD',0,.21,.03);eSp(HD,sk,.085,.08,.085,0,.04,0);eSp(HD,sk2,.05,.03,.05,0,0,.05);eM(HD,rboxG(.05,.008,.01,.002),0xf2ead2,0,.012,.098);
+for(const k of[-1,1]){eye(HD,k*.035,.055,.072,.018,0xffd040,0xff8a00);eCnD(HD,hn,.018,.08,k*.05,.1,0,k*.5,1,-.2);eCnD(HD,hn,.01,.05,k*.085,.165,-.02,k*.2,.5,-.8);eCnD(HD,sk,.02,.06,k*.08,.05,-.01,k,.2,-.3);}
+const FL=piv(HD,'FL',0,.1,-.03);for(let i=0;i<5;i++)eSp(FL,i%2?0xffd27a:0xffa040,.026,.06+(2-Math.abs(i-2))*.015,.026,(i-2)*.022,.03+(2-Math.abs(i-2))*.012,-Math.abs(i-2)*.01,0xff7a00);glow(FL,0,.05,0,.32,0xff8a30).name='GL';
+for(const n of[0,1])limb(TO,'S','E',n,n?.1:-.1,.15,0,.08,.08,.022,.018,sk,sk,(k,l,r)=>{hand(k,l,sk2,r);if(n){const G=new THREE.Group();G.position.set(0,-l-.02,.01);k.add(G);
+eM(G,capG(.006,.006,.36,6),0x3a3a40,0,0,-.1,-PI/2);eM(G,rboxG(.06,.008,.008,.002),0x3a3a40,0,0,.26);for(let i=-1;i<=1;i++)eCnD(G,0x5d6168,.006,.04,i*.028,0,.28,0,0,1);}});
+for(const[n,x]of[[0,-.045],[1,.045]])limb(b,'H','K',n,x,.3,0,.14,.14,.026,.02,sk,sk2,(k,l)=>{eCnD(k,hn,.02,.035,0,-l-.01,.01,0,-1,0);});
+const T0=piv(TO,'T0',0,.02,-.08);eM(T0,capG(.012,.009,.16,6),sk,0,0,0,PI/2+.3);const T1=piv(T0,'T1',0,-.05,-.15);eM(T1,capG(.009,.006,.14,6),sk,0,0,0,PI/2+.6);
+eM(T1,shpG('impsp',[[0,.035],[.03,0],[0,-.03],[-.03,0]],.006,.002),sk2,0,.08,-.12,-.6);
+for(const k of[-1,1]){const W=piv(TO,k<0?'WI0':'WI1',k*.05,.17,-.07),m=eM(W,memG('impw',[[0,0],[.1,.07],[.17,.03],[.15,-.02],[.11,0],[.08,-.05],[.04,-.02]]),matDS(sk2),0,0,0);m.scale.x=k;
+eBone(W,hn,.004,.006,.17,0,0,0,k*.95,.4,0,4);}}
 else{hy=2.3;sh=.55;const rd=0x9e2f2a,dk=0x6e1d22,bl=0xd9b27c,bn=0xcfc2a0,me=0x7a2430,me2=0xa23a3a;
 // dragon: scaled body with belly plates and a spiked back, a long neck (NK), horned head with brows, fangs and an opening jaw (JW), membrane wings with finger bones (W/WE/WH), clawed legs and a spiked tail (T0-T2)
 const TO=piv(b,'TO',0,.9,0);eSp(TO,rd,.3,.28,.32,0,.02,.18);eSp(TO,rd,.3,.27,.34,0,0,-.08);eSp(TO,rd,.24,.22,.24,0,0,-.32);
@@ -187,30 +210,34 @@ const bg=L1(new THREE.Sprite(SB)),fg=L1(new THREE.Sprite(SF));bg.scale.set(.56,.
 const tpl={};
 // goblins come in two looks (v); each look's template is built once and cloned
 function buildEnemy(type){const v=type=='norm'&&Math.random()<.5?1:0,key=type+v;if(!tpl[key])tpl[key]=makeEnemy(type,v);const g=tpl[key].clone(true),b=g.getObjectByName('body'),ice=g.getObjectByName('ice'),bar=g.getObjectByName('bar'),meshes=[],rig={};bar.material=SF.clone();sc.add(g);
-g.traverse(o=>{if(o.isMesh&&o!==ice){o.userData.m0=o.material;meshes.push(o);}});b.traverse(n=>{if(n.name)rig[n.name]=n;});return{m:g,body:b,ice,bar,meshes,rig};}
-const BR={norm:[.4,.22],fast:[.4,.3],tank:[.6,.3],boss:[1.0,.55],guard:[.45,.26],shaman:[.4,.22],bat:[1.05,.28],sapper:[.4,.22],troll:[.9,.42]},HT={norm:.8,fast:1.05,tank:1.4,boss:2.3,guard:.95,shaman:.9,bat:1.3,sapper:1,troll:1.6},UPV=new THREE.Vector3(0,1,0);
+g.traverse(o=>{if(o.isMesh&&o!==ice){o.userData.m0=o.material;meshes.push(o);}});b.traverse(n=>{if(n.name)rig[n.name]=n;});// a Ghost gets its own see-through copies of its materials (gm) so it can fade without touching the shared enemy materials
+let gm=null;if(type=='ghost'){gm=[];b.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.72;o.material.depthWrite=false;o.castShadow=false;gm.push(o.material);}});}
+return{m:g,body:b,ice,bar,meshes,rig,gm};}
+const BR={norm:[.4,.22],fast:[.4,.3],tank:[.6,.3],boss:[1.0,.55],guard:[.45,.26],shaman:[.4,.22],bat:[1.05,.28],sapper:[.4,.22],troll:[.9,.42],ghost:[.6,.26],imp:[.3,.18]},HT={norm:.8,fast:1.05,tank:1.4,boss:2.3,guard:.95,shaman:.9,bat:1.3,sapper:1,troll:1.6,ghost:1,imp:.75},UPV=new THREE.Vector3(0,1,0);
 const ICEM=new THREE.MeshStandardMaterial({color:new THREE.Color(0x9fe8ff).convertSRGBToLinear(),transparent:true,opacity:.3,roughness:.08,metalness:.1,envMapIntensity:1.6,depthWrite:false}),
 ICEM2=new THREE.MeshStandardMaterial({color:new THREE.Color(0xbfefff).convertSRGBToLinear(),transparent:true,opacity:.75,roughness:.1,envMapIntensity:1.6,emissive:new THREE.Color(0x2a9fe0).convertSRGBToLinear(),emissiveIntensity:.35}),
 BUBM=new THREE.MeshBasicMaterial({color:new THREE.Color(0x7cff4a).convertSRGBToLinear(),transparent:true,opacity:.55,depthWrite:false}),
 STARM=new THREE.MeshStandardMaterial({color:new THREE.Color(0xffd24a).convertSRGBToLinear(),emissive:new THREE.Color(0xffa000).convertSRGBToLinear(),emissiveIntensity:.8,metalness:.6,roughness:.3});
 function bub(x,y,yy){const m=L1(new THREE.Mesh(geo('sph'),BUBM));m.position.set(wx(x)+rnd(-.12,.12),yy,wz(y)+rnd(-.12,.12));sc.add(m);pts.push({m,vx:rnd(-.1,.1),vz:rnd(-.1,.1),vy:rnd(.6,1.1),g:-.3,t:0,d:rnd(.7,1.1),s:rnd(.035,.07)});}
 function stick(e,dx,dy,big){if(!e.stuck)e.stuck=[];const len=Math.hypot(dx,dy)||1,ux=dx/len,uz=dy/len,cv=Math.cos(e.vis),sv=Math.sin(e.vis),lx=ux*cv-uz*sv,lz=ux*sv+uz*cv,R0=BR[e.type][1]*.85,
-yr={norm:[.22,.5],fast:[.28,.5],tank:[.3,.8],boss:[.75,1.1],guard:[.25,.55],shaman:[.22,.45],bat:[.98,1.12],sapper:[.22,.45],troll:[.6,1.15]}[e.type],yy=rnd(yr[0],yr[1]),k=big?2:1,L=big?.5:.22,a=new THREE.Group();
+yr={norm:[.22,.5],fast:[.28,.5],tank:[.3,.8],boss:[.75,1.1],guard:[.25,.55],shaman:[.22,.45],bat:[.98,1.12],sapper:[.22,.45],troll:[.6,1.15],ghost:[.4,.75],imp:[.18,.38]}[e.type],yy=rnd(yr[0],yr[1]),k=big?2:1,L=big?.5:.22,a=new THREE.Group();
 part(a,'box',P.wd2,.016*k,.016*k,L,0,0,-L/2);part(a,'box',P.rd,.05*k,.012,.06,0,0,-L*.9);part(a,'box',P.rd,.012,.05*k,.06,0,0,-L*.9);part(a,'cone',0xdfe6ee,.02*k,.04,.02*k,0,0,.01).rotation.x=PI/2;
 a.position.set(-lx*R0+rnd(-.03,.03),yy,-lz*R0+rnd(-.03,.03));a.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(lx,rnd(-.15,.15),lz).normalize());
 e.body.add(a);e.stuck.push({a,t:0,sc:e.type=='boss'?1.8:1});if(e.stuck.length>7){const o=e.stuck.shift();e.body.remove(o.a);}}
 // hit feedback; damage numbers are grey when the enemy resisted part of the hit (or a Shieldbearer's shield blocked it: sparks and a clang), pale gold when the Ballista pierced its armour
 function hf(o,h,d,kind,dx,dy){const bl=shBlk(o,kind,dx||0,dy||0)<1;snd(bl?'block':'h_'+kind);if(bl){o.sbk=1;burst(o.x,o.y,0xffe6a0,5,1,.45);}o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
 if(d>0&&txts.length<40){const rs=o.rs[T[kind].dt]||0;popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),dmul(o,kind)<1||bl?'#a9a9a9':rs>0?'#ffe08a':'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[o.type];}
-burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52}[o.type],o.type=='tank'?5:3,.8,.5);
-if(kind=='arrow'||kind=='ballista')stick(o,dx||0,dy||1,kind=='ballista');else if(kind=='cannon')o.stn=1;else if(kind=='storm')o.shk=2.8;}
-const TXY={norm:1,fast:1.15,tank:1.4,boss:2.3,guard:1.1,shaman:1.15,bat:1.55,sapper:1.15,troll:1.9};
+burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a}[o.type],o.type=='tank'?5:3,.8,.5);
+if((kind=='arrow'||kind=='ballista')&&!o.phz)stick(o,dx||0,dy||1,kind=='ballista');else if(kind=='cannon')o.stn=1;else if(kind=='storm')o.shk=2.8;}
+const TXY={norm:1,fast:1.15,tank:1.4,boss:2.3,guard:1.1,shaman:1.15,bat:1.55,sapper:1.15,troll:1.9,ghost:1.25,imp:.95};
 // Shaman heal (heal() in js/09-game.js): without a it's the pulse – a green ring on the ground as wide as its reach, and the staff flares (e.cst); with a, enemy e was healed by a
 function healFx(e,a){if(a===undefined){e.cst=1;snd('heal');fx(e.x,e.y,0xb8ff9a,.2,HEAL.r/60,.7,.22,true);fx(e.x,e.y,0x7dff6a,.15,HEAL.r/60*.9,.6,.3);burst(e.x,e.y,0x9cff6a,8,.9,.9);return;}
 fx(e.x,e.y,0x9cff6a,.1,.45,.4,.05,true);burst(e.x,e.y,0x9cff6a,4,.6,.5);if(a>=1&&txts.length<40){popText(e.x+rnd(-8,8),e.y+rnd(-8,8),'+'+Math.round(a),'#8dff7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[e.type];}}
 // Sapper: the bomb goes off beside tower t (the stars and smoke while it is stunned are drawn in sync())
 function sapFx(e,t){snd('boom');const y=t.head.position.y*.6;fx(t.x,t.y,0xffb060,.2,1.1,.4,y);fx(e.x,e.y,0xffffff,.1,1.3,.45,.08,true);burst(t.x,t.y,0xff8a3a,18,1.8,y);burst(t.x,t.y,0x3a3a3a,12,1.2,y+.2);
 for(let i=0;i<4;i++)fx(t.x+rnd(-15,15),t.y+rnd(-15,15),0x4a4a4a,.15,.6,1.1,y+rnd(0,.5));}
+// Ghost: a puff of mist and a whoosh as it fades out of reach (e.out) or back in; the fading itself is in animEnemy()
+function phzFx(e){snd('phase');burst(e.x,e.y,0xcfe6ee,e.out?10:6,.8,.6);fx(e.x,e.y,0xcfe6ee,.1,.7,.5,.6);}
 // Troll: its basket breaks open as the goblins jump out
 function trollFx(e){snd('h_cannon');burst(e.x,e.y,0x8a6a3a,12,1.3,1.1);burst(e.x,e.y,0x71903c,6,1.6,1.1);}
 function tfx(t){snd('f_'+t.k);const c={arrow:0xdcc9a0,cannon:0xcfc2a0,frost:0x9ff7ff,ballista:0xe8e0c8,storm:0x7fd8ff,alch:0x7cff4a}[t.k];if(!c)return;burst(t.x,t.y,c,t.k=='cannon'?7:t.k=='arrow'?2:5,t.k=='storm'?1.2:.8,t.head.position.y+.1);if(t.k=='cannon')fx(t.x,t.y,0xcfc2a0,.2,.7,.35,.3);}
@@ -261,6 +288,12 @@ ro('BM',Math.sin(e.gp*2)*.06,0,Math.sin(e.gp)*.08);if(r.GL&&dt>0)r.GL.scale.setS
 else if(e.type=='troll'){ro('H0',-s*.4);ro('K0',Math.max(0,c)*.6);ro('H1',s*.4);ro('K1',Math.max(0,-c)*.6);ro('S0',s*.35-.1,0,-.15);ro('E0',-.35-Math.max(0,s)*.2);ro('S1',-s*.3-.35,0,.1);ro('E1',-.7);
 ro('TO',.32-q*.2,c*.08,s*.05);r.TO.position.y=.75+Math.abs(s)*.03;ro('HD',-.25-q*.25,Math.sin(t*.7)*.2);ro('JW',.08+Math.sin(t*1.3)*.05);
 for(let i=0;i<2;i++){const G=r['G'+i];if(G){G.position.y=G.userData.p[1]+Math.abs(Math.sin(e.gp+i*1.5))*.03;G.rotation.y=Math.sin(t*1.1+i*2)*.4;}}}
+else if(e.type=='ghost'){r.TO.position.y=.38+Math.sin(tt*2+e.ph)*.06;ro('TO',.1+Math.sin(t*1.3)*.05-q*.3,0,Math.sin(t*.9)*.05);ro('HD',-.1+Math.sin(t*.8)*.08,Math.sin(t*.6)*.3);
+ro('S0',-1.2+Math.sin(t*1.7)*.15,0,.1);ro('E0',-.3);ro('S1',-1.1+Math.sin(t*1.7+1)*.15,0,-.1);ro('E1',-.4);ro('HM',Math.sin(t*2.4)*.08,t*.6,Math.cos(t*2)*.08);
+const op=e.out?.12:.72;e.gop=e.gop===undefined?op:e.gop+(op-e.gop)*Math.min(1,dt*12);if(e.gm)for(const m of e.gm)m.opacity=e.gop;if(r.GL)r.GL.scale.setScalar(.8*e.gop/.72);}
+else if(e.type=='imp'){ro('H0',-s*.8);ro('K0',Math.max(0,c));ro('H1',s*.8);ro('K1',Math.max(0,-c));ro('S0',s*.6-.2);ro('E0',-.6);ro('S1',-s*.3-.5);ro('E1',-.9);
+ro('TO',.15+s*.04-q*.3,c*.1);r.TO.position.y=.3+Math.abs(Math.cos(e.gp))*.03;ro('HD',-.1-q*.3,Math.sin(t*1.5)*.2);ro('T0',.2+Math.sin(t*3)*.2,Math.sin(t*2.2)*.5);ro('T1',Math.sin(t*3-.8)*.25,Math.sin(t*2.2-.8)*.5);
+const fw=.3+Math.sin(tt*14+e.ph)*.45;ro('WI0',0,fw);ro('WI1',0,-fw);if(r.FL)r.FL.scale.set(1,1+Math.sin(tt*17+e.ph)*.15,1);if(r.GL&&dt>0)r.GL.scale.setScalar(.32*(.85+Math.random()*.3));if(dt>0&&Math.random()<dt*4)burst(e.x,e.y,0xffa040,1,.3,.55);}
 else if(e.type=='bat'){r.TO.position.y=1.05+Math.sin(tt*2.1+e.ph)*.06;ro('TO',-q*.3);for(let i=0;i<5;i++){const B=r['B'+i],p=B.userData.p,f=tt*(i?17:13)+e.ph+i*1.9,a=Math.sin(f)*.85+.15;
 B.position.set(p[0]+Math.sin(tt*1.7+i*2+e.ph)*.07,p[1]+Math.sin(f-1.2)*.025+Math.sin(tt*2.3+i)*.05,p[2]+Math.cos(tt*1.5+i*1.3+e.ph)*.07);B.rotation.z=Math.sin(tt*1.7+i*2+e.ph)*.3;ro('WL'+i,0,0,-a);ro('WR'+i,0,0,a);}}
 else{const f=tt*5.2+e.ph,a=Math.sin(f)*.65+.15,roar=Math.pow(Math.max(0,Math.sin(tt*1.1+e.ph)),10);
@@ -270,7 +303,7 @@ ro('NK',-.1+Math.sin(f-.5)*.05-roar*.35);ro('HD',.1-roar*.3+Math.sin(tt*.9+e.ph)
 ro('H0',.35+Math.sin(f+1)*.1);ro('K0',.55);ro('H1',.35+Math.sin(f+1.3)*.1);ro('K1',.55);if(r.GL)r.GL.scale.setScalar(.35+roar*.85+Math.sin(tt*9)*.04);}
 fxStatus(e,dt);
 e.ice.visible=e.fz>0;const hr=Math.max(0,e.hp/e.max),hc=hr>.5?0x2ecc71:hr>.25?0xf1c40f:0xe74c3c;e.bar.scale.x=.52*Math.max(hr,.001);e.bar.center.set(.5/Math.max(hr,.001),.5);
-if(hr<.5&&Math.random()<dt*(hr<.25?9:4))burst(e.x,e.y,hr<.25?{norm:0x8fd957,fast:0xb03a2e,tank:0x888888,boss:0xff6a1a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52}[e.type]:0x444444,1,.35,.4+(e.type=='boss'?1:0));
+if(hr<.5&&Math.random()<dt*(hr<.25?9:4))burst(e.x,e.y,hr<.25?{norm:0x8fd957,fast:0xb03a2e,tank:0x888888,boss:0xff6a1a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a}[e.type]:0x444444,1,.35,.4+(e.type=='boss'?1:0));
 if(hr<.25)e.body.rotation.z+=Math.sin(tt*9+e.ph)*.07;if(e.bc!==hc){e.bc=hc;e.bar.material.color.setHex(hc);}}
 function animDying(dt){for(let i=g.dying.length-1;i>=0;i--){const e=g.dying[i],boss=e.type=='boss',dk=e.dk,D=boss?1.2:dk=='frost'?.45:dk=='cannon'?.9:.7;e.dt+=dt;
 const p=Math.min(1,e.dt/D),f=1-Math.pow(1-Math.min(1,p/.5),3),sink=Math.max(0,(p-.6)/.4);let rz=e.fd*f*(boss?.5:1.5),py=(boss?.3*(1-f):0)-sink*.25,ox=0,oz=0,sx=1,sy=1,s2=Math.max(.01,1-sink*sink*.95);
@@ -283,8 +316,8 @@ if(e.fy){py=-e.fy*Math.pow(Math.min(1,p*1.5),2);rz=e.fd*p*2.5;}// flyers drop ou
 e.m.rotation.z=rz;e.m.position.set(e.bx+ox+(boss?(Math.random()-.5)*.04:0),py,e.bz+oz);
 if(boss&&e.rig.W0){e.rig.W0.rotation.z=-1.1*f;e.rig.W1.rotation.z=1.1*f;}
 e.m.scale.set(sx*s2,sy*s2,sx*s2);
-if(p>=1){sc.remove(e.m);if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}}}
-function volley(t,s){const ts=[];for(const e of g.en)if(e.hp>0&&(!e.fy||T[t.k].air)&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
+if(p>=1){sc.remove(e.m);if(e.gm)e.gm.forEach(m=>m.dispose());if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}}}
+function volley(t,s){const ts=[];for(const e of g.en)if(e.hp>0&&!e.out&&(!e.fy||T[t.k].air)&&dmul(e,t.k)>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
 ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow'),w:i*.07}));}
 const bolts=[];
 function bolt(x1,y1,h1,x2,y2,h2){const g2=new THREE.Group(),a=new THREE.Vector3(wx(x1),h1,wz(y1)),b=new THREE.Vector3(wx(x2),h2,wz(y2)),ps=[a],up=new THREE.Vector3(0,1,0);
@@ -292,7 +325,7 @@ for(let i=1;i<7;i++){const q=a.clone().lerp(b,i/7);q.x+=rnd(-.08,.08);q.y+=rnd(-
 for(let i=0;i<ps.length-1;i++){const d=ps[i+1].clone().sub(ps[i]),L=d.length(),m=new THREE.Mesh(geo('cyl'),bm(0x8fd6ff));m.layers.set(1);m.position.copy(ps[i]).add(ps[i+1]).multiplyScalar(.5);m.quaternion.setFromUnitVectors(up,d.normalize());m.scale.set(.022,L,.022);g2.add(m);}
 glow(g2,b.x,b.y,b.z,.45,0x3f9aff);sc.add(g2);bolts.push({g:g2,t:0});}
 function zap(t,best,s){const hit=[best],n=T.storm.ch+t.l-1;let cur=best;
-for(let i=1;i<n;i++){let nx=null,nd=90;for(const o of g.en){if(o.hp<=0||hit.includes(o))continue;const dd=Math.hypot(o.x-cur.x,o.y-cur.y);if(dd<nd){nd=dd;nx=o;}}if(!nx)break;hit.push(nx);cur=nx;}
+for(let i=1;i<n;i++){let nx=null,nd=90;for(const o of g.en){if(o.hp<=0||o.out||hit.includes(o))continue;const dd=Math.hypot(o.x-cur.x,o.y-cur.y);if(dd<nd){nd=dd;nx=o;}}if(!nx)break;hit.push(nx);cur=nx;}
 let f={x:t.x,y:t.y,h:t.head.position.y},dm=s.d;for(const o of hit){const dd=dm*dmul(o,'storm');o.hp-=dd;hf(o,.2,dd,'storm');o.stun=.2;const h=o.fy||.45;bolt(f.x,f.y,f.h,o.x,o.y,h);f={x:o.x,y:o.y,h};dm*=.92;}}
 function buffs(){for(const t of g.tw)t.buff=1;for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r;for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r)t.buff+=.2+.1*(s.l-1);}}
 function mkBullet(k){if(k=='ballista'){const a=new THREE.Group();part(a,'box',P.wd2,.04,.04,.55,0,0,0);part(a,'cone',0xdfe6ee,.055,.14,.055,0,0,.33).rotation.x=PI/2;part(a,'box',P.rd,.1,.012,.1,0,0,-.25);part(a,'box',P.rd,.012,.1,.1,0,0,-.25);sc.add(a);return a;}

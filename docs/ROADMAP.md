@@ -77,7 +77,7 @@ Add a flying enemy (bat swarm or small wyvern) that flies straight from the brea
 Add two enemies: a goblin Sapper that runs to the nearest tower near the road and blows up, stunning it for a few seconds, and a Troll that splits into two goblins when it dies. Make both readable at a glance (Sapper carries a lit bomb).
 ```
 
-- [ ] **13. Theme enemies**
+- [x] **13. Theme enemies**
 ```text
 Add a Ghost that phases out (untargetable, translucent) for 1 s every few seconds, appearing mainly in Barrow Moor, and a Fire Imp that is immune to poison and fire, appearing on the lava levels. Let LEVELS control which special enemies each level uses.
 ```

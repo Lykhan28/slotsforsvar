@@ -3,6 +3,9 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **New enemy: Ghost** – a hooded, see-through wraith that haunts **Barrow Moor** (and now and then Darkwood and the Dread Wastes). Every few seconds it fades almost out of sight for a second: while it's faded, no tower can target it, arrows already flying at it pass straight through, and splash and poison can't touch it.
+- **New enemy: Fire Imp** – a little red devil with a flaming head and a pitchfork, found on the lava levels (**Scorched Badlands** and **The Dread Wastes**). It's immune to fire and poison, so Alchemists ignore it – bring other towers.
+- Levels can now each have their own special enemies – that is how the Ghosts and Fire Imps keep to their home turf.
 - **New enemy: Goblin Sapper** (from wave 9). You can spot it by the lit bomb it holds over its head. When it passes a tower next to the road, it leaves the road, sprints at the tower and blows up, knocking the tower out for 4 seconds (stars circle the stunned tower and it can't shoot). Kill it before it gets there and its bomb just fizzles. A stunned Banner Tower doesn't boost anyone until it recovers.
 - **New enemy: Troll** (from wave 12). A big, slow brute with a club and a basket on its back with two goblins in it. When the Troll falls, the goblins jump out and keep running – so kill Trolls early, not right at the gate.
 - The next-wave preview now explains an enemy's special ability only on the wave it first appears (resistances are always shown, and hovering an icon shows everything), so the panel stays small.
