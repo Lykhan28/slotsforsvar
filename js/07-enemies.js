@@ -189,7 +189,7 @@ e.m.rotation.z=rz;e.m.position.set(e.bx+ox+(boss?(Math.random()-.5)*.04:0),py,e.
 if(boss&&e.rig.W0){e.rig.W0.rotation.z=-1.1*f;e.rig.W1.rotation.z=1.1*f;}
 e.m.scale.set(sx*s2,sy*s2,sx*s2);
 if(p>=1){sc.remove(e.m);if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}}}
-function volley(t,s){const ts=[];for(const e of g.en)if(e.hp>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);ts.sort((a,b)=>prog(b)-prog(a));
+function volley(t,s){const ts=[];for(const e of g.en)if(e.hp>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
 ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow'),w:i*.07}));}
 const bolts=[];
 function bolt(x1,y1,h1,x2,y2,h2){const g2=new THREE.Group(),a=new THREE.Vector3(wx(x1),h1,wz(y1)),b=new THREE.Vector3(wx(x2),h2,wz(y2)),ps=[a],up=new THREE.Vector3(0,1,0);

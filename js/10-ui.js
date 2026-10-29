@@ -1,5 +1,5 @@
 // ---------- UI ----------
-const DS={arrow:'Fires at 1, 2 or 3 enemies at once, depending on its level.',cannon:'Hurls boulders that hit everything in an area and slow enemies for 1 second.',frost:'Teleports the enemy closest to the castle back down the road. Bosses resist.',ballista:'Huge range. Always targets the toughest enemy and hits hard.',storm:'Chain lightning strikes 5, 6 or 7 enemies and stuns them for a moment.',alch:'Lobs poison flasks that deal damage over time in an area.',banner:'Nearby towers deal +20% damage.',vault:'Earns gold at the end of every wave.'};
+const DS={arrow:'Fires at 1, 2 or 3 enemies at once, depending on its level.',cannon:'Hurls boulders that hit everything in an area and slow enemies for 1 second.',frost:'Teleports enemies back down the road, starting with the one closest to the castle. Bosses resist.',ballista:'Huge range and hits hard. Goes for the toughest enemy unless you tell it otherwise.',storm:'Chain lightning strikes 5, 6 or 7 enemies and stuns them for a moment.',alch:'Lobs poison flasks that deal damage over time in an area.',banner:'Nearby towers deal +20% damage.',vault:'Earns gold at the end of every wave.'};
 const ROLE={arrow:'Multi-shot',cannon:'Area · Slow',frost:'Control',ballista:'Sniper',storm:'Chain',alch:'Poison · Area',banner:'Support',vault:'Economy'};
 const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon']};
 let offMsg=0,hov=null;const TK=Object.keys(T),TC2={arrow:'#5cd17a',cannon:'#d98a3c',frost:'#9a6bff',ballista:'#e8e8e8',storm:'#4fd0ff',alch:'#9cff4a',banner:'#ff5a5a',vault:'#ffd24a'};
@@ -25,9 +25,12 @@ row('Damage',k=='arrow'?fmt(a.d)+sm('× '+a.n+' arrow'+(a.n>1?'s':'')):k=='alch'
 row('Fire rate',(a.rate<1?a.rate.toFixed(2):a.rate.toFixed(1))+sm('/s · '+tp.f+'s reload'),null,bar(a.rate,null,MX.rate))+
 row('Range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
 h+='</div>';
-const c={arrow:[a.n+(a.n>1?' targets':' target'),'Front-runners first'],cannon:['Splash '+tiles(tp.sp)+' tiles','Slows '+20*l+'% for 1s'],frost:['Banish '+(.5+.5*l)+' tiles','Bosses ⅓ as far','4s immunity'],
-ballista:['Targets the toughest','Longest range'],storm:['Chains '+a.n+' enemies','Stuns 0.2s'],alch:['Poison 3s','Splash 0.75 tiles'],
+// targeting picker for a built attacking tower (T cycles it); before building, the default shows as a chip
+const atk=!tp.sup&&!tp.inc,tm=atk&&tmode(t||{k});if(t&&atk)h+='<div class="tgm"><span class="sl">Target</span><div class="seg" title="Targeting (T)">'+TGK.map(m=>'<button data-tm="'+m+'"'+(m==tm?' class="on"':'')+' title="'+TGM[m][1]+'">'+TGM[m][0]+'</button>').join('')+'</div></div>';
+const c={arrow:[a.n+(a.n>1?' targets':' target')],cannon:['Splash '+tiles(tp.sp)+' tiles','Slows '+20*l+'% for 1s'],frost:['Banish '+(.5+.5*l)+' tiles','Bosses ⅓ as far','4s immunity'],
+ballista:['Longest range'],storm:['Chains '+a.n+' enemies','Stuns 0.2s'],alch:['Poison 3s','Splash 0.75 tiles'],
 banner:[t?'Boosting '+g.tw.filter(o=>o!==t&&!T[o.k].sup&&!T[o.k].inc&&Math.hypot(o.x-t.x,o.y-t.y)<=a.r).length+' towers':'Stacks with other banners'],vault:['Pays for itself in '+Math.ceil(tp.c/(tp.inc*l))+' waves']}[k].map(s=>'<span class="chip">'+s+'</span>');
+if(atk&&!t)c.unshift('<span class="chip">Targets: '+TGM[tm][0]+'</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');
 return h+'<div class="chips">'+c.join('')+'</div>';}
 function ui(){const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
@@ -56,6 +59,9 @@ b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=(
 // pause and speed: the HUD buttons, P and F; starting a wave also resumes
 function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}
 const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);startWave();};
+// targeting: inspector buttons or T on the selected tower (kept through upgrades and saved with the run)
+function setTm(t,m){if(!t||T[t.k].sup||T[t.k].inc||!TGM[m])return;t.tm=m;snd('click');ui();}
+$('info').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-tm]');if(b)setTm(g.sel,b.dataset.tm);};
 $('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);};
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};
@@ -76,5 +82,5 @@ const vw=2.17*dist/20,vh=1.5*dist/20;mq.strokeStyle='#fff';mq.lineWidth=1.5;mq.s
 function mmGo(e){const r=MM.getBoundingClientRect(),x=((e.clientX-r.left)/r.width*MM.width-MB.ox)/MB.k,z=((e.clientY-r.top)/r.height*MM.height-MB.oz)/MB.k;tx=clamp(x,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(z,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 MM.addEventListener('pointerdown',e=>{MM.setPointerCapture(e.pointerId);mmGo(e);});MM.addEventListener('pointermove',e=>{if(e.buttons)mmGo(e);});
 addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey)return;const k=e.key;
-if(k>='1'&&k<='8'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
+if(k>='1'&&k<='8'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if((k=='t'||k=='T')&&g.sel)setTm(g.sel,TGK[(TGK.indexOf(tmode(g.sel))+1)%TGK.length]);else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
 else if(k=='q'||k=='Q'){az-=.3;setCam();}else if(k=='e'||k=='E'){az+=.3;setCam();}});

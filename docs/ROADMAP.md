@@ -35,7 +35,7 @@ Save the game state to localStorage between waves so a page refresh can resume t
 Add pause (P key and a HUD button) and game speed 1×/2×/3× (a HUD toggle and the F key). Animations, spawning, cooldowns and audio pacing should all respect the speed. Show a clear "Paused" overlay.
 ```
 
-- [ ] **5. Targeting modes**
+- [x] **5. Targeting modes**
 ```text
 Add per-tower targeting modes: First, Last, Strongest, Fastest, Closest. Make them selectable in the tower inspector and cycle them with the T key. Keep the Ballista's default as Strongest and the Wizard's as First. Update tstat()/infoHTML() if needed.
 ```

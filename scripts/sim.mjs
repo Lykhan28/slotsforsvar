@@ -30,6 +30,7 @@ and the steps after it wait too):
   <tower> c,r      build a tower on cell c,r: arrow cannon frost ballista storm alch banner vault
   up c,r           upgrade the tower on c,r (max level 3)
   sell c,r         sell the tower on c,r (60% back)
+  target c,r MODE  set the targeting of the tower on c,r: first last strong fast close (free, done at once)
   wave N           wait until the break before wave N`;
 
 const args = process.argv.slice(2);
@@ -122,11 +123,13 @@ if (opt.map) {
 
 // ---------- build steps ----------
 const parsed = steps.map((s, n) => {
-  const m = String(s).trim().match(/^(\w+)\s+(\d+)(?:\s*,\s*(\d+))?$/);
-  if (!m) die(`build step ${n + 1} "${s}" – expected e.g. "arrow 3,2", "up 3,2", "sell 3,2" or "wave 5"`);
-  const [, k, a, b] = m;
+  const m = String(s).trim().match(/^(\w+)\s+(\d+)(?:\s*,\s*(\d+))?(?:\s+(\w+))?$/);
+  if (!m) die(`build step ${n + 1} "${s}" – expected e.g. "arrow 3,2", "up 3,2", "sell 3,2", "target 3,2 strong" or "wave 5"`);
+  const [, k, a, b, tm] = m;
   if (k == 'wave') return { k, wave: +a, s };
   if (b === undefined) die(`build step "${s}" needs a cell like 3,2`);
+  if (k == 'target') { const M = run('TGK'); if (!M.includes(tm)) die(`build step "${s}": targeting must be one of ${M.join(', ')}`); return { k, c: +a, r: +b, tm, s }; }
+  if (tm !== undefined) die(`build step "${s}": unexpected "${tm}"`);
   if (k != 'up' && k != 'sell' && !T[k]) die(`build step "${s}": unknown tower "${k}" (${Object.keys(T).join(', ')})`);
   return { k, c: +a, r: +b, s };
 });
@@ -150,6 +153,10 @@ function doSteps(inBreak) {
       if (t.l >= 3) { warn.push(`"${st.s}": already level 3 – skipped`); pc++; continue; }
       const c = run('upCost')(t); if (G.gold < c) return;
       G.gold -= c; t.inv += c; t.l++; spent += c; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++; continue;
+    }
+    if (st.k == 'target') {
+      if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
+      t.tm = st.tm; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: 0 }); pc++; continue;
     }
     if (st.k == 'sell') {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }

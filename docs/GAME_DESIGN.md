@@ -29,14 +29,16 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 ## Towers (price / range / damage / reload)
 | Tower | Price | Range | Damage | Reload | Special |
 |---|---|---|---|---|---|
-| Archers | 50 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the ones furthest ahead) |
+| Archers | 50 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the best ones by its targeting mode) |
 | Catapult | 100 | 110 | 30 | 1.4 s | Area damage (radius 55). Slows enemies hit by 20/40/60% for 1 s |
-| Wizard | 110 | 115 | 8 | 3.0 s | Banish: teleports the enemy closest to the castle 1/1.5/2 tiles back down the road (bosses only a third as far). A banished enemy is immune to banishing for 4 s, so several Wizards spread out |
-| Ballista | 125 | 190 | 66 | 2.2 s | Always targets the enemy with the most health |
+| Wizard | 110 | 115 | 8 | 3.0 s | Banish: teleports its target (default First) 1/1.5/2 tiles back down the road (bosses only a third as far). A banished enemy is immune to banishing for 4 s, so several Wizards spread out |
+| Ballista | 125 | 190 | 66 | 2.2 s | Targets Strongest by default (the enemy with the most health left) |
 | Storm Tower | 150 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump |
 | Alchemist | 90 | 115 | 7.8/s | 1.1 s | Poison flask, radius 45, poisons for 3 s |
 | Banner Tower | 120 | 120 | – | – | +20% damage (+10% per level) to towers in range |
 | Treasury | 150 | – | – | – | 15 gold × level at the end of each wave |
+
+**Targeting:** every attacking tower has a targeting mode, picked in the inspector or cycled with T on the selected tower: **First** (closest to the castle, by road length left), **Last**, **Strongest** (most health left), **Fastest** (fastest enemy type, ties go to First) and **Closest** (to the tower). Defaults: Ballista Strongest, everything else First. Storm Tower picks its first target this way, then chains to the nearest enemies; Archers pick their 1–3 targets in that order. The mode is kept through upgrades and saved with the run; Banner Tower and Treasury have none.
 
 ## Enemies
 | Type | Speed | Health (× base) | Gold |
@@ -53,7 +55,7 @@ Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apar
 - Defeat: the castle burns, the keep collapses and the enemy army cheers.
 
 ## Controls
-Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it, right-click anywhere (or Esc) to deselect it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave (and resumes if paused), P pauses/resumes, F cycles game speed ×1/×2/×3 (also buttons next to the wave button), Q/E rotate. While paused you can still build, upgrade, sell and move the camera; the music drops to a quiet bed. At ×2/×3 everything in the game runs faster, and the music picks up a little. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects; ? lists the controls. ☰ or Esc opens the main menu (pauses the game); Settings there has music, sound, glow, shadows and resolution. Hovering a tower in the dock shows its DPS, damage, fire rate and range.
+Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it, right-click anywhere (or Esc) to deselect it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave (and resumes if paused), P pauses/resumes, T changes the selected tower's targeting, F cycles game speed ×1/×2/×3 (also buttons next to the wave button), Q/E rotate. While paused you can still build, upgrade, sell and move the camera; the music drops to a quiet bed. At ×2/×3 everything in the game runs faster, and the music picks up a little. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects; ? lists the controls. ☰ or Esc opens the main menu (pauses the game); Settings there has music, sound, glow, shadows and resolution. Hovering a tower in the dock shows its DPS, damage, fire rate and range.
 
 ## Open questions
 - Is the Wizard too strong or too weak? (Tune distance, reload and the 4 s immunity in `banish()` / `T.frost`.)

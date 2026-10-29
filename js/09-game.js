@@ -10,6 +10,11 @@ function spawn(type,pi){if(type=='boss')snd('roar');const e=E[type],hp=30*Math.p
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0}[type],age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig});}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
+// targeting modes: a tower shoots the enemy in range with the highest tscore(); t.tm is the player's choice, else the tower type's default (T[k].tm), else First
+const TGM={first:['First','Closest to the castle'],last:['Last','Furthest from the castle'],strong:['Strongest','Most health left'],fast:['Fastest','Quickest enemy type'],close:['Closest','Nearest to the tower']},TGK=Object.keys(TGM);
+const tmode=t=>t.tm||T[t.k].tm||'first';
+// strong is plain health (ties keep the first found, as before); fast breaks ties by progress
+const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m=='fast'?e.s+prog(e)*1e-6:-Math.hypot(e.x-t.x,e.y-t.y);
 const stat=t=>({d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1),r:T[t.k].r+10*(t.l-1),f:T[t.k].f});
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
@@ -18,8 +23,8 @@ for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*dt;e.sl-=dt;e.s
 while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
 if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.type=='boss'?5:1;}}
-buffs();for(const t of g.tw){if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t);let best=null,bp=-Infinity;
-for(const e of g.en){if(e.hp<=0||(t.k=='frost'&&e.bn>0))continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=t.k=='ballista'?e.hp:prog(e);if(p>bp){bp=p;best=e;}}}
+buffs();for(const t of g.tw){if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t);let best=null,bp=-Infinity;
+for(const e of g.en){if(e.hp<=0||(t.k=='frost'&&e.bn>0))continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=tscore(t,e,tm);if(p>bp){bp=p;best=e;}}}
 if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k)}));}}}
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0){b.dead=1;continue;}
 const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
