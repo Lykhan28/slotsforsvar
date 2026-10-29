@@ -11,7 +11,7 @@ button{font:inherit;color:inherit}
 #app{position:relative;width:100%;height:100%;display:flex;flex-direction:column}
 #wrap{position:absolute;inset:0;overflow:hidden}
 canvas#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.glass,.pill,#zm,#mm,#help,#ip,#towers,#act,.ovbox{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--line);box-shadow:var(--sh)}
+.glass,.pill,#zm,#mm,#help,#ip,#towers,#hab,#act,.ovbox{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--line);box-shadow:var(--sh)}
 
 /* ---- top-left: title and resources ---- */
 #top{position:absolute;top:var(--pad);left:var(--pad);z-index:2;display:flex;flex-direction:column;gap:10px;pointer-events:none}
@@ -97,6 +97,7 @@ kbd{display:inline-block;min-width:20px;padding:2px 6px;border-radius:6px;border
 #dock{container-type:inline-size;min-width:0}
 #towers{width:max-content;margin:0 auto;border-radius:22px;padding:8px;display:grid;grid-template-columns:repeat(9,74px);gap:6px}
 @container (max-width:720px){#towers{grid-template-columns:repeat(5,74px)}}
+@container (max-width:470px){#hab{grid-template-columns:repeat(4,74px)}#hcard{grid-column:1/-1}}
 .tile{--ac:var(--gold);position:relative;height:86px;padding:8px 0 6px;border:1px solid transparent;border-radius:15px;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;transition:background .15s,transform .15s,border-color .15s}
 .tile .ic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:23px;line-height:1;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--ac) 32%,transparent),transparent 72%);transition:transform .2s}
 .tile .nm{font-size:10.5px;font-weight:600;color:var(--ink2);white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis}
@@ -111,6 +112,15 @@ kbd{display:inline-block;min-width:20px;padding:2px 6px;border-radius:6px;border
 .tile.poor .ic{filter:grayscale(.9) brightness(.6)}
 .tile.poor .co{color:var(--bad)}
 .tile.off{cursor:not-allowed;opacity:.4}
+/* during a wave (body.wave) the tower dock gives way to the hero bar #hab: the hero's card (#hcard) and his four abilities */
+#hab{display:none;width:max-content;margin:0 auto;border-radius:22px;padding:8px;grid-template-columns:150px repeat(4,74px);gap:6px}
+body.wave #hab{display:grid}body.wave #towers{display:none}
+#hcard{display:flex;flex-direction:column;justify-content:center;gap:5px;padding:6px 10px;border-radius:15px;background:rgba(255,255,255,.04);border:1px solid var(--line);cursor:pointer;text-align:left}
+#hcard b{font:700 13px var(--disp);color:var(--gold2)}#hcard small{font-size:10.5px;color:var(--ink3)}
+.hb{height:6px;border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden}.hb i{display:block;height:100%;background:var(--gold);border-radius:4px}.hb.xp{height:4px}.hb.xp i{background:#8ab4ff}
+#hcard.dead{opacity:.6}#hcard.dead .hb i{background:var(--bad)}
+.tile .cdv{position:absolute;inset:0;border-radius:15px;background:conic-gradient(rgba(10,8,6,.72) calc(var(--p)*360deg),transparent 0);display:grid;place-items:center;font:700 17px var(--ui);color:var(--ink);pointer-events:none}
+.tile.ult{--ac:#ffe08a}.tile.ult .ic{box-shadow:0 0 14px color-mix(in srgb,var(--ac) 45%,transparent)}.tile.used{opacity:.45;cursor:default}.tile.used:hover{transform:none}
 
 #act{border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px}
 #nw{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;color:var(--ink3);font-weight:600}
@@ -178,6 +188,7 @@ body.over #panel{opacity:0;transform:translateY(20px);pointer-events:none}body.o
 .ds{display:none}.sts{grid-template-columns:1fr 1fr;gap:6px 14px}.st,.st.nob{grid-template-columns:auto 1fr;gap:6px}.st .sb{display:none}.st .sv{text-align:right}.sl{font-size:11.5px}
 #dock{order:0}
 #towers{width:auto;padding:4px;border-radius:16px;grid-template-columns:repeat(9,1fr);gap:2px}
+#hab{width:auto;padding:4px;border-radius:16px;grid-template-columns:1.6fr repeat(4,1fr);gap:2px}#hcard{padding:4px 6px}
 .tile{height:60px;padding:4px 0 3px;border-radius:11px}.tile .nm,.tile .hk{display:none}.tile .ic{width:32px;height:32px;font-size:19px}.tile .co{font-size:11px}
 .tile.on::after{bottom:-3px}
 #act{order:2;flex-direction:row;padding:0;background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;gap:8px}

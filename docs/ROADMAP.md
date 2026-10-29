@@ -119,7 +119,7 @@ Add a Barracks tower placed next to the road that sends 3 soldiers to block enem
 Let the player place traps on road tiles: Spikes (damage), Tar pit (slow), Explosive barrel (one-time area blast). Traps are cheap, have limited uses and show their remaining charges.
 ```
 
-- [ ] **21. Hero**
+- [x] **21. Hero** (built with 4 abilities – 3 on cooldowns and a once-a-wave Divine Smite – and with building/selling locked during waves)
 ```text
 Add a hero (a knight on horseback) the player can move by clicking the road. The hero fights, levels up during a level and has one active ability on a cooldown (e.g. a shield bash that stuns). Respawns after a delay if killed.
 ```

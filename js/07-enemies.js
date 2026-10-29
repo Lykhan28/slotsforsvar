@@ -439,13 +439,47 @@ if(g.sel===t){if(!RFL){RFL=new THREE.Group();flag(RFL,0,0,0,0xffe6a0,.9);ring(RF
 function rallyHide(){if(RFL&&!(g.sel&&g.sel.sol))RFL.visible=false;}
 // a soldier falls: a puff of dust and a clank (it respawns at the tower)
 function solDie(t,d){snd('die_sol');burst(d.x,d.y,0x9aa3b0,8,1,.4);burst(d.x,d.y,0xd8cbb0,6,.8,.2);}
+// ---------- the hero's looks (logic: heroUpd()/heroCast() in js/09-game.js) ----------
+// Sir Roland: a bay horse in a blue caparison with gold trim (legs on pivots L0..L3, tail TL, the whole body on BD so it can bob), and a knight in silver
+// plate with a gold circlet, a red plume and cape, a blue kite shield and a sword on its pivot SW (the chibi soldier from js/05-towers.js, scaled up)
+let HTPL=null;
+function heroTpl(){if(HTPL)return HTPL;const G=new THREE.Group(),B=piv(G,'BD',0,0,0),hc=0x7a4a2a,dk=0x3a2416,hf=0x2a2018;
+eM(B,capG(.15,.17,.5),hc,0,.6,.28,PI/2,0,0);eSp(B,hc,.17,.17,.15,0,.6,.24);eSp(B,hc,.16,.16,.15,0,.62,-.2);eBone(B,hc,.065,.09,.3,0,.68,.3,0,1,.85);eM(B,rboxG(.1,.11,.25,.04),hc,0,.9,.55,.7,0,0);
+eSp(B,dk,.045,.04,.045,0,.82,.66);for(const k of[-1,1]){eCnD(B,hc,.02,.07,k*.035,1,.47,k*.3,1,-.3);eSp(B,0x111111,.013,.015,.011,k*.05,.93,.55);}
+for(let i=0;i<5;i++)eCnD(B,dk,.028,.08,0,.74+i*.045,.3+i*.04,0,1,-.7);
+for(const k of[-1,1]){eM(B,memG('hcap',[[-.26,0],[.26,0],[.24,-.18],[0,-.21],[-.24,-.18]]),matDS(P.bl),k*.172,.74,.03,k*.12,k*PI/2,0);eM(B,shpG('crest',[[0,.05],[.035,.02],[.03,-.04],[0,-.06],[-.03,-.04],[-.035,.02]],.006,.002),P.gd,k*.178,.6,.03,0,k*PI/2,0,0x553300);}
+eM(B,rboxG(.35,.03,.54,.012),P.bl,0,.765,.03);for(const k of[-1,1])eM(B,rboxG(.012,.02,.54,.004),P.gd,k*.172,.755,.03);eM(B,rboxG(.2,.05,.18,.02),0x5a3a1e,0,.8,0);eM(B,rboxG(.09,.02,.12,.008),0xc8ccd4,0,.94,.52,.7,0,0);
+const T=piv(B,'TL',0,.66,-.25);eBone(T,dk,.03,.05,.32,0,0,0,0,-1,-.6);
+[[.09,.22],[-.09,.22],[.09,-.18],[-.09,-.18]].forEach(([x,z],i)=>{const L=piv(B,'L'+i,x,.5,z);eM(L,capG(.025,.042,.42),hc,0,0,0);eCy(L,hf,.034,.05,0,-.43,0);eSp(L,0xe8dcc0,.033,.025,.033,0,-.38,0);});
+const R=new THREE.Group();R.userData.keep=true;R.position.set(0,.58,-.02);R.scale.setScalar(2.05);B.add(R);chibi(R,0,0,0x2f5a9a,0x9aa3b0,4,0xa02a24);const c=R.children[0],sw=R.getObjectByName('SW');
+eCnD(c,P.rd,.024,.11,0,.38,-.02,0,1,-.35);eTor(c,P.gd,.056,.056,.04,0,.335,-.004).rotation.x=PI/2;eM(c,rboxG(.1,.13,.014,.02),0xa02a24,-.08,.15,.055);eM(c,rboxG(.016,.1,.004,.002),P.gd,-.08,.15,.063);eM(c,rboxG(.07,.016,.004,.002),P.gd,-.08,.17,.063);
+eM(c,memG('hcape',[[-.05,0],[.05,0],[.07,-.17],[-.07,-.17]]),matDS(0xa02a24),0,.25,-.055,.3,PI,0);for(const k of[-1,1])eSp(c,0xc8ccd4,.03,.022,.03,k*.06,.25,0);
+bakeE(R);bakeE(sw);for(let i=0;i<4;i++)bakeE(B.getObjectByName('L'+i));bakeE(T);bakeE(B);blob(G,.45);
+const bg=L1(new THREE.Sprite(SB)),fg=L1(new THREE.Sprite(SF));bg.scale.set(.5,.08,1);bg.position.y=1.75;bg.renderOrder=10;bg.name='bb';fg.name='bar';fg.scale.set(.46,.055,1);fg.position.y=1.75;fg.renderOrder=11;G.add(bg,fg);
+return HTPL=G;}
+// the order marker: a gold ring where the hero was sent
+let HMK=null;
+function heroMark(x,y){fx(x,y,0xffe6a0,.15,.7,.5,.05,true);burst(x,y,0xffe6a0,6,.7,.1);}
+function heroSync(dt){const h=g.hero;if(!h)return;if(!h.m){h.m=heroTpl().clone(true);h.rig={};for(const n of['BD','TL','L0','L1','L2','L3','SW','bar','bb'])h.rig[n]=h.m.getObjectByName(n);h.rig.bar.material=SF.clone();h.vis=h.dir;sc.add(h.m);}
+const r=h.rig,on=h.hp>0;h.m.visible=on&&!g.over;if(!on)return;let dv=h.dir-h.vis;dv=Math.atan2(Math.sin(dv),Math.cos(dv));h.vis+=dv*Math.min(1,dt*10);
+h.m.position.set(wx(h.x),0,wz(h.y));h.m.rotation.y=h.vis;h.gp=(h.gp||0)+(h.mv?dt*11:0);const gp=h.gp,mv=h.mv&&dt>0;
+for(let i=0;i<4;i++)r['L'+i].rotation.x=mv?Math.sin(gp+(i<2?0:PI)+(i%2)*.6)*.7:0;r.BD.position.y=mv?Math.abs(Math.sin(gp))*.05:Math.sin(tt*2)*.005;r.BD.rotation.x=mv?Math.sin(gp)*.04:0;r.TL.rotation.x=Math.sin(tt*3)*.15+(mv?.4:0);
+if(h.sw>0)h.sw=Math.max(0,h.sw-dt*4);r.SW.rotation.x=h.sw>0?Math.sin((1-h.sw)*PI)*1.7:-.15;if(h.hit>0)h.hit-=dt;
+const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:hr>.25?0xf1a43c:0xe74c3c);}}
+function heroLvl(h){snd('upgrade');popText(h.x,h.y,'Level '+h.lv+'!','#ffe08a');burst(h.x,h.y,P.gd,16,1.5,.6);fx(h.x,h.y,0xffd24a,.2,1.2,.6,.1,true);}
+// ability looks: -1 the hero falls, 0 Shield Bash, 1 Lance Charge, 2 Rallying Cry, 3 Divine Smite; near = the enemies it hit
+function heroFx(i,h,near){if(i<0){snd('die_sol');burst(h.x,h.y,0xc8ccd4,12,1.2,.5);burst(h.x,h.y,0x7a4a2a,8,1,.3);return;}
+if(i==0){snd('block');snd('boom');fx(h.x,h.y,0xdfe6ee,.2,HAB[0].r/60,.4,.08,true);burst(h.x,h.y,0xdfe6ee,12,1.4,.3);}
+if(i==1){snd('roar');fx(h.x,h.y,0xe9c98a,.2,HAB[1].r/60,.45,.06,true);for(const e of near)burst(e.x,e.y,0xd8cbb0,6,1,.2);h.sw=1;}
+if(i==2){snd('horn');fx(h.x,h.y,0xffd24a,.2,HAB[2].r/60,.7,.06,true);burst(h.x,h.y,P.gd,14,1.3,1.2);for(const t of g.tw)if(t.cry>0)burst(t.x,t.y,P.gd,6,1,.8);}
+if(i==3){snd('f_storm');snd('boom');fx(h.x,h.y,0xfff2c0,.3,HAB[3].r/60,.6,.08,true);fx(h.x,h.y,0xffffff,.2,1.6,.35,.6);for(const e of near){const y=e.fy||.45;bolt(e.x,e.y,4.5,e.x,e.y,y,true);burst(e.x,e.y,0xfff2c0,8,1.2,y);}}}
 // Plague spreading from a dying enemy: a purple ring as wide as its reach
 function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x8a4ab0,10,1,.3);}
 function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}
 function zoneAnim(dt){for(const z of g.zn){const k=clamp(z.t,0,1);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*k*(z.k=='fire'?.85+.15*Math.sin(tt*9+m.id):1);});
 z.fl.forEach((f,i)=>{const b=f.userData.b;if(b)f.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});if(z.sp){z.sp.rotation.y-=dt*.8;z.sp.position.y=Math.sin(tt*2)*.03;}}}
 // banners: +damage to towers in range; War Drums also add attack speed (t.hs), a Blessed Standard sets t.bls (tbr() in js/09-game.js)
-function buffs(){for(const t of g.tw){t.buff=1;t.hs=1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
+function buffs(){for(const t of g.tw){t.buff=1;t.hs=t.cry>0?1.35:1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
 // br = the tower's upgrade branch: Crossbow Nest bolts, Fire Pots (a glowing clay pot), the Boulder (twice the size), Archmage/Time Warden orbs
 function mkBullet(k,br){const bi=br?BRN[k].indexOf(br):-1;
 if(k=='arrow'&&bi==1){const a=new THREE.Group();part(a,'box',0x5a3a1e,.035,.035,.24,0,0,0);part(a,'cone',0x9aa3b0,.05,.08,.05,0,0,.15).rotation.x=PI/2;part(a,'box',0x2b3342,.06,.012,.05,0,0,-.1);part(a,'box',0x2b3342,.012,.06,.05,0,0,-.1);sc.add(a);return a;}

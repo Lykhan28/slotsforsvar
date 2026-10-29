@@ -2,6 +2,10 @@
 
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
+## 2026-10-30
+- **New: your hero, Sir Roland.** A knight on horseback who rides wherever you click on the road and holds the line there – he blocks and fights anything on foot, levels up (up to level 5) as enemies fall around him, and if he falls he rides back from the gate after 15 seconds. He has four abilities: **Shield Bash** (stuns everything around him), **Lance Charge** (hurls enemies back down the road), **Rallying Cry** (nearby towers attack faster) and **Divine Smite**, a blast of holy light that can be used once a wave and heals him fully.
+- **Waves are now hero time:** while a wave is on you can't build or sell towers – the tower bar turns into the hero's bar, with his health, level and ability buttons (keys 1–4). You can still upgrade towers mid-wave.
+
 ## 2026-10-29
 - **Barracks upgrade paths:** at level 3 the Barracks becomes a **Knights' Hall** – three armoured knights in silver plate who are far tougher, hit harder and shrug off half of every blow, even a boss's – or a **Warband** of four axe fighters in horned helmets who are back on their feet twice as fast. Tip: hold enemies where your towers can reach them.
 - **New tower: Barracks.** Build it next to the road and it sends three soldiers in kettle hats to hold the road at a rally point. They block goblins, knights and anything else on foot, fight them sword to shield, and when one falls a new soldier marches out a few seconds later. Select the Barracks and click the road nearby to move the rally point. Bats simply fly over them. It's on key 9.

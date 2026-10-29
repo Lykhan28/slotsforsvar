@@ -10,9 +10,13 @@ function tap(ev){if(g.over)return;const k=cellAt(ev);if(!k)return;const ex=g.tw.
 if(ex){g.sel=g.sel===ex?null:ex;selRng();ui();return;}
 // a Barracks is selected and a road cell in its range is clicked: move its rally point there
 const bs=g.sel;if(bs&&bs.sol&&road.has(k.c+','+k.r)){const x=k.c*S+S/2,y=k.r*S+S/2;if(Math.hypot(x-bs.x,y-bs.y)<=stat(bs).r){setRally(bs,x,y);snd('click');burst(x,y,0xffe6a0,6,.8,.1);selRng();ui();return;}}
-g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
+// any other click on the road sends the hero there
+if(onB(k.c,k.r)&&heroGo(k.c*S+S/2,k.r*S+S/2)){g.sel=null;heroMark(k.c*S+S/2,k.r*S+S/2);snd('click');selRng();ui();return;}
+// while a wave runs no towers can be built (upgrades still can)
+g.sel=null;if(g.run){if(free(k.c,k.r)){offMsg=performance.now()+2500;offT=['Wave in progress','⚔️ Towers can only be built between waves – command your hero instead. You can still upgrade towers.'];}}
+else if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
 selRng();ui();}
-function hover(ev){if(ev.pointerType!='mouse'||g.sel)return;const k=cellAt(ev);
+function hover(ev){if(ev.pointerType!='mouse'||g.sel)return;if(g.run){if(rng.visible||COV.pv){rng.visible=false;COV.pv=null;covUpd();}return;}const k=cellAt(ev);
 const tp=T[g.build],ok=k&&(!tp.bar||nearRoad(k.c,k.r)),col=g.gold>=tp.c&&ok?0xffffff:0xff6666;
 // a Barracks must go next to the road: elsewhere its ring shows red
 if(k&&free(k.c,k.r)){showRng(cx(k.c),cz(k.r),tp.r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r:tp.r,col:g.gold>=tp.c&&ok?0xf0b840:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}

@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
-function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}
-g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
+function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)sc.remove(g.hero.m);
+g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
 function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
@@ -16,7 +16,7 @@ const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=LV.wv[w-1]||'',c=s
 const BRK=25;let autoW=false;
 const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&g.wave<MAXW?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
-function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;g.wt=0;g.q=waveQ(g.wave);ui();}
+function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);ui();}
 // each breach has its own road (PATHS); the wave alternates between them
 function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
@@ -42,7 +42,7 @@ const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-zones(dt);soldiers(dt);
+zones(dt);soldiers(dt);heroUpd(dt);
 for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;if(e.bk&&held(e))m=0;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
@@ -56,7 +56,7 @@ const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
 if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');const br=b.br||{},c=br.ac?0xd8f03a:br.pl?0xa06ad0:0x7cff4a;for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch',br)>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch',br));o.hit=.15;if(br.ac)o.ac=br.ac;if(br.pl)o.pg=br.pl;}fx(e.x,e.y,c,.1,.75,.5,.1,true);burst(e.x,e.y,c,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');const br=b.br||{};for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon',br)*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
 else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y)*big(e,b.br);e.hp-=dd;if(b.br&&b.br.sk)skewer(e,b);hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
-const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{const rw=e.rw+bounty(e);g.gold+=rw;snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
+const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{const rw=e.rw+bounty(e);g.gold+=rw;heroXp(e);snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
 for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trollSplit(e);
@@ -92,8 +92,54 @@ function heal(e){if(e.hp<=0)return;healFx(e);
 for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)>HEAL.r)continue;const a=Math.min(o.max-o.hp,o.max*e.hl*(o.bs?.34:1));o.hp+=a;healFx(o,a);}}
 // Wizard: teleport an enemy back along the road (bosses resist), then it is immune for 4 s
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
-while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
+pushBack(e,m);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
+// move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
+function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
+// ---------- Hero ----------
+// Sir Roland, a knight on horseback (g.hero). He starts on the road cell nearest the gate; a click on the road sends him there (heroGo). He rides straight
+// across the board, and once he has arrived he fights like a Barracks soldier: he runs at the nearest ground enemy within HERO.eng of his spot (unblocked ones
+// first, then the one closest to the castle), blocks it (e.bk) and trades blows (he shrugs off HERO.arm of every hit). Flyers and faded Ghosts are ignored.
+// He earns xp from every enemy that dies within HERO.xr of him (its gold value) and levels up to HERO.mx (+35% health, +30% damage a level). At 0 health he
+// falls and rides back out from the gate after HERO.rsp s. Abilities: HAB (cooldowns in h.ab, Divine Smite once a wave in h.ult), heroCast(i).
+// Looks: heroSync()/heroFx() in js/07-enemies.js (stubbed in the sim)
+const HERO={sp:110,eng:75,rg:26,hp:300,d:20,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
+const HAB=[{n:'Shield Bash',ic:'🛡️',cd:10,r:70,ds:'Slams his shield down: enemies around him are stunned for 2 s (bosses 0.7 s) and take double damage.'},
+{n:'Lance Charge',ic:'🐎',cd:15,r:100,ds:'Charges into the enemies around him, hurling them back down the road (bosses a little) and hitting each for triple damage.'},
+{n:'Rallying Cry',ic:'📯',cd:20,r:150,ds:'Towers near the hero attack 35% faster for 6 s.'},
+{n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a wave: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
+const hst=h=>({hp:HERO.hp*(1+.35*(h.lv-1)),d:HERO.d*(1+.3*(h.lv-1))});
+// where he starts and respawns: the road cell nearest the gate
+function heroHome(){const gx=GATE.x*S+W*S/2,gy=GATE.z*S+H*S/2;let bd=Infinity,b=null;for(const k of road){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2,d=Math.hypot(x-gx,y-gy);if(onB(c,r)&&d<bd){bd=d;b={x,y};}}return b;}
+// the hero only goes to road cells on the board (not the breach or gate outside the wall)
+const onB=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&road.has(c+','+r);
+function heroInit(){const p=heroHome();return{x:p.x,y:p.y,tx:p.x,ty:p.y,lv:1,xp:0,hp:HERO.hp,max:HERO.hp,cd:0,rs:0,e:null,dir:-PI/2,mv:0,sw:0,ab:[0,0,0],ult:1};}
+const heroRel=h=>{if(h.e&&h.e.bk===h)h.e.bk=null;h.e=null;};
+// send him to (x,y) (a road cell centre); he drops his fight
+function heroGo(x,y){const h=g.hero;if(!h||h.hp<=0)return false;h.tx=x;h.ty=y;heroRel(h);return true;}
+function heroXp(e){const h=g.hero;if(!h||h.hp<=0||h.lv>=HERO.mx||Math.hypot(e.x-h.x,e.y-h.y)>HERO.xr)return;h.xp+=e.rw;
+while(h.lv<HERO.mx&&h.xp>=HERO.xp[h.lv]){h.lv++;const s=hst(h);h.hp=Math.min(s.hp,h.hp+(s.hp-h.max)+s.hp*.3);h.max=s.hp;heroLvl(h);}}
+function heroUpd(dt){const h=g.hero;if(!h)return;for(let i=0;i<3;i++)h.ab[i]=Math.max(0,h.ab[i]-dt);for(const t of g.tw)if(t.cry>0)t.cry-=dt;
+if(h.hp<=0){h.rs-=dt;if(h.rs<=0){const p=heroHome(),s=hst(h);Object.assign(h,{x:p.x,y:p.y,tx:p.x,ty:p.y,hp:s.hp,max:s.hp,e:null,cd:0});}return;}
+const s=hst(h);if(h.max!==s.hp){h.hp+=s.hp-h.max;h.max=s.hp;}
+const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2;if(ride&&h.e)heroRel(h);
+let e=h.e;if(e&&(e.hp<=0||e.out||Math.hypot(e.x-h.tx,e.y-h.ty)>HERO.eng*1.6)){heroRel(h);e=null;}
+if(!ride&&!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||Math.hypot(o.x-h.tx,o.y-h.ty)>HERO.eng)continue;const p=prog(o)-(o.bk&&o.bk.hp>0&&o.bk!==h?1e6:0);if(p>bp){bp=p;e=o;}}
+if(e){h.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=h;}}
+const gx=e?e.x:h.tx,gy=e?e.y:h.ty,dx=gx-h.x,dy=gy-h.y,L=Math.hypot(dx,dy),stop=e?HERO.rg:0;h.mv=0;
+if(L>.01)h.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(HERO.sp*dt,L-stop)/L;h.x+=dx*k;h.y+=dy*k;h.mv=1;}
+if(e&&L<=HERO.rg+6){if(e.bk!==h&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=h;h.cd-=dt;if(h.cd<=0){h.cd=HERO.f;h.sw=1;const dd=s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.15,dd,'barracks',dx,dy);}
+if(e.bk===h&&!(e.stun>0)){e.dir=Math.atan2(h.x-e.x,h.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;h.hp-=edmg(e)*(1-HERO.arm);h.hit=.2;if(h.hp<=0){h.rs=HERO.rsp;heroRel(h);heroFx(-1,h,[]);}}}}
+else if(!e)h.hp=Math.min(h.max,h.hp+h.max*HERO.reg*dt);}
+// ability i (0..3): returns false when it can't be used now (dead, on cooldown, Divine Smite used this wave or no wave running)
+function heroCast(i){const h=g.hero,a=HAB[i];if(!h||!a||h.hp<=0||g.over)return false;
+if(a.ult){if(!g.run||!h.ult)return false;h.ult=0;}else{if(h.ab[i]>0)return false;h.ab[i]=a.cd;}
+const s=hst(h),near=g.en.filter(e=>e.hp>0&&!e.out&&(a.ult||!e.fy)&&Math.hypot(e.x-h.x,e.y-h.y)<=a.r);
+if(i==0)for(const e of near){e.stun=Math.max(e.stun,e.bs?.7:2);const dd=2*s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.25,dd,'barracks');}
+if(i==1)for(const e of near){const dd=3*s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.25,dd,'barracks');pushBack(e,e.bs?15:45);e.px=e.x;e.py=e.y;}
+if(i==2)for(const t of g.tw)if(Math.hypot(t.x-h.x,t.y-h.y)<=a.r)t.cry=6;
+if(i==3){for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm');e.stun=Math.max(e.stun,1);}h.hp=h.max;}
+heroFx(i,h,near);return true;}
 // ---------- Barracks ----------
 // A Barracks stands next to the road (a road cell centre within BAR.near) and keeps BAR.n soldiers (t.sol) at its rally point t.rp, a road cell centre within its range.
 // Each soldier guards a post round the rally point; when a ground enemy comes within BAR.eng of the rally point it runs at it (unblocked ones first, then the one
@@ -128,7 +174,7 @@ if(e){d.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=d;}}
 const g2=e?{x:e.x,y:e.y}:post(t,d),dx=g2.x-d.x,dy=g2.y-d.y,L=Math.hypot(dx,dy),stop=e?BAR.rg:0,m=BAR.sp*dt;d.mv=0;
 if(L>.01)d.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(m,L-stop)/L;d.x+=dx*k;d.y+=dy*k;d.mv=1;}
 if(e&&L<=BAR.rg+6){if(e.bk!==d&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=d;d.cd-=dt;if(d.cd<=0){d.cd=s.f;d.sw=1;const dd=s.d*dmul(e,t.k,br);e.hp-=dd;hf(e,.15,dd,t.k,dx,dy,br);}
-if(e.bk===d){e.dir=Math.atan2(d.x-e.x,d.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;d.hp-=edmg(e)*solArm(t);d.hit=.2;if(d.hp<=0){d.rs=solRs(t);e.bk=null;d.e=null;solDie(t,d);}}}}
+if(e.bk===d&&!(e.stun>0)){e.dir=Math.atan2(d.x-e.x,d.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;d.hp-=edmg(e)*solArm(t);d.hit=.2;if(d.hp<=0){d.rs=solRs(t);e.bk=null;d.e=null;solDie(t,d);}}}}
 else if(!e)d.hp=Math.min(mx,d.hp+mx*BAR.reg*dt);}}}
 // Giant Slayer: damage multiplier on big enemies (bosses, and types with at least 1.8× a goblin's health)
 const big=(e,b)=>b&&b.gs&&(e.bs||e.h>=1.8)?b.gs:1;
@@ -153,7 +199,7 @@ if(z.k=='fire'){e.hp-=z.d*dmul(e,'cannon',FIRE)*dt;e.lk='cannon';if(Math.random(
 for(const z of g.zn)if(z.t<=0)zoneEnd(z);g.zn=g.zn.filter(z=>z.t>0);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
-for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);rallyHide();
+for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);rallyHide();heroSync(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;
@@ -166,7 +212,7 @@ if(t.flag)t.flag.rotation.y=Math.sin(tt*3+t.c)*.35;if(t.sol)solSync(t,dt);
 if(t.stun>0){if(!t.stG){const gq=new THREE.Group();for(let i=0;i<4;i++){const m=new THREE.Mesh(geo('oct'),STARM);m.scale.set(.07,.1,.07);gq.add(m);}t.stG=gq;t.m.add(gq);}t.stG.visible=true;
 t.stG.children.forEach((m,i)=>{const a=tt*5+i*PI/2;m.position.set(Math.cos(a)*.38,t.head.position.y+.55+Math.sin(a*2)*.05,Math.sin(a)*.38);m.rotation.y=a*2;});if(dt>0&&Math.random()<dt*5)fx(t.x,t.y,0x4a4a4a,.08,.35,.9,t.head.position.y+.3+Math.random()*.3);}
 else if(t.stG)t.stG.visible=false;
-if(t.buff>1){if(!t.aura)t.aura=glow(t.m,0,.2,0,1.3,0xc9902a);t.aura.visible=true;t.aura.scale.setScalar(1.3+Math.sin(tt*3+t.c)*.1);}else if(t.aura)t.aura.visible=false;fl(t.fl,t.c);}
+if(t.buff>1||t.cry>0){if(!t.aura)t.aura=glow(t.m,0,.2,0,1.3,0xc9902a);t.aura.visible=true;t.aura.scale.setScalar(1.3+Math.sin(tt*3+t.c)*.1);}else if(t.aura)t.aura.visible=false;fl(t.fl,t.c);}
 for(const b of g.bu){const e=b.tg,ty=e.fy||.4,p=1-Math.hypot(e.x-b.x,e.y-b.y)/b.d0,y=b.y0+(ty-b.y0)*p+(T[b.k].arc?Math.sin(clamp(p,0,1)*PI)*.7:0);
 b.m.position.set(wx(b.x),y,wz(b.y));if(b.k=='arrow'||b.k=='ballista')b.m.lookAt(wx(e.x),ty,wz(e.y));else b.m.rotation.x+=dt*8;if(b.k=='cannon'&&dt>0&&Math.random()<.4)fx(b.x,b.y,0xdddddd,.04,.14,.35,y);}
 for(let i=fxs.length-1;i>=0;i--){const f=fxs[i];f.t+=dt;const p=f.t/f.d;if(p>=1){sc.remove(f.m);f.m.material.dispose();fxs.splice(i,1);continue;}f.m.scale.setScalar(f.s0+(f.s1-f.s0)*p);f.m.material.opacity=.7*(1-p);}

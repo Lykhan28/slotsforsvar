@@ -26,6 +26,10 @@ Options:
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
   --early          call every wave early ("Call wave early" button) and collect the full early bonus;
                    without it each wave starts the moment the last one ends, with no bonus
+  --no-hero        play without the hero (Sir Roland)
+  --no-cast        the hero fights but never uses his abilities (by default the sim casts them like a
+                   player would: Bash/Charge with 3+ enemies near him, Cry with 3+ enemies and a tower near,
+                   Divine Smite with 6+ enemies or a boss near)
   --json           print the full result as JSON instead of the table
   --dt S           simulation step in seconds (default 1/60)
   --seed N         seed for Math.random (only affects looks in the game, kept for reproducibility)
@@ -39,6 +43,7 @@ and the steps after it wait too):
                    Without a branch they get a plain level 3, as before branches – not possible in the game, kept for comparisons
   sell c,r         sell the tower on c,r (60% back; a full refund if it was built in this same break, like Undo in the game)
   target c,r MODE  set the targeting of the tower on c,r: first last strong fast close (free, done at once)
+  hero c,r         send the hero to road cell c,r (free, done at once, also mid-wave)
   rally c,r C,R    move the rally point of the Barracks on c,r to road cell C,R (within its range; free, done at once)
   wave N           wait until the break before wave N`;
 
@@ -55,6 +60,8 @@ for (let i = 0; i < args.length; i++) {
   else if (a == '--build') opt.build.push(next());
   else if (a == '--keep-going') opt.keep = true;
   else if (a == '--early') opt.early = true;
+  else if (a == '--no-hero') opt.noHero = true;
+  else if (a == '--no-cast') opt.noCast = true;
   else if (a == '--json') opt.json = true;
   else if (a == '--dt') opt.dt = +next();
   else if (a == '--seed') opt.seed = +next();
@@ -86,7 +93,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
@@ -161,6 +168,8 @@ if (opt.waves) {
 const parsed = steps.map((s, n) => {
   const ry = String(s).trim().match(/^rally\s+(\d+)\s*,\s*(\d+)\s+(\d+)\s*,\s*(\d+)$/);
   if (ry) return { k: 'rally', c: +ry[1], r: +ry[2], rc: +ry[3], rr: +ry[4], s };
+  const hy = String(s).trim().match(/^hero\s+(\d+)\s*,\s*(\d+)$/);
+  if (hy) return { k: 'hero', c: +hy[1], r: +hy[2], s };
   const m = String(s).trim().match(/^(\w+)\s+(\d+)(?:\s*,\s*(\d+))?(?:\s+(\w+))?$/);
   if (!m) die(`build step ${n + 1} "${s}" – expected e.g. "arrow 3,2", "up 3,2", "sell 3,2", "target 3,2 strong" or "wave 5"`);
   const [, k, a, b, tm] = m;
@@ -175,6 +184,7 @@ const parsed = steps.map((s, n) => {
 
 // ---------- the run ----------
 run('reset()');
+if (opt.noHero) run('g.hero=null');
 const g = () => run('g');
 const LIFE0 = 20, PAD = opt.keep ? 1e6 : 0;   // --keep-going: give the castle a huge buffer and subtract it again when reporting
 g().lives += PAD;
@@ -186,6 +196,14 @@ function doSteps(inBreak) {
   while (pc < parsed.length) {
     const st = parsed[pc], G = g();
     if (st.k == 'wave') { if (inBreak && G.wave + 1 >= st.wave) { pc++; continue; } return; }
+    // towers are built and sold only between waves (as in the game); upgrades, targeting, rally and hero orders work mid-wave
+    if (G.run && st.k != 'up' && st.k != 'target' && st.k != 'rally' && st.k != 'hero') return;
+    if (st.k == 'hero') {
+      // same rule as tap() in js/12-input.js: any road cell
+      if (!run('onB')(st.c, st.r)) { warn.push(`"${st.s}": not a road cell on the board – skipped`); pc++; continue; }
+      if (!G.hero || G.hero.hp <= 0) return;
+      run('heroGo')(st.c * 60 + 30, st.r * 60 + 30); log.push({ wave: G.wave, t: G.wt, s: st.s, cost: 0 }); pc++; continue;
+    }
     const t = G.tw.find(t => t.c == st.c && t.r == st.r);
     if (st.k == 'up') {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
@@ -231,6 +249,14 @@ function doSteps(inBreak) {
   }
 }
 
+// the hero's abilities, cast the way a player would (see --no-cast)
+const casts = [0, 0, 0, 0];
+function heroAI() {
+  const G = g(), h = G.hero; if (!h || h.hp <= 0) return;
+  const HAB = run('HAB'), near = r => G.en.filter(e => e.hp > 0 && !e.out && Math.hypot(e.x - h.x, e.y - h.y) <= r), ground = r => near(r).filter(e => !e.fy).length;
+  const want = [ground(HAB[0].r) >= 3, ground(HAB[1].r) >= 3, near(200).length >= 3 && G.tw.some(t => Math.hypot(t.x - h.x, t.y - h.y) <= HAB[2].r), near(HAB[3].r).length >= 6 || near(HAB[3].r).some(e => e.bs)];
+  for (let i = 0; i < 4; i++) if (want[i] && run('heroCast')(i)) casts[i]++;
+}
 const waves = [], gold = [];
 let time = 0, failed = null;
 const dt = opt.dt, update = run('update'), startWave = run(opt.early ? 'callEarly' : 'startWave');
@@ -244,6 +270,7 @@ for (let w = 1; w <= MAXW; w++) {
   let wt = 0;
   while (g().run && !g().over) {
     update(dt); time += dt; wt += dt;
+    if (!opt.noCast) heroAI();
     doSteps(false);
     if (Math.round(time / dt) % Math.round(5 / dt) == 0) gold.push({ t: +time.toFixed(1), wave: w, gold: g().gold });
     if (wt > 3600) die(`wave ${w} did not end after an hour of game time – something is stuck`);
@@ -259,7 +286,7 @@ const G = g();
 const result = {
   level, levelName: LV.n, won: !failed, failedOnWave: failed, wavesPlayed: waves.length,
   livesLeft: Math.max(0, lives()), livesLost: LIFE0 - lives(), goldLeft: G.gold, goldSpent: spent,
-  gameTimeSeconds: +time.toFixed(1), stepsDone: pc, stepsTotal: parsed.length,
+  gameTimeSeconds: +time.toFixed(1), stepsDone: pc, stepsTotal: parsed.length, hero: g().hero ? { level: g().hero.lv, xp: g().hero.xp, casts } : null,
   towers: G.tw.map(t => ({ k: t.k, c: t.c, r: t.r, l: t.l, br: t.br != null ? run('BRN')[t.k][t.br].n : undefined })), waves, gold, builds: log, warnings: warn,
 };
 
@@ -274,3 +301,4 @@ console.log('\n' + boardMap(G.tw));
 if (warn.length) console.log('\nWarnings:\n  ' + warn.join('\n  '));
 if (pc < parsed.length) console.log(`\nNot reached: ${parsed.length - pc} build step(s) from "${parsed[pc].s}" on (never enough gold, or the run ended first).`);
 console.log(`\n${failed ? `DEFEAT on wave ${failed}` : 'VICTORY'} – lives lost ${result.livesLost}${opt.keep ? '' : ` (${result.livesLeft} left)`}, gold spent ${spent}, gold left ${G.gold}, ${waves.length} waves in ${Math.round(time / 60)} min game time`);
+if (g().hero) console.log(`Hero: level ${g().hero.lv} (${g().hero.xp} xp), abilities used: ${run('HAB').map((a, i) => a.n + ' ' + casts[i]).join(', ')}`);

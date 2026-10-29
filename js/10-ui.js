@@ -33,7 +33,7 @@ el.classList.add('on');clearTimeout(FC.tm);FC.tm=setTimeout(foeDone,FC.t*1000);u
 function foeDone(){if(!FC.open)return;clearTimeout(FC.tm);FC.open=false;$('foe').classList.remove('on');if(!FC.wp)setPause(false);ui();if(FC.q.length)setTimeout(foeNext,250);}
 $('foe').onclick=e=>{if(e.target.closest('.ovbox'))foeDone();};
 addEventListener('keydown',e=>{if(!FC.open||MENU.open||![' ','Enter','Escape'].includes(e.key))return;e.preventDefault();e.stopImmediatePropagation();foeDone();},true);
-let offMsg=0,hov=null;const TK=Object.keys(T),TC2={arrow:'#5cd17a',cannon:'#d98a3c',frost:'#9a6bff',ballista:'#e8e8e8',storm:'#4fd0ff',alch:'#9cff4a',banner:'#ff5a5a',vault:'#ffd24a',barracks:'#c0603a'};
+let offMsg=0,offT=['Locked','🔒 Not available yet.'],hov=null,hovA=null;const TK=Object.keys(T),TC2={arrow:'#5cd17a',cannon:'#d98a3c',frost:'#9a6bff',ballista:'#e8e8e8',storm:'#4fd0ff',alch:'#9cff4a',banner:'#ff5a5a',vault:'#ffd24a',barracks:'#c0603a'};
 const COIN='<svg><use href="#i-coin"/></svg>',setH=(el,h)=>{if(el._h!==h){el._h=h;el.innerHTML=h;}};
 const fmt=v=>v<10?v.toFixed(1).replace(/\.0$/,''):''+Math.round(v),tiles=r=>(r/60).toFixed(1);
 // numbers shown in the inspector: dps counts every target a shot can hit (arrows per level, the whole lightning chain); poison is damage per second on each enemy in the cloud;
@@ -84,6 +84,12 @@ if(atk)c.unshift('<span class="chip dty" title="Damage type">'+DTY[tp.dt][1]+' '
 if(t&&t.stun>0)c.unshift('<span class="chip lo">💥 Stunned · '+Math.ceil(t.stun)+'s</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');
 return h+'<div class="chips">'+c.join('')+'</div>';}
+// the hero in the inspector (during a wave with nothing selected): level, health, damage, xp and his abilities; ai = a hovered ability tile
+function heroHTML(ai){const h=g.hero,s=hst(h),nx=h.lv<HERO.mx?HERO.xp[h.lv]:null,sm=x=>' <small>'+x+'</small>';
+if(ai!=null){const a=HAB[ai];return '<div class="ih"><div class="iic">'+a.ic+'</div><div class="ihn"><b>'+a.n+'</b><span class="tag">'+(a.ult?'Once a wave':'Every '+a.cd+'s')+' · key '+(ai+1)+'</span></div></div><p class="ds">'+a.ds+'</p>';}
+return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Roland</b><span class="tag">Hero · level '+h.lv+'</span></div></div>'+
+'<div class="sts">'+row('Health',h.hp>0?Math.ceil(h.hp)+sm('of '+Math.round(h.max)):'Fallen'+sm('back in '+Math.ceil(h.rs)+'s'))+row('Damage',fmt(s.d)+sm('a swing · '+HERO.f+'s'))+row('Experience',nx?h.xp+sm('of '+nx):'Max level')+'</div>'+
+'<div class="chips"><span class="chip">🛡️ Blocks enemies on foot</span><span class="chip">🚩 Click the road to send him</span><span class="chip">Abilities: keys 1–4</span></div>';}
 // boss health bar across the top of the view while a boss is on the board
 function bossBar(){const e=g.en.find(o=>o.bs&&o.hp>0),el=$('bb');el.classList.toggle('on',!!e&&!g.over);if(!e)return;
 setH(el.firstChild,'<span class="bbn">'+FOE[e.type][0]+' '+BST[e.type][0]+'</span><span class="bbv">'+(e.lv>1?'💔 '+e.lv+' lives at the gate':'')+'</span>');el.lastChild.firstChild.style.width=(100*Math.max(0,e.hp)/e.max).toFixed(1)+'%';}
@@ -106,18 +112,26 @@ document.querySelectorAll('#spd button[data-s]').forEach(b=>b.classList.toggle('
 const pz=!!g.pause&&!g.over;$('pz').classList.toggle('on',pz);setH($('pz'),'<svg><use href="#i-'+(pz?'play':'pause')+'"/></svg>');$('pz').title=pz?'Resume (P)':'Pause (P)';$('pov').classList.toggle('on',pz&&!MENU.open&&!FC.open);if(AU.pz!==pz){AU.pz=pz;auPause(pz);}
 for(const k of TK){const b=$('b_'+k);b.classList.toggle('on',g.build===k&&!g.sel);b.classList.toggle('poor',g.gold<T[k].c);}
 const s=g.sel,k=s?s.k:hov||g.build;$('sel').style.display=s?'flex':'none';$('ip').style.setProperty('--ac',TC2[k]);
-if(!s&&performance.now()<offMsg)setH($('info'),'<div class="ih"><div class="ihn"><b>Locked</b></div></div><p class="ds">🔒 Not available yet.</p>');else setH($('info'),infoHTML(k,s));
-if(s){const bp=brPick(s);setH($('up'),bp?'Choose a path ↑':s.l>=3?'Max level':'Upgrade '+COIN+upCost(s));$('up').disabled=bp||s.l>=3||g.gold<upCost(s);const u=canUndo(s);setH($('sell'),(u?'Undo ':'Sell ')+COIN+sellVal(s));$('sell').title=u?'Undo (S or Ctrl+Z) – full refund until the wave starts':'Sell (S) – 60% back';}
-document.body.classList.toggle('over',!!g.over);
+if(g.run&&!s&&g.hero&&(hovA!=null||performance.now()>=offMsg))setH($('info'),heroHTML(hovA));else if(!s&&performance.now()<offMsg)setH($('info'),'<div class="ih"><div class="ihn"><b>'+offT[0]+'</b></div></div><p class="ds">'+offT[1]+'</p>');else setH($('info'),infoHTML(k,s));
+if(s){const bp=brPick(s);setH($('up'),bp?'Choose a path ↑':s.l>=3?'Max level':'Upgrade '+COIN+upCost(s));$('up').disabled=bp||s.l>=3||g.gold<upCost(s);const u=canUndo(s);setH($('sell'),(u?'Undo ':'Sell ')+COIN+sellVal(s));$('sell').title=u?'Undo (S or Ctrl+Z) – full refund until the wave starts':'Sell (S) – 60% back';$('sell').disabled=!!g.run;if(g.run)$('sell').title='Towers can only be sold between waves';}
+document.body.classList.toggle('over',!!g.over);document.body.classList.toggle('wave',!!g.run&&!g.over);habUI();
 const sov=g.over&&performance.now()-(g.overT||0)>2200;$('ov').style.display=sov?'flex':'none';
 const last=LVN>=LEVELS.length-1,oh=g.won?'<span class="k" style="--ac:var(--ok)">'+(last?'Victory · the final level':'Victory · level '+(LVN+1)+' of '+LEVELS.length)+'</span><h2>'+(last?'The kingdom is saved!':'The castle is saved!')+'</h2><p>'+(last?'Even the Dread Wastes couldn’t break you. All '+MAXW+' waves held back, with '+g.lives+' lives to spare.':'All '+MAXW+' waves held back, with '+g.lives+' lives to spare.')+'</p>'+
 (last?'<button class="btn go" id="again"><span class="t">Restart level</span></button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="again">Restart level</button>')
 :'<span class="k" style="--ac:var(--bad)">Defeat</span><h2>The castle has fallen</h2><p>Overrun on wave '+g.wave+' of '+MAXW+'.</p><button class="btn go" id="again"><span class="t">Restart level</span></button>';
 if(sov&&g.ovh!==oh){g.ovh=oh;$('ov').innerHTML='<div class="ovbox">'+oh+'</div>';}covUpd();saveRun();}
-const pick=k=>{if(T[k].off){offMsg=performance.now()+3000;ui();return;}g.build=k;g.sel=null;selRng();ui();};
+const pick=k=>{if(T[k].off){offMsg=performance.now()+3000;offT=['Locked','🔒 Not available yet.'];ui();return;}g.build=k;g.sel=null;selRng();ui();};
 TK.forEach((k,i)=>{const b=document.createElement('button');b.className='tile'+(T[k].off?' off':'');b.id='b_'+k;b.style.setProperty('--ac',TC2[k]);b.title=T[k].n+' ('+(i+1)+')';
 b.innerHTML='<i class="hk">'+(i+1)+'</i><span class="ic">'+T[k].ic+'</span><span class="nm">'+T[k].n+'</span><b class="co">'+COIN+T[k].c+'</b>';b.onclick=()=>pick(k);
 b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=()=>{hov=null;ui();};$('towers').appendChild(b);});
+// the hero bar: his card (click it to look at him) and four ability tiles (click or keys 1–4 during a wave)
+const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Roland – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult?'Once a wave':a.cd+'s')+'</b><span class="cdv"></span></button>').join('');
+HAB.forEach((a,i)=>{const b=$('a_'+i);b.onclick=()=>cast(i);b.onpointerenter=e=>{if(e.pointerType=='mouse'){hovA=i;ui();}};b.onpointerleave=()=>{hovA=null;ui();};});
+$('hcard').onclick=()=>{const h=g.hero;if(!h)return;cine=null;tx=wx(h.hp>0?h.x:heroHome().x);tz=wz(h.hp>0?h.y:heroHome().y);setCam();};
+function cast(i){if(heroCast(i))ui();else snd('click');}
+function habUI(){const h=g.hero;if(!h||!g.run)return;const dead=h.hp<=0,c=$('hcard'),nx=h.lv<HERO.mx?HERO.xp[h.lv]:0,p0=h.lv>1?HERO.xp[h.lv-1]:0;c.classList.toggle('dead',dead);
+setH(c,'<b>Sir Roland</b><small>Level '+h.lv+(dead?' · back in '+Math.ceil(h.rs)+'s':'')+'</small><span class="hb"><i style="width:'+(dead?0:100*h.hp/h.max).toFixed(1)+'%"></i></span><span class="hb xp"><i style="width:'+(nx?100*(h.xp-p0)/(nx-p0):100).toFixed(1)+'%"></i></span>');
+HAB.forEach((a,i)=>{const b=$('a_'+i),cd=a.ult?0:h.ab[i],used=a.ult&&!h.ult;b.classList.toggle('used',used||dead);const v=b.lastChild;v.style.setProperty('--p',a.ult?(used?1:0):(cd/a.cd).toFixed(3));setH(v,cd>0?String(Math.ceil(cd)):used?'✓':'');});}
 // pause and speed: the HUD buttons, P and F; starting a wave also resumes
 function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}
 const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);callEarly();};
@@ -132,7 +146,8 @@ document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};
 // a tower placed in this break (t.bw) can be undone for everything spent on it, upgrades too, until the wave starts; otherwise selling gives 60% back
 const canUndo=t=>!!t&&!g.run&&!g.over&&t.bw===g.wave,sellVal=t=>canUndo(t)?t.inv:Math.round(t.inv*.6);
-function sellTw(t){if(!t||g.over)return;g.gold+=sellVal(t);sc.remove(t.m);if(t.sg)sc.remove(t.sg);barGone(t);snd('sell');burst(t.x,t.y,0xffffff,8,1,.3);g.tw=g.tw.filter(x=>x!==t);if(g.sel===t)g.sel=null;selRng();ui();}
+// no selling while a wave runs
+function sellTw(t){if(!t||g.over||g.run)return;g.gold+=sellVal(t);sc.remove(t.m);if(t.sg)sc.remove(t.sg);barGone(t);snd('sell');burst(t.x,t.y,0xffffff,8,1,.3);g.tw=g.tw.filter(x=>x!==t);if(g.sel===t)g.sel=null;selRng();ui();}
 // Ctrl+Z / Z: take back the most recent placement of this break
 const undo=()=>sellTw(g.tw.filter(canUndo).pop());
 // upgrade the tower one level; br = the branch picked for level 3 (needed for towers with branches; a level-3 tower without one gets it for free)
@@ -156,5 +171,5 @@ const vw=2.17*dist/20,vh=1.5*dist/20;mq.strokeStyle='#fff';mq.lineWidth=1.5;mq.s
 function mmGo(e){const r=MM.getBoundingClientRect(),x=((e.clientX-r.left)/r.width*MM.width-MB.ox)/MB.k,z=((e.clientY-r.top)/r.height*MM.height-MB.oz)/MB.k;tx=clamp(x,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(z,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 MM.addEventListener('pointerdown',e=>{MM.setPointerCapture(e.pointerId);mmGo(e);});MM.addEventListener('pointermove',e=>{if(e.buttons)mmGo(e);});
 addEventListener('keydown',e=>{const k=e.key;if(e.repeat)return;if((e.ctrlKey||e.metaKey)&&(k=='z'||k=='Z')){e.preventDefault();undo();return;}if(e.ctrlKey||e.metaKey||e.altKey)return;
-if(k>='1'&&k<='9'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if((k=='u'||k=='U')&&g.sel)upTw(g.sel);else if((k=='b'||k=='B'||k=='n'||k=='N')&&brPick(g.sel))upTw(g.sel,k=='b'||k=='B'?0:1);else if((k=='s'||k=='S')&&g.sel)sellTw(g.sel);else if(k=='z'||k=='Z')undo();else if(k=='c'||k=='C')covTog();else if((k=='t'||k=='T')&&g.sel)setTm(g.sel,TGK[(TGK.indexOf(tmode(g.sel))+1)%TGK.length]);else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
+if(g.run&&k>='1'&&k<='4')cast(+k-1);else if(!g.run&&k>='1'&&k<='9'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if((k=='u'||k=='U')&&g.sel)upTw(g.sel);else if((k=='b'||k=='B'||k=='n'||k=='N')&&brPick(g.sel))upTw(g.sel,k=='b'||k=='B'?0:1);else if((k=='s'||k=='S')&&g.sel)sellTw(g.sel);else if(k=='z'||k=='Z')undo();else if(k=='c'||k=='C')covTog();else if((k=='t'||k=='T')&&g.sel)setTm(g.sel,TGK[(TGK.indexOf(tmode(g.sel))+1)%TGK.length]);else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
 else if(k=='q'||k=='Q'){az-=.3;setCam();}else if(k=='e'||k=='E'){az+=.3;setCam();}});
