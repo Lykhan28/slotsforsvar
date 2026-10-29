@@ -18,7 +18,7 @@ A plan for growing the game, written as ready-to-use prompts. Each prompt is mea
 Vendor three.js r128 and the post-processing scripts into a vendor/ folder so the game no longer depends on CDNs. Update index.html, check that everything (bloom, AO, grade) still works, and remove the CDN note from CLAUDE.md.
 ```
 
-- [ ] **2. Balance simulator**
+- [x] **2. Balance simulator**
 ```text
 Build a headless balance simulator (Node script, e.g. npm run sim) that runs the game logic from js/09-game.js without rendering. Given a level and a tower layout, it should play all 20 waves and report lives lost, gold over time and which wave the run failed on. Document how to use it in CLAUDE.md, because future balance changes should be checked with it.
 ```

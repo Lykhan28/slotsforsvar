@@ -1,0 +1,29 @@
+{
+  "level": 1,
+  "note": "Example build order for Greenmeadow: archers on the inside bends first, then catapults, a banner and upgrades.",
+  "build": [
+    "arrow 8,2",
+    "arrow 3,4",
+    "cannon 5,2",
+    "arrow 3,5",
+    "up 8,2",
+    "cannon 5,4",
+    "banner 4,4",
+    "up 3,4",
+    "storm 6,2",
+    "up 5,2",
+    "up 5,4",
+    "ballista 10,4",
+    "up 8,2",
+    "up 3,4",
+    "storm 7,4",
+    "up 6,2",
+    "up 4,4",
+    "alch 4,2",
+    "up 3,5",
+    "up 6,2",
+    "up 7,4",
+    "up 5,2",
+    "up 5,4"
+  ]
+}

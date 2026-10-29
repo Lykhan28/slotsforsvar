@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "http-server -c-1 -p 5173 .",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "sim": "node scripts/sim.mjs"
   },
   "devDependencies": {
     "http-server": "^14.1.1"

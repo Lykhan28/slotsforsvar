@@ -32,6 +32,7 @@ vendor/three/     three.js r128 + the post-processing scripts it needs
 docs/             game design: rules, numbers, ideas
 archive/          the old single-file version
 scripts/check.mjs quick code check without a browser
+scripts/sim.mjs   balance simulator: npm run sim -- --help
 ```
 
 ## Git

@@ -10,6 +10,7 @@ The user works in one session per task. Commit when a task is done, and add anyt
 ## Run
 - `npm install` then `npm run dev` → http://localhost:5173 (static server, no bundler).
 - `npm run check` → parses all js files in the order index.html loads them (no browser needed).
+- `npm run sim` → headless balance simulator, see "Balance simulator" below.
 - **Live online:** https://lykhan28.github.io/slotsforsvar/ via GitHub Pages (repo `github.com/Lykhan28/slotsforsvar`, branch `main`, root folder). Friends play there. `git push` updates the site in about a minute, so only push when the game works; ask the user before pushing.
 - three.js r128 and its post-processing scripts (EffectComposer, RenderPass, ShaderPass, MaskPass, UnrealBloomPass, CopyShader, LuminosityHighPassShader) are vendored in `vendor/three/` (unchanged copies of the official r128 files, MIT licence alongside). No CDN or internet needed. Don't upgrade three.js casually – the game targets r128 (classic `examples/js` globals, removed in later versions).
 
@@ -64,6 +65,16 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 - A road is a list of cell waypoints from just outside the wall (the breach side is worked out from it) to just outside the gate; all roads must end at the same gate. Enemies carry their road in `e.R`; `prog()` compares remaining road length so towers pick the right target across roads (it's negative – never start a "best so far" at -1).
 - The default camera looks from the south, or from the north when the castle is on the south side (`CAM0`). Scenery is denser on the far side (`ZF`), and trees near the camera's wall are kept back so they don't hide the board.
 - Theme colours go through `TH` (sky, fog, lights, ground, grass, rocks, smoke, grade saturation/tint). Barren themes set `gt:'dirt'` to swap the grass texture for bare earth. Rock colour `rc` matters – the default light rock glows against dark ground.
+
+## Balance simulator
+**Check every balance change with it** (tower/enemy numbers, wave mix, gold, health scaling, targeting): run the same layouts before and after and compare. `scripts/sim.mjs` plays all 20 waves of a level with a build order, without a browser, and reports per wave: gold before/after, income, spending, lives, leaks, towers and wave length, plus the final board and VICTORY / DEFEAT on wave N.
+- `npm run sim -- --map 3` prints level 3's board with cell coordinates (`#` road, `x` blocked, `.` buildable).
+- `npm run sim -- scripts/layouts/level1-example.json` runs a layout file: `{"level":1,"build":["arrow 8,2","up 8,2","sell 8,2","wave 5", ...]}`. Or give steps on the command line: `npm run sim -- --level 2 --build "arrow 3,3" --build "cannon 5,2"`.
+- Build steps run strictly in order as soon as there's enough gold (mid-wave too, like a player saving up); a step that can't be afforded blocks the ones after it. `wave N` holds the queue until the break before wave N. Steps on unbuildable cells are skipped with a warning.
+- `--keep-going` ignores defeat and plays all 20 waves (lives go negative – shows how badly a layout fails). `--json` gives everything machine-readable, including gold every 5 s of game time (`gold`), for comparing runs in a script.
+- **How it works:** it runs the real `js/01-config.js` and `js/09-game.js` in a Node `vm` sandbox, plus `volley`/`zap`/`buffs` cut out of `js/07-enemies.js` and the `const free=` line from `js/12-input.js` by name; everything visual or audio (`snd`, `burst`, `hf`, `buildEnemy`, `mkBullet`, `ui`, …) is stubbed. So balance edits in those files are picked up automatically. If you add a new function that `update()` calls, either add it to the extracted list or stub it in `scripts/sim.mjs` – the sim dies with "X is not defined" otherwise. Building, upgrading and selling are re-implemented there (copies of `tap()` in js/12-input.js and the up/sell buttons in js/10-ui.js) – keep them in step if those rules change.
+- It steps `update()` at a fixed 1/60 s (`--dt`), and `Math.random` is seeded (it only affects looks), so runs are reproducible. Checked against the real game in the browser: the example layout gave identical gold and lives after all 20 waves.
+- Keep a few layouts per level in `scripts/layouts/` as reference runs when tuning.
 
 ## Current rules (details in docs/GAME_DESIGN.md)
 8 tower types (the Wizard has key `frost` for historical reasons; it now banishes enemies back along the road via `banish()` in js/09-game.js, enemy field `bn` = immunity timer), 4 enemy types, 20 waves, boss every 5th wave.
