@@ -1,14 +1,18 @@
 // ---------- UI ----------
 const DS={arrow:'Fires at 1, 2 or 3 enemies at once, depending on its level.',cannon:'Hurls boulders that hit everything in an area and slow enemies for 1 second.',frost:'Teleports enemies back down the road, starting with the one closest to the castle. Bosses resist.',ballista:'Huge range and hits hard, piercing armour. Goes for the toughest enemy unless you tell it otherwise.',storm:'Chain lightning strikes 5, 6 or 7 enemies and stuns them for a moment. Lightning ignores armour.',alch:'Lobs poison flasks that deal damage over time in an area.',banner:'Nearby towers deal +20% damage.',vault:'Earns gold at the end of every wave.'};
 const ROLE={arrow:'Multi-shot',cannon:'Area · Slow',frost:'Control',ballista:'Sniper',storm:'Chain',alch:'Poison · Area',banner:'Support',vault:'Economy'};
-const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon'],guard:['🧱','Shieldbearers','shields stop arrows from the front'],shaman:['🧙','Shamans','heal nearby enemies'],bat:['🦇','Bat swarms','fly straight to the gate; Catapults and Alchemists can’t hit them'],sapper:['💣','Sappers','blow up a tower beside the road, stunning it for 4s'],troll:['🧌','Trolls','two goblins jump out when one dies'],ghost:['👻','Ghosts','fade out of reach for 1s every few seconds'],imp:['😈','Fire imps']};
+const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon'],king:['👑','Goblin King','summons goblins'],ram:['🐏','Siege Ram','costs 10 lives at the gate'],necro:['💀','Necromancer','raises skeletons from the fallen'],skel:['🦴','Skeletons'],guard:['🧱','Shieldbearers','shields stop arrows from the front'],shaman:['🧙','Shamans','heal nearby enemies'],bat:['🦇','Bat swarms','fly straight to the gate; Catapults and Alchemists can’t hit them'],sapper:['💣','Sappers','blow up a tower beside the road, stunning it for 4s'],troll:['🧌','Trolls','two goblins jump out when one dies'],ghost:['👻','Ghosts','fade out of reach for 1s every few seconds'],imp:['😈','Fire imps']};
 // an enemy type's resistances (E[type].rs, see DTY in js/01-config.js) and special ability (FOE[type][2], left out when ab===false) as text, e.g. "−50% physical"
 const resL=t=>Object.keys(E[t].rs).map(d=>E[t].rs[d]>=1?'immune to '+DTY[d][0].toLowerCase():(E[t].rs[d]>0?'−':'+')+Math.round(Math.abs(E[t].rs[d])*100)+'% '+DTY[d][0].toLowerCase()),resTxt=(t,ab)=>resL(t).concat(ab===false?[]:FOE[t][2]||[]).join(', ');
 // bestiary entries in the order the bestiary lists them: singular name and what to know about it (shown on the new-enemy card and in the menu's Bestiary)
 const BST={norm:['Goblin','The backbone of every horde. Weak on its own, dangerous in numbers – some carry spiked clubs, others rusty cleavers.'],
 fast:['Wolf Rider','A goblin on a snarling wolf. Fragile, but almost twice as fast as a goblin on foot, so don’t let them slip past.'],
 tank:['Black Knight','Full plate and a greatsword. Its armour shrugs off half of all physical damage – answer it with magic, poison, lightning or the Ballista.'],
-boss:['Dragon','Every fifth wave ends with one. Huge health, shrugs off half of all fire and poison, and costs five lives if it reaches the gate.'],
+boss:['Dragon','A boss. Huge health, shrugs off half of all fire and poison, and costs five lives if it reaches the gate.'],
+king:['Goblin King','A boss. Every few seconds he lifts his sceptre and two more goblins rush out beside him. Kill him fast or the goblins never stop coming.'],
+ram:['Siege Ram','A boss. A slow, heavy battering ram pushed by goblins, its timbers shrug off some physical damage – and if it reaches the gate it smashes it for 10 lives.'],
+necro:['Necromancer','A boss. Every few seconds it raises the enemies that just fell near it as skeletons. Half resists magic. Kill it before the dead start walking again.'],
+skel:['Skeleton','A fallen enemy raised by the Necromancer. Weak and worth almost no gold, but there can be a lot of them.'],
 bat:['Bat Swarm','Flies straight from the breach to the gate, ignoring the road. Catapults and Alchemists can’t reach it; Archers, the Ballista, Wizards and Storm Towers can.'],
 guard:['Shieldbearer','Its tower shield blocks most of the damage from arrows and Ballista bolts that hit it from the front. Hit it from the side or behind, or with anything that isn’t an arrow.'],
 sapper:['Goblin Sapper','Carries a lit bomb. When it passes a tower next to the road it charges and blows up, knocking the tower out for 4 seconds. Stop it before it gets there.'],
@@ -17,7 +21,7 @@ troll:['Troll','Big, slow and tough, with two goblins in a basket on its back. W
 ghost:['Ghost','Every few seconds it fades out for a moment. While faded nothing can target or hurt it, and arrows already in the air pass straight through.'],
 imp:['Fire Imp','A little devil from the lava fields. Immune to fire and poison, so the Alchemist can’t touch it.']},BSK=Object.keys(BST);
 // facts about an enemy type as chips: health compared with a goblin, speed, gold, flying, resistances
-const foeChips=t=>{const e=E[t];return['❤️ ×'+e.h+' health','👣 '+(e.s<=35?'Slow':e.s<=50?'Steady':e.s<=65?'Quick':'Fast'),COIN+e.rw+' gold',...(e.fy?['🦇 Flies']:[]),...(t=='boss'?['Costs 5 lives']:[]),...resL(t)].map(x=>'<span class="chip">'+x+'</span>').join('');};
+const foeChips=t=>{const e=E[t];return['❤️ ×'+e.h+' health','👣 '+(e.s<=35?'Slow':e.s<=50?'Steady':e.s<=65?'Quick':'Fast'),COIN+e.rw+' gold',...(e.fy?['🦇 Flies']:[]),...(e.lv>1?['💔 Costs '+e.lv+' lives']:[]),...resL(t)].map(x=>'<span class="chip">'+x+'</span>').join('');};
 // first sighting: the first time an enemy type ever spawns (remembered in localStorage sfseen: type → [level, wave]) the game pauses and a card introduces it;
 // it carries on by itself after FC.t s, or with the button, a click on the card, Space, Enter or Esc. Several new types in one wave queue up
 let SEEN={};try{SEEN=JSON.parse(localStorage.getItem('sfseen')||'{}')||{};}catch(e){}
@@ -63,18 +67,21 @@ if(atk)c.unshift('<span class="chip dty" title="Damage type">'+DTY[tp.dt][1]+' '
 if(t&&t.stun>0)c.unshift('<span class="chip lo">💥 Stunned · '+Math.ceil(t.stun)+'s</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');
 return h+'<div class="chips">'+c.join('')+'</div>';}
-function ui(){const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
+// boss health bar across the top of the view while a boss is on the board
+function bossBar(){const e=g.en.find(o=>o.bs&&o.hp>0),el=$('bb');el.classList.toggle('on',!!e&&!g.over);if(!e)return;
+setH(el.firstChild,'<span class="bbn">'+FOE[e.type][0]+' '+BST[e.type][0]+'</span><span class="bbv">'+(e.lv>1?'💔 '+e.lv+' lives at the gate':'')+'</span>');el.lastChild.firstChild.style.width=(100*Math.max(0,e.hp)/e.max).toFixed(1)+'%';}
+function ui(){bossBar();const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
 setH($('wave'),'<small>Wave </small>'+g.wave+' / '+MAXW);$('wbar').style.width=((g.wave-(g.run?left/w:0))/MAXW*100)+'%';
 // in the break: "Call wave N early" with the bonus for the time left (and the auto-start countdown), then plain "Start wave N" once the time is up
-const bl=brkLeft(),eb=earlyBonus(),foes=nm=>nm.filter(t=>t!='boss').length+' enemies'+(nm.includes('boss')?' and a dragon':'');
+const bl=brkLeft(),eb=earlyBonus(),foes=nm=>{const b=nm.find(t=>E[t].bs);return nm.filter(t=>!E[t].bs).length+' enemies'+(b?' and '+(b=='boss'?'a dragon':'the '+BST[b][0]):'');};
 $('start').disabled=g.run||g.over;$('start').classList.toggle('early',eb>0);setH($('start'),g.run?'<span class="t">Under attack</span><span class="s">'+left+' enemies left</span>':
 eb>0?'<span class="t">Call wave '+(g.wave+1)+' early</span><span class="s"><b class="eb">'+COIN+'+'+eb+' bonus</b> · '+(autoW?'starts in ':'')+Math.ceil(bl)+'s'+(autoW?'':' left')+'</span><i class="cdb" style="width:'+(bl/BRK*100).toFixed(1)+'%"></i>':
 '<span class="t">Start wave '+(g.wave+1)+'</span><span class="s">'+foes(waveMix(g.wave+1))+'</span>');
 if(g.wave<MAXW&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
 // the line under the icons always lists resistances, and an ability only for enemy types that weren't in the previous wave (every icon's tooltip has it all)
 const pv=g.wave?waveMix(g.wave):[],rt=t=>resTxt(t,!pv.includes(t)),rz=Object.keys(n).filter(rt);
-setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(t=='boss'?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
+setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(E[t].bs?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
 (rz.length?'<span class="rz">'+rz.map(t=>'<span title="'+FOE[t][1]+'">'+FOE[t][0]+' '+rt(t)+'</span>').join('')+'</span>':''));}
 else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave:'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s==g.spd));
@@ -122,7 +129,7 @@ function drawMM(){mq.fillStyle=MB.bg;mq.fillRect(0,0,MM.width,MM.height);mq.fill
 mq.fillStyle='#c9b27a';for(const k of road)cell(...k.split(',').map(Number));for(const o of[...ENT,GATE])cell(o.c,o.r);mq.fillStyle='rgba(0,0,0,.45)';for(const k of blk)cell(...k.split(',').map(Number));
 mq.fillStyle='#a53a3a';ENT.forEach((o,i)=>mRect(BW(-7.58,-3,i),BW(-7.17,-2,i)));mq.fillStyle='#8a8272';mRect(CW(7,-.9),CW(13.9,5.9));mq.fillStyle='#ffd24a';mRect(CW(11,1),CW(13,2.67));
 for(const t of g.tw){mq.fillStyle=TC2[t.k];mq.fillRect(mX(wx(t.x))-3,mZ(wz(t.y))-3,6,6);}
-for(const e of g.en){mq.fillStyle=e.type=='boss'?'#ff3b3b':'#ff9a3b';mq.beginPath();mq.arc(mX(wx(e.x)),mZ(wz(e.y)),e.type=='boss'?4:2.4,0,7);mq.fill();}
+for(const e of g.en){mq.fillStyle=e.bs?'#ff3b3b':'#ff9a3b';mq.beginPath();mq.arc(mX(wx(e.x)),mZ(wz(e.y)),e.bs?4:2.4,0,7);mq.fill();}
 const vw=2.17*dist/20,vh=1.5*dist/20;mq.strokeStyle='#fff';mq.lineWidth=1.5;mq.strokeRect(mX(tx-vw),mZ(tz-vh),vw*2*MB.k,vh*2*MB.k);}
 function mmGo(e){const r=MM.getBoundingClientRect(),x=((e.clientX-r.left)/r.width*MM.width-MB.ox)/MB.k,z=((e.clientY-r.top)/r.height*MM.height-MB.oz)/MB.k;tx=clamp(x,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(z,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 MM.addEventListener('pointerdown',e=>{MM.setPointerCapture(e.pointerId);mmGo(e);});MM.addEventListener('pointermove',e=>{if(e.buttons)mmGo(e);});

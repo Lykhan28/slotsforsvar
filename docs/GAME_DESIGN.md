@@ -8,16 +8,16 @@ Defend the castle through 20 waves on each of 8 levels. Enemies pour in through 
 ## Levels
 Each level is a walled board with the same castle outside one of its walls. Winning a level unlocks the next; any unlocked level can be replayed from Levels in the menu. A run is saved during every break between waves, so closing or refreshing the page and choosing Continue picks it up at the start of the next wave (a refresh mid-wave replays that wave from its start). Each level keeps its own saved run; winning, losing or Restart level (menu, end screen) ends it.
 
-| # | Level | Land | Board | Breaches → castle | Blocked tiles | Start gold | Enemy health | Extra special enemies |
-|---|---|---|---|---|---|---|---|---|
-| 1 | Greenmeadow | Fields | 12×8 | west → east | 0 | 120 | ×1 | – |
-| 2 | Darkwood | Dark forest | 10×7 | north → east | 4 | 130 | ×1 | Ghosts (rare) |
-| 3 | Emberwood | Burning forest, burnt houses | 13×8 | south → north | 5 | 140 | ×1.05 | – |
-| 4 | Mirefen | Marsh | 14×9 | west → south | 11 | 150 | ×1.1 | – |
-| 5 | Ashfall | Ruined, smouldering town | 11×7 | east → west | 7 | 160 | ×1.1 | – |
-| 6 | Barrow Moor | Graveyard moor | 15×9 | north → east | 12 | 170 | ×1.15 | Ghosts (many) |
-| 7 | Scorched Badlands | Cracked earth and lava | 12×9 | west + north → south | 9 | 190 | ×1.15 | Fire Imps |
-| 8 | The Dread Wastes | Black rock, lava, red sky | 16×10 | west + east → north | 16 | 220 | ×1.2 | Fire Imps, Ghosts (rare) |
+| # | Level | Land | Board | Breaches → castle | Blocked tiles | Start gold | Enemy health | Extra special enemies | Bosses (waves 5 / 10 / 15 / 20) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Greenmeadow | Fields | 12×8 | west → east | 0 | 120 | ×1 | – | King / Ram / King / Dragon |
+| 2 | Darkwood | Dark forest | 10×7 | north → east | 4 | 130 | ×1 | Ghosts (rare) | King / Necromancer / Ram / Dragon |
+| 3 | Emberwood | Burning forest, burnt houses | 13×8 | south → north | 5 | 140 | ×1.05 | – | Ram / King / Dragon / Dragon |
+| 4 | Mirefen | Marsh | 14×9 | west → south | 11 | 150 | ×1.1 | – | Necromancer / King / Ram / Dragon |
+| 5 | Ashfall | Ruined, smouldering town | 11×7 | east → west | 7 | 160 | ×1.1 | – | Ram / Necromancer / King / Dragon |
+| 6 | Barrow Moor | Graveyard moor | 15×9 | north → east | 12 | 170 | ×1.15 | Ghosts (many) | Necromancer / King / Necromancer / Necromancer |
+| 7 | Scorched Badlands | Cracked earth and lava | 12×9 | west + north → south | 9 | 190 | ×1.15 | Fire Imps | Ram / Dragon / King / Dragon |
+| 8 | The Dread Wastes | Black rock, lava, red sky | 16×10 | west + east → north | 16 | 220 | ×1.2 | Fire Imps, Ghosts (rare) | Necromancer / Ram / Dragon / Dragon |
 
 Every level has the standard special enemies (bat swarms, Shieldbearers, Sappers, Shamans, Trolls); the last column lists the extra ones. A level's `ex` in `LEVELS` (js/01-config.js) decides which special enemies it uses and how often – see Enemies.
 
@@ -50,6 +50,10 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 | Wolf rider (fast) | 90 | 0.6 | 5 |
 | Black knight (tank) | 35 | 1.8 | 10 |
 | Dragon (boss) | 30 | 12 | 50 |
+| Goblin King (king, boss) | 32 | 8 | 50 |
+| Siege Ram (ram, boss) | 22 | 9 | 60 |
+| Necromancer (necro, boss) | 30 | 7 | 50 |
+| Skeleton (skel, raised by the Necromancer) | 42 | 0.6 | 1 |
 | Shieldbearer (guard) | 40 | 1.4 | 8 |
 | Goblin Shaman (shaman) | 45 | 0.9 | 9 |
 | Bat swarm (bat, flying) | 60 | 0.6 | 5 |
@@ -80,6 +84,9 @@ Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each en
 | Shaman | – | – | – | – |
 | Bat swarm | flying: Catapult can't hit it | – | flying: Alchemist can't hit it | – |
 | Sapper, Troll | – | – | – | – |
+| Siege Ram | −25% | – | – | – |
+| Necromancer | – | −50% | – | – |
+| Goblin King, Skeleton | – | – | – | – |
 | Ghost | while faded out it can't be targeted or hurt at all | | | |
 | Fire Imp | – | – | **immune** | – |
 
@@ -91,6 +98,11 @@ Damage numbers are red for a full hit, **grey** when the enemy resisted part of 
 
 **Flying enemies (Bat swarm):** an enemy with `fy` (its flying height) ignores the road and flies in a straight line from where its breach's road starts to where the road ends at the gate (`FPATHS` in js/01-config.js, one per breach, so on levels 7–8 they come from both breaches). On Greenmeadow the flight is 836 long against 1920 for the road (44%). Only towers with `air` can target it: **Archers, Ballista, Wizard and Storm Tower** (the Wizard banishes it back along its flight line, and Storm chains reach it). Catapult boulders and Alchemist flasks never target it, and their splash and poison skip it. Reaching the gate costs one life. The tower inspector shows "🦇 Hits flyers" or "Ground only" on every attacking tower.
 
+**Bosses:** waves 5, 10, 15 and 20 end with a boss, picked by the level's `bs` list in `LEVELS` (js/01-config.js; a level without one gets the Dragon every time). Bosses have `bs:1` and `lv` = lives lost if they reach the gate (Dragon, Goblin King and Necromancer 5, Siege Ram 10); the Wizard banishes them and the Shaman heals them only a third as much. While a boss is on the board a health bar across the top of the view shows its name, health and the lives it would cost.
+- **Goblin King:** every `KING.cd` = 5 s (the first 3 s after he appears) he lifts his sceptre and `sum` = 2 goblins step out beside him with 60% of a normal goblin's health, worth 2 gold each (`KING`, `summon()`).
+- **Siege Ram:** slow (22) and costs 10 lives at the gate; its timbers shrug off 25% of physical damage.
+- **Necromancer:** every ground enemy that is killed (not bosses, flyers or skeletons) leaves a corpse for `NEC.ct` = 6 s (`g.cps`). Every `NEC.cd` = 4 s the Necromancer raises up to `rz` = 2 of the nearest corpses within `NEC.r` = 160 as **Skeletons**, which carry on along the dead enemy's road (`raise()`). Skeletons: 0.6× health, speed 42, 1 gold. It resists magic by 50%.
+
 **Goblin Sapper:** carries a lit bomb overhead. As soon as a tower (any kind) is within 90 (`SAP.r`, 1.5 tiles) of it and isn't already stunned or targeted by another living Sapper, it leaves the road, runs at it 40% faster and blows up within 22 of it. That tower is **stunned for 4 s** (`SAP.st`): it doesn't shoot (its reload is frozen), a stunned Banner Tower gives no boost, and stars circle it. The Sapper is gone (no gold, no life lost). If the tower is sold first, the Sapper walks back to where it left the road and carries on. Killed on the way, it pays its gold and the bomb fizzles. Logic in `sapMove()` (js/09-game.js); tower stun is `t.stun` (not saved – it only happens mid-wave).
 
 **Troll:** slow and tough, with a basket of two goblins on its back. When killed (not when it leaks) it pays 12 gold and `spl` = 2 goblins jump out where it fell, each with **half** the normal goblin health for that wave, and carry on along its road (`trollSplit()`). Killing it near the gate is risky.
@@ -101,9 +113,11 @@ Damage numbers are red for a full hit, **grey** when the enemy resisted part of 
 
 **Goblin Shaman:** every 4 s (`HEAL.cd`, the first pulse 1.5 s after it appears) it sends out a green pulse that heals every other living enemy within 75 (`HEAL.r`, 1.25 tiles) by `hl` = 3% of that enemy's max health (Dragons by a third of that). It doesn't heal itself, and healing never goes above max health. Healed enemies show a green +number.
 
-Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon. **Which special enemies, and how often, is per level:** `LEVELS[i].ex` maps a type to *every how many'th* enemy (the standard set `SPC` is bat 6, guard 7, sapper 8, shaman 11, troll 17; Barrow Moor adds ghost 4, Darkwood and the Dread Wastes ghost 13, the Badlands and the Dread Wastes imp 5). `SPX` in js/09-game.js gives each type its first wave and slot: enemy i of the wave is that type when `i % every == slot % every`. With the standard set: from wave 6 every 6th enemy (positions 2, 8, 14, …) is a bat swarm, from wave 9 every 8th (positions 6, 14, 22, …) a Sapper, from wave 12 every 17th (positions 11, 28, 45) a Troll. Ghosts start at wave 3 (slot 2: on Barrow Moor positions 3, 7, 11, …), Fire Imps at wave 4 (slot 0: positions 1, 6, 11, …). From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot; when two of them would take the same slot the order is Troll, Shaman, Shieldbearer, Sapper, Ghost, Fire Imp, bat swarm).
+Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a boss (see Bosses). **Which special enemies, and how often, is per level:** `LEVELS[i].ex` maps a type to *every how many'th* enemy (the standard set `SPC` is bat 6, guard 7, sapper 8, shaman 11, troll 17; Barrow Moor adds ghost 4, Darkwood and the Dread Wastes ghost 13, the Badlands and the Dread Wastes imp 5). `SPX` in js/09-game.js gives each type its first wave and slot: enemy i of the wave is that type when `i % every == slot % every`. With the standard set: from wave 6 every 6th enemy (positions 2, 8, 14, …) is a bat swarm, from wave 9 every 8th (positions 6, 14, 22, …) a Sapper, from wave 12 every 17th (positions 11, 28, 45) a Troll. Ghosts start at wave 3 (slot 2: on Barrow Moor positions 3, 7, 11, …), Fire Imps at wave 4 (slot 0: positions 1, 6, 11, …). From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot; when two of them would take the same slot the order is Troll, Shaman, Shieldbearer, Sapper, Ghost, Fire Imp, bat swarm).
 
 **Simulator check for Ghosts and Fire Imps:** Levels 1–5 don't use them, and moving the special enemies into `LEVELS` left `level1-example` and `level4-mixed` byte-identical. New rough reference layouts `level6-mixed` and `level7-mixed` (both lose – they're for comparing, not good builds): Barrow Moor with ghosts 126 lives lost, defeat on wave 13 (without ghosts: 116, defeat on wave 11); Scorched Badlands with imps 91, defeat on wave 18 (without: 95, wave 18). So neither changes the difficulty much on its own: ghosts are a little tougher than the goblins they replace but give 7 gold, and imps only hurt builds that lean on Alchemists.
+
+**Simulator check for the new bosses** (`--keep-going`, lives lost with only Dragons → with each level's bosses): `level1-example` 19 → 19, `level1-physical` 16 → 16, `level1-mixed` 11 → 11, `level4-mixed` 79 → 72 (defeat on wave 19 instead of 18), `level6-mixed` 126 → 129 (defeat on wave 12 instead of 13), `level7-mixed` 91 → 88. None of the reference layouts lets a wave-5/10/15 boss reach the gate, so the Siege Ram's 10 lives never came into play; the losses are in waves 18–20 as before. A first version paid full goblin gold for the King's summons (+60 gold in his wave on Level 1), so they were cut to 2 gold.
 
 **Simulator check for Sappers and Trolls** (`--keep-going`, lives lost after bats → with both): `level1-example` 12 → 19, `level1-physical` 15 → 16, `level1-mixed` 7 → 11, `level4-mixed` 73 → 79 (defeat on wave 18 instead of 19). All Level 1 runs still win, but `level1-example` only just; it ends with ~1900 unspent gold, and adding six steps with it (Archers and a Storm Tower at 6,4 / 8,4, both upgraded to 3) brings it down to 5 lives lost. Trolls were the hard part: at 3× health with full-strength goblins, three per wave from wave 12, two Level 1 runs lost on wave 20, and lowering only their health barely helped – fewer Trolls (every 17th) and half-health goblins did. The Sapper's stun barely moved the numbers (4 s vs 2.5 s ≈ the same).
 

@@ -3,17 +3,18 @@ const $=id=>document.getElementById(id),S=60,MAXW=20,PI=Math.PI,rnd=(a,b)=>a+Mat
 // ---------- levels ----------
 // w×h board cells; p = one road per breach, as cell waypoints (first point outside the wall = breach, last = castle gate; all roads share the gate); bk = cells nobody can build on
 // th = environment (THEMES below); hp = enemy health multiplier; gold = starting gold
+// bs = the bosses that end waves 5, 10, 15 and 20, in that order (boss = the Dragon; js/09-game.js waveMix())
 // special enemies a level uses (ex): type → every how many'th enemy of a wave is one (the slot and first wave are in SPX in js/09-game.js); SPC is the standard set
 const SPC={bat:6,guard:7,sapper:8,shaman:11,troll:17};
 const LEVELS=[
-{n:'Greenmeadow',d:'Peaceful fields on the edge of the kingdom',th:'meadow',w:12,h:8,hp:1,gold:120,ex:SPC,p:[[[-1,1],[9,1],[9,3],[2,3],[2,6],[12,6]]],bk:[]},
-{n:'Darkwood',d:'An old forest where little light gets through',th:'darkwood',w:10,h:7,hp:1,gold:130,ex:{...SPC,ghost:13},p:[[[2,-1],[2,4],[6,4],[6,1],[10,1]]],bk:[[4,2],[0,5],[8,3],[4,6]]},
-{n:'Emberwood',d:'The forest is burning and the villages are gone',th:'burning',w:13,h:8,hp:1.05,gold:140,ex:SPC,p:[[[10,8],[10,5],[3,5],[3,2],[8,2],[8,-1]]],bk:[[5,4],[7,3],[1,6],[11,2],[0,1]]},
-{n:'Mirefen',d:'Sunken bogs where nothing solid can be built',th:'marsh',w:14,h:9,hp:1.1,gold:150,ex:SPC,p:[[[-1,2],[5,2],[5,6],[11,6],[11,9]]],bk:[[2,4],[3,4],[2,5],[8,3],[9,3],[8,4],[12,2],[13,3],[7,8],[1,7],[0,0]]},
-{n:'Ashfall',d:'The ruins of a town, still smouldering',th:'ruins',w:11,h:7,hp:1.1,gold:160,ex:SPC,p:[[[11,5],[7,5],[7,1],[3,1],[3,4],[-1,4]]],bk:[[5,2],[5,3],[9,3],[1,1],[9,0],[5,6],[0,6]]},
-{n:'Barrow Moor',d:'Mist, graves and things that should stay buried',th:'moor',w:15,h:9,hp:1.15,gold:170,ex:{...SPC,ghost:4},p:[[[2,-1],[2,6],[12,6],[12,2],[15,2]]],bk:[[4,3],[5,3],[6,3],[8,4],[9,4],[10,3],[4,7],[7,8],[1,2],[14,5],[8,1],[0,8]]},
-{n:'Scorched Badlands',d:'Cracked earth and rivers of fire. The enemy comes from two sides',th:'badlands',w:12,h:9,hp:1.15,gold:190,ex:{...SPC,imp:5},p:[[[-1,2],[4,2],[4,6],[9,6],[9,9]],[[7,-1],[7,6],[9,6],[9,9]]],bk:[[1,5],[2,5],[5,4],[6,1],[10,1],[11,7],[2,8],[6,8],[10,4]]},
-{n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:1.2,gold:220,ex:{...SPC,ghost:13,imp:5},p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]}];
+{n:'Greenmeadow',d:'Peaceful fields on the edge of the kingdom',th:'meadow',w:12,h:8,hp:1,gold:120,ex:SPC,bs:['king','ram','king','boss'],p:[[[-1,1],[9,1],[9,3],[2,3],[2,6],[12,6]]],bk:[]},
+{n:'Darkwood',d:'An old forest where little light gets through',th:'darkwood',w:10,h:7,hp:1,gold:130,ex:{...SPC,ghost:13},bs:['king','necro','ram','boss'],p:[[[2,-1],[2,4],[6,4],[6,1],[10,1]]],bk:[[4,2],[0,5],[8,3],[4,6]]},
+{n:'Emberwood',d:'The forest is burning and the villages are gone',th:'burning',w:13,h:8,hp:1.05,gold:140,ex:SPC,bs:['ram','king','boss','boss'],p:[[[10,8],[10,5],[3,5],[3,2],[8,2],[8,-1]]],bk:[[5,4],[7,3],[1,6],[11,2],[0,1]]},
+{n:'Mirefen',d:'Sunken bogs where nothing solid can be built',th:'marsh',w:14,h:9,hp:1.1,gold:150,ex:SPC,bs:['necro','king','ram','boss'],p:[[[-1,2],[5,2],[5,6],[11,6],[11,9]]],bk:[[2,4],[3,4],[2,5],[8,3],[9,3],[8,4],[12,2],[13,3],[7,8],[1,7],[0,0]]},
+{n:'Ashfall',d:'The ruins of a town, still smouldering',th:'ruins',w:11,h:7,hp:1.1,gold:160,ex:SPC,bs:['ram','necro','king','boss'],p:[[[11,5],[7,5],[7,1],[3,1],[3,4],[-1,4]]],bk:[[5,2],[5,3],[9,3],[1,1],[9,0],[5,6],[0,6]]},
+{n:'Barrow Moor',d:'Mist, graves and things that should stay buried',th:'moor',w:15,h:9,hp:1.15,gold:170,ex:{...SPC,ghost:4},bs:['necro','king','necro','necro'],p:[[[2,-1],[2,6],[12,6],[12,2],[15,2]]],bk:[[4,3],[5,3],[6,3],[8,4],[9,4],[10,3],[4,7],[7,8],[1,2],[14,5],[8,1],[0,8]]},
+{n:'Scorched Badlands',d:'Cracked earth and rivers of fire. The enemy comes from two sides',th:'badlands',w:12,h:9,hp:1.15,gold:190,ex:{...SPC,imp:5},bs:['ram','boss','king','boss'],p:[[[-1,2],[4,2],[4,6],[9,6],[9,9]],[[7,-1],[7,6],[9,6],[9,9]]],bk:[[1,5],[2,5],[5,4],[6,1],[10,1],[11,7],[2,8],[6,8],[10,4]]},
+{n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:1.2,gold:220,ex:{...SPC,ghost:13,imp:5},bs:['necro','ram','boss','boss'],p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]}];
 // environments: sky gradient, fog, lights, ground colours [light, mid, dark, rock, dirt], vegetation and ambient particles (mo)
 const THEMES={
 meadow:{sky:['#4b6a8a','#9fb2c2','#d8c8a6'],fog:0xa8b3bc,fn:9,ff:42,hemi:[0xc4d2e2,0x8a7a5a,.9],sun:[0xf6dcb6,1.55],ex:1.05,orb:0xfff2cc,gr:[0x86a052,0x5e7d3c,0x405c33,0x8a8578,0x7a6244],bd:0xdadfc8,rd:0xffffff,
@@ -57,7 +58,7 @@ banner:{n:'Banner Tower',ic:'🚩',c:120,r:120,d:0,f:99,sup:1},vault:{n:'Treasur
 // damage types: every attacking tower deals one (T[k].dt); pr = pierces armour (ignores physical resistance). An enemy's rs = the share of a type's damage it shrugs off
 // (negative would mean it takes extra). Nothing resists lightning, so the Storm Tower ignores armour. dmul() in js/09-game.js applies it
 const DTY={phys:['Physical','⚔️'],magic:['Magic','🔮'],fire:['Fire & poison','🔥'],light:['Lightning','⚡']};
-const E={norm:{s:50,h:1,rw:5,r:11,col:0x7ed957,rs:{}},fast:{s:90,h:.6,rw:5,r:9,col:0x8b9bb8,rs:{}},tank:{s:35,h:1.8,rw:10,r:14,col:0x8fa6c8,rs:{phys:.5}},boss:{s:30,h:12,rw:50,r:18,col:0xe8483c,rs:{fire:.5}},
+const E={norm:{s:50,h:1,rw:5,r:11,col:0x7ed957,rs:{}},fast:{s:90,h:.6,rw:5,r:9,col:0x8b9bb8,rs:{}},tank:{s:35,h:1.8,rw:10,r:14,col:0x8fa6c8,rs:{phys:.5}},boss:{s:30,h:12,rw:50,r:18,col:0xe8483c,rs:{fire:.5},bs:1,lv:5},
 // shd = share of Archer/Ballista damage the Shieldbearer's tower shield blocks from the front (shBlk() in js/09-game.js); hl = the Shaman's heal per pulse (heal())
 guard:{s:40,h:1.4,rw:8,r:12,col:0x9a7a4a,rs:{},shd:.75},
 // fy = flies at that height, straight from its breach to the gate (FPATHS), and only towers with air can hit it
@@ -65,6 +66,9 @@ bat:{s:60,h:.6,rw:5,r:10,col:0x5a3a40,rs:{},fy:1.05},
 // sap = Sapper: runs at a tower near the road and blows up, stunning it (sapMove() in js/09-game.js); spl = Troll: splits into that many goblins when killed (trollSplit())
 sapper:{s:65,h:.7,rw:6,r:10,col:0x71903c,rs:{},sap:1},troll:{s:30,h:2,rw:12,r:16,col:0x7d8a6a,rs:{},spl:2},
 // phz = Ghost: fades out of reach for PHZ.d s every PHZ.cd s (js/09-game.js); the Fire Imp's rs of 1 makes it immune to fire & poison (towers skip enemies they can't hurt)
+// bosses (bs; lv = lives lost if it reaches the gate): sum = Goblin King, goblins per summon (summon()); rz = Necromancer, skeletons per raise (raise()); skel = what it raises
+king:{s:32,h:8,rw:50,r:18,col:0x71903c,rs:{},bs:1,lv:5,sum:2},ram:{s:22,h:9,rw:60,r:18,col:0x8a6a44,rs:{phys:.25},bs:1,lv:10},necro:{s:30,h:7,rw:50,r:16,col:0x3a2a44,rs:{magic:.5},bs:1,lv:5,rz:2},
+skel:{s:42,h:.6,rw:1,r:10,col:0xd8d0bc,rs:{}},
 ghost:{s:48,h:1.1,rw:7,r:11,col:0xcfe6ee,rs:{},phz:1},imp:{s:70,h:.8,rw:6,r:9,col:0xff7a2a,rs:{fire:1}},shaman:{s:45,h:.9,rw:9,r:11,col:0x7cff4a,rs:{},hl:.03}};
 const P={st:0xece5d6,st2:0xd2c8b4,st3:0xf7f2e6,wd:0xc98a4b,wd2:0x8a5a2e,rd:0xe8483c,bl:0x3f86e0,pu:0x9a5be0,gd:0xffc93c,gr:0x7ed957};
 // game coords (pixels, origin at the board's top-left) → world; cell → world centre; HX/HZ = wall lines

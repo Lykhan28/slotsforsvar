@@ -87,7 +87,7 @@ Add a Ghost that phases out (untargetable, translucent) for 1 s every few second
 When an enemy type appears for the first time, pause briefly and show a small card with its picture/name and what makes it special. Add a "Bestiary" page in the main menu listing every enemy seen so far (saved in localStorage).
 ```
 
-- [ ] **15. Boss variety**
+- [x] **15. Boss variety**
 ```text
 Add three new bosses alongside the Dragon: a Goblin King who summons goblins, a Siege Ram that takes 10 lives if it reaches the gate, and a Necromancer who raises skeletons from dead enemies. Let each level choose its bosses, and give each a boss health bar at the top of the screen.
 ```

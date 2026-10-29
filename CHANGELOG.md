@@ -3,6 +3,11 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Three new bosses** join the Dragon, and every level now has its own line-up of bosses for waves 5, 10, 15 and 20.
+- **New boss: Goblin King** – a fat goblin in a crown and ermine who calls two more goblins to his side every few seconds.
+- **New boss: Siege Ram** – a slow wooden battering ram pushed by goblins. If it reaches the gate it smashes it for **10 lives**.
+- **New boss: Necromancer** – raises the enemies that fall near it as **Skeletons** (a new, weak enemy) every few seconds, and half resists magic.
+- **Boss health bar:** while a boss is on the board, its name, health and how many lives it would cost are shown at the top of the screen.
 - **Meet the enemy:** the first time you ever run into a new kind of enemy, the game pauses for a moment and a card shows what it looks like and what makes it special. It carries on by itself after a few seconds, or press **Space** / click **Got it**.
 - **Bestiary:** a new page in the main menu lists every enemy you've met so far – with a picture, a description, its health, speed, gold and resistances, and where you first met it. The ones you haven't met yet are dark silhouettes.
 - **New enemy: Ghost** – a hooded, see-through wraith that haunts **Barrow Moor** (and now and then Darkwood and the Dread Wastes). Every few seconds it fades almost out of sight for a second: while it's faded, no tower can target it, arrows already flying at it pass straight through, and splash and poison can't touch it.
