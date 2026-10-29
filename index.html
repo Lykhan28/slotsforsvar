@@ -15,6 +15,8 @@
 <symbol id="i-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
 <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
 <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></symbol>
 </defs></svg>
 <div id="app">
 <div id="wrap"><canvas id="c"></canvas>
@@ -22,12 +24,12 @@
 <div class="res"><div class="pill" title="Gold"><svg><use href="#i-coin"/></svg><span id="gold"></span></div><div class="pill" title="Lives"><svg><use href="#i-heart"/></svg><span id="lives"></span></div><div class="pill pw" title="Wave"><svg class="sw"><use href="#i-swords"/></svg><div><span id="wave"></span><i class="pb"><b id="wbar"></b></i></div></div></div></div>
 <div id="side"><canvas id="mm" width="200" height="86" title="Minimap – click to jump there"></canvas>
 <div id="zm"><button id="mn" title="Menu (Esc)"><svg><use href="#i-menu"/></svg></button><button id="zi" title="Zoom in"><svg><use href="#i-plus"/></svg></button><button id="zo" title="Zoom out"><svg><use href="#i-minus"/></svg></button><button id="zr" title="Reset camera"><svg><use href="#i-reset"/></svg></button><button id="mu" title="Music"><svg><use href="#i-music"/></svg></button><button id="sf" title="Sound effects"><svg><use href="#i-sound"/></svg></button><button id="hp" title="Controls"><svg><use href="#i-help"/></svg></button></div>
-<div id="help"><h3>Controls</h3><ul><li><span><kbd>1</kbd>–<kbd>8</kbd></span>Pick a defender</li><li><span><kbd>Space</kbd></span>Start the next wave</li><li><span><kbd>Esc</kbd></span>Deselect, or open the menu</li><li><span><kbd>Right-click</kbd></span>Deselect a tower</li><li><span><kbd>Drag</kbd> <kbd>Q</kbd> <kbd>E</kbd></span>Rotate the camera</li><li><span><kbd>Scroll</kbd></span>Zoom (pinch on touch)</li><li><span><kbd>Right-drag</kbd></span>Pan (two fingers on touch)</li><li><span><kbd>Minimap</kbd></span>Click to jump there</li></ul></div></div>
-<div id="ov"></div></div>
+<div id="help"><h3>Controls</h3><ul><li><span><kbd>1</kbd>–<kbd>8</kbd></span>Pick a defender</li><li><span><kbd>Space</kbd></span>Start the next wave</li><li><span><kbd>P</kbd></span>Pause / resume</li><li><span><kbd>F</kbd></span>Game speed ×1 / ×2 / ×3</li><li><span><kbd>Esc</kbd></span>Deselect, or open the menu</li><li><span><kbd>Right-click</kbd></span>Deselect a tower</li><li><span><kbd>Drag</kbd> <kbd>Q</kbd> <kbd>E</kbd></span>Rotate the camera</li><li><span><kbd>Scroll</kbd></span>Zoom (pinch on touch)</li><li><span><kbd>Right-drag</kbd></span>Pan (two fingers on touch)</li><li><span><kbd>Minimap</kbd></span>Click to jump there</li></ul></div></div>
+<div id="ov"></div><div id="pov"><div class="ovbox"><span class="k">Game paused</span><h2>Paused</h2><p>Tap here or press <kbd>P</kbd> to carry on.</p></div></div></div>
 <div id="panel">
 <div id="ip"><div id="info"></div><div id="sel"><button class="btn up" id="up"></button><button class="btn" id="sell"></button></div></div>
 <div id="dock"><div id="towers"></div></div>
-<div id="act"><div id="nw"></div><button class="btn go" id="start"></button><div class="seg" id="spd"><button data-s="1">×1</button><button data-s="2">×2</button><button data-s="3">×3</button></div></div>
+<div id="act"><div id="nw"></div><button class="btn go" id="start"></button><div class="seg" id="spd"><button id="pz" title="Pause (P)"><svg><use href="#i-pause"/></svg></button><button data-s="1" title="Normal speed (F)">×1</button><button data-s="2" title="Double speed (F)">×2</button><button data-s="3" title="Triple speed (F)">×3</button></div></div>
 </div>
 <div id="menu"><div class="mbox">
 <div class="mt">Castle Defense</div><div class="ms" id="m_sub"></div>

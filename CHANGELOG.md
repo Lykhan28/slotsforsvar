@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Pause:** press **P** or the new pause button next to the speed buttons to freeze the battle. A "Paused" sign shows until you carry on, the music turns down, and you can still build, upgrade and sell towers while you think.
+- **Game speed hotkey:** press **F** to switch between ×1, ×2 and ×3. At higher speeds all the animations, effects and even the music keep pace with the action.
 - **Your progress is saved:** the game now remembers your run between waves. If you refresh the page, close the tab or quit, choose **Continue** in the menu to pick up where you left off, at the start of the next wave. The level list shows which levels have a run in progress.
 - **Restart level:** the menu has a new **Restart level** button (click it twice, so you can't lose a run by accident), and the victory and defeat screens now offer **Restart level** too.
 - **Project housekeeping:** added a balance simulator that plays through a level with a given set of towers in a few seconds, so future changes to difficulty can be tested properly before they reach you.

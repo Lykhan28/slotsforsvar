@@ -37,7 +37,8 @@ $('start').disabled=g.run||g.over;setH($('start'),g.run?'<span class="t">Under a
 if(g.wave<MAXW&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
 setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(t=='boss'?' class="boss"':'')+' title="'+FOE[t][1]+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>');}
 else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave:'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
-document.querySelectorAll('#spd button').forEach(b=>b.classList.toggle('on',+b.dataset.s==g.spd));
+document.querySelectorAll('#spd button[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s==g.spd));
+const pz=!!g.pause&&!g.over;$('pz').classList.toggle('on',pz);setH($('pz'),'<svg><use href="#i-'+(pz?'play':'pause')+'"/></svg>');$('pz').title=pz?'Resume (P)':'Pause (P)';$('pov').classList.toggle('on',pz&&!MENU.open);if(AU.pz!==pz){AU.pz=pz;auPause(pz);}
 for(const k of TK){const b=$('b_'+k);b.classList.toggle('on',g.build===k&&!g.sel);b.classList.toggle('poor',g.gold<T[k].c);}
 const s=g.sel,k=s?s.k:hov||g.build;$('sel').style.display=s?'flex':'none';$('ip').style.setProperty('--ac',TC2[k]);
 if(!s&&performance.now()<offMsg)setH($('info'),'<div class="ih"><div class="ihn"><b>Locked</b></div></div><p class="ds">🔒 Not available yet.</p>');else setH($('info'),infoHTML(k,s));
@@ -52,8 +53,11 @@ const pick=k=>{if(T[k].off){offMsg=performance.now()+3000;ui();return;}g.build=k
 TK.forEach((k,i)=>{const b=document.createElement('button');b.className='tile'+(T[k].off?' off':'');b.id='b_'+k;b.style.setProperty('--ac',TC2[k]);b.title=T[k].n+' ('+(i+1)+')';
 b.innerHTML='<i class="hk">'+(i+1)+'</i><span class="ic">'+T[k].ic+'</span><span class="nm">'+T[k].n+'</span><b class="co">'+COIN+T[k].c+'</b>';b.onclick=()=>pick(k);
 b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=()=>{hov=null;ui();};$('towers').appendChild(b);});
-$('start').onclick=startWave;$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);};
-document.querySelectorAll('#spd button').forEach(b=>b.onclick=()=>{g.spd=+b.dataset.s;ui();});
+// pause and speed: the HUD buttons, P and F; starting a wave also resumes
+function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}
+const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);startWave();};
+$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);};
+document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};
 $('up').onclick=()=>{const t=g.sel;if(t&&t.l<3&&g.gold>=upCost(t)){g.gold-=upCost(t);t.inv+=upCost(t);t.l++;buildTower(t);snd('upgrade');burst(t.x,t.y,P.gd,14,1.4,.4);selRng();ui();}};
 $('sell').onclick=()=>{const t=g.sel;if(!t)return;g.gold+=Math.round(t.inv*.6);sc.remove(t.m);snd('sell');burst(t.x,t.y,0xffffff,8,1,.3);g.tw=g.tw.filter(x=>x!==t);g.sel=null;selRng();ui();};
@@ -72,5 +76,5 @@ const vw=2.17*dist/20,vh=1.5*dist/20;mq.strokeStyle='#fff';mq.lineWidth=1.5;mq.s
 function mmGo(e){const r=MM.getBoundingClientRect(),x=((e.clientX-r.left)/r.width*MM.width-MB.ox)/MB.k,z=((e.clientY-r.top)/r.height*MM.height-MB.oz)/MB.k;tx=clamp(x,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(z,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 MM.addEventListener('pointerdown',e=>{MM.setPointerCapture(e.pointerId);mmGo(e);});MM.addEventListener('pointermove',e=>{if(e.buttons)mmGo(e);});
 addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey)return;const k=e.key;
-if(k>='1'&&k<='8'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();startWave();}else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
+if(k>='1'&&k<='8'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
 else if(k=='q'||k=='Q'){az-=.3;setCam();}else if(k=='e'||k=='E'){az+=.3;setCam();}});

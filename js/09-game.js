@@ -36,10 +36,10 @@ function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.type=='boss'?.
 while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
-function sync(dt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
+function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
 for(const e of g.en)animEnemy(e,dt);animDying(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
-for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=dt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
+for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;
 if(t.k=='frost'){t.head.rotation.y+=dt*1.5;t.head.position.y=t.hy+Math.sin(tt*2+t.c)*.04;}
 if(t.arm){t.arm.rotation.x=-.8+Math.sin(q*PI)*1.5;t.ball.visible=q<.05;}
@@ -48,11 +48,11 @@ t.head.scale.setScalar(t.k=='cannon'?1+.1*(t.l-1):1+q*.1);
 if(t.flag)t.flag.rotation.y=Math.sin(tt*3+t.c)*.35;
 if(t.buff>1){if(!t.aura)t.aura=glow(t.m,0,.2,0,1.3,0xc9902a);t.aura.visible=true;t.aura.scale.setScalar(1.3+Math.sin(tt*3+t.c)*.1);}else if(t.aura)t.aura.visible=false;fl(t.fl,t.c);}
 for(const b of g.bu){const e=b.tg,p=1-Math.hypot(e.x-b.x,e.y-b.y)/b.d0,y=b.y0+(.4-b.y0)*p+(T[b.k].arc?Math.sin(clamp(p,0,1)*PI)*.7:0);
-b.m.position.set(wx(b.x),y,wz(b.y));if(b.k=='arrow'||b.k=='ballista')b.m.lookAt(wx(e.x),.4,wz(e.y));else b.m.rotation.x+=dt*8;if(b.k=='cannon'&&Math.random()<.4)fx(b.x,b.y,0xdddddd,.04,.14,.35,y);}
+b.m.position.set(wx(b.x),y,wz(b.y));if(b.k=='arrow'||b.k=='ballista')b.m.lookAt(wx(e.x),.4,wz(e.y));else b.m.rotation.x+=dt*8;if(b.k=='cannon'&&dt>0&&Math.random()<.4)fx(b.x,b.y,0xdddddd,.04,.14,.35,y);}
 for(let i=fxs.length-1;i>=0;i--){const f=fxs[i];f.t+=dt;const p=f.t/f.d;if(p>=1){sc.remove(f.m);f.m.material.dispose();fxs.splice(i,1);continue;}f.m.scale.setScalar(f.s0+(f.s1-f.s0)*p);f.m.material.opacity=.7*(1-p);}
 for(let i=pts.length-1;i>=0;i--){const p=pts[i];p.t+=dt;if(p.t>=p.d){sc.remove(p.m);pts.splice(i,1);continue;}p.vy-=(p.g===undefined?9:p.g)*dt;p.m.position.x+=p.vx*dt;p.m.position.z+=p.vz*dt;p.m.position.y=Math.max(.03,p.m.position.y+p.vy*dt);p.m.scale.setScalar(p.s*(1-p.t/p.d));}
 for(let i=txts.length-1;i>=0;i--){const q=txts[i];q.t+=dt;if(q.t>=1){sc.remove(q.s);q.s.material.dispose();txts.splice(i,1);continue;}q.s.position.y+=dt*.8;q.s.material.opacity=1-clamp((q.t-.5)/.5,0,1);const kk=q.k||1;q.s.scale.set(.7*kk*back(Math.min(1,q.t*4)),.35*kk*back(Math.min(1,q.t*4)),1);}
-for(let i=bolts.length-1;i>=0;i--){const q=bolts[i];q.t+=dt;if(q.t>.18){sc.remove(q.g);bolts.splice(i,1);}else q.g.visible=Math.random()>.15;}fl(flames,0);flags.forEach((f,i)=>f.rotation.y=Math.sin(tt*3*FS+i*1.7)*.35*(FS>1?1.5:1));
+for(let i=bolts.length-1;i>=0;i--){const q=bolts[i];q.t+=dt;if(q.t>.18){sc.remove(q.g);bolts.splice(i,1);}else if(dt>0)q.g.visible=Math.random()>.15;}fl(flames,0);flags.forEach((f,i)=>f.rotation.y=Math.sin(tt*3*FS+i*1.7)*.35*(FS>1?1.5:1));
 smoke.forEach(s=>{const p=(tt*.2+s.ph)%1;s.m.position.set(s.e[0]+p*.35+Math.sin(p*7+s.ph*9)*.04,s.e[1]+p*1.1,s.e[2]);s.m.scale.setScalar(.04+p*.17);s.m.material.opacity=.5*(1-p);});
 trees.forEach(t=>t.rotation.z=Math.sin(tt*1.2+t.userData.ph)*.03);clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>34)c.position.x=-34;});
 gls.forEach((l,i)=>l.intensity=.65+.2*Math.sin(tt*13+i*2));cl.intensity=.65+.2*Math.sin(tt*11+1);if(mill)mill.rotation.z+=dt*.7;moteAnim(dt);}

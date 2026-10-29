@@ -30,7 +30,7 @@ Save the game state to localStorage between waves so a page refresh can resume t
 
 ## Phase 1 – Quality of life
 
-- [ ] **4. Pause and speed**
+- [x] **4. Pause and speed**
 ```text
 Add pause (P key and a HUD button) and game speed 1×/2×/3× (a HUD toggle and the F key). Animations, spawning, cooldowns and audio pacing should all respect the speed. Show a clear "Paused" overlay.
 ```
