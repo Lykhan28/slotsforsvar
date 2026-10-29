@@ -52,7 +52,9 @@ banner:{n:'Banner Tower',ic:'🚩',c:120,r:120,d:0,f:99,sup:1},vault:{n:'Treasur
 // damage types: every attacking tower deals one (T[k].dt); pr = pierces armour (ignores physical resistance). An enemy's rs = the share of a type's damage it shrugs off
 // (negative would mean it takes extra). Nothing resists lightning, so the Storm Tower ignores armour. dmul() in js/09-game.js applies it
 const DTY={phys:['Physical','⚔️'],magic:['Magic','🔮'],fire:['Fire & poison','🔥'],light:['Lightning','⚡']};
-const E={norm:{s:50,h:1,rw:5,r:11,col:0x7ed957,rs:{}},fast:{s:90,h:.6,rw:5,r:9,col:0x8b9bb8,rs:{}},tank:{s:35,h:1.8,rw:10,r:14,col:0x8fa6c8,rs:{phys:.5}},boss:{s:30,h:12,rw:50,r:18,col:0xe8483c,rs:{fire:.5}}};
+const E={norm:{s:50,h:1,rw:5,r:11,col:0x7ed957,rs:{}},fast:{s:90,h:.6,rw:5,r:9,col:0x8b9bb8,rs:{}},tank:{s:35,h:1.8,rw:10,r:14,col:0x8fa6c8,rs:{phys:.5}},boss:{s:30,h:12,rw:50,r:18,col:0xe8483c,rs:{fire:.5}},
+// shd = share of Archer/Ballista damage the Shieldbearer's tower shield blocks from the front (shBlk() in js/09-game.js); hl = the Shaman's heal per pulse (heal())
+guard:{s:40,h:1.4,rw:8,r:12,col:0x9a7a4a,rs:{},shd:.75},shaman:{s:45,h:.9,rw:9,r:11,col:0x7cff4a,rs:{},hl:.03}};
 const P={st:0xece5d6,st2:0xd2c8b4,st3:0xf7f2e6,wd:0xc98a4b,wd2:0x8a5a2e,rd:0xe8483c,bl:0x3f86e0,pu:0x9a5be0,gd:0xffc93c,gr:0x7ed957};
 // game coords (pixels, origin at the board's top-left) → world; cell → world centre; HX/HZ = wall lines
 const wx=x=>(x-W*S/2)/S,wz=y=>(y-H*S/2)/S,cx=c=>c-(W-1)/2,cz=r=>r-(H-1)/2,HX=W/2+.17,HZ=H/2+.17;

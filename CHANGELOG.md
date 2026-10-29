@@ -3,6 +3,9 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **New enemy: Shieldbearer** (from wave 8). A stocky goblin behind a big tower shield that blocks three quarters of the damage from arrows and Ballista bolts that hit it from the front. You'll hear a clang and see grey numbers when it blocks. Shoot it from the side or behind, or use catapults, magic, poison or lightning, which go around the shield.
+- **New enemy: Goblin Shaman** (from wave 10). It leans on a skull staff, and every few seconds it sends out a green pulse that heals the enemies around it (green numbers show how much). Dragons only get a little of it. Take the Shaman down first!
+- The next-wave preview lists what the new enemies do, along with the other enemies' resistances.
 - **Damage types and armour:** every tower now deals physical, magic, fire & poison or lightning damage (shown on the tower card). **Black Knights** wear heavy armour and shrug off half of all physical damage from Archers and Catapults, but they now have less health, so magic, poison and lightning cut through them. The **Ballista** pierces armour, and the **Storm Tower**'s lightning ignores it. **Dragons** shrug off half of the Alchemist's fire & poison. Resisted hits show grey damage numbers and armour-piercing hits show pale gold. The next-wave preview lists what the coming enemies resist.
 - **Call waves early for bonus gold:** after each wave you get a 25-second break. Start the next wave before the time is up and you earn bonus gold – the more time left, the bigger the bonus, and it grows in later waves. The wave button shows the bonus and the seconds left.
 - **Auto-start waves:** a new option in Settings starts the next wave by itself when the break runs out, so the battle keeps flowing. It's off by default.

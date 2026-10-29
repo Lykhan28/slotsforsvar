@@ -48,6 +48,8 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 | Wolf rider (fast) | 90 | 0.6 | 5 |
 | Black knight (tank) | 35 | 1.8 | 10 |
 | Dragon (boss) | 30 | 12 | 50 |
+| Shieldbearer (guard) | 40 | 1.4 | 8 |
+| Goblin Shaman (shaman) | 45 | 0.9 | 9 |
 
 ## Damage types and resistances
 Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each enemy type has resistances (`E[type].rs`, the share of that type's damage it shrugs off). `dmul(e,k)` in js/09-game.js applies them to every hit, including poison and each jump of the lightning chain.
@@ -67,12 +69,20 @@ Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each en
 | Wolf rider | – | – | – | – |
 | Black knight | −50% | – | – | – |
 | Dragon | – | – | −50% | – |
+| Shieldbearer | −75% from Archers and the Ballista when hit from the front | – | – | – |
+| Shaman | – | – | – | – |
 
 Damage numbers are red for a full hit, **grey** when the enemy resisted part of it, and **pale gold** when the Ballista pierced armour. The next-wave preview has a line listing the coming enemies' resistances (hover an enemy icon for the same). Knights were cut from 2.6× to 1.8× health when they got their armour: against physical damage they are as tough as a 3.6× enemy, against everything else weaker than before.
 
 **Simulator check** (`--keep-going`, lives lost before → after): `level1-example` (mostly physical, one Ballista, two Storm Towers) 11 → 12, `level1-physical` (Archers and Catapults only) 7 → 12, `level1-mixed` 8 → 8, `level4-mixed` 72 → 68. A one-sided physical build is punished, a mixed one is unchanged or better.
 
-Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon.
+**Shieldbearer:** its tower shield blocks `shd` = 75% of an Archer arrow's or Ballista bolt's damage when the shot comes at its front: the shot's direction of travel is within about 70° of head-on to the way it is walking (`shBlk()` in js/09-game.js). Shots from the side or behind, Catapult boulders (they come down from above) and all magic, poison and lightning damage go around it. A blocked hit gives sparks, a clang and a grey number. The Ballista pierces armour but not the shield.
+
+**Goblin Shaman:** every 4 s (`HEAL.cd`, the first pulse 1.5 s after it appears) it sends out a green pulse that heals every other living enemy within 75 (`HEAL.r`, 1.25 tiles) by `hl` = 3% of that enemy's max health (Dragons by a third of that). It doesn't heal itself, and healing never goes above max health. Healed enemies show a green +number.
+
+Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon. From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot, and the Shaman wins a slot both would take).
+
+**Simulator check for the new enemies** (`--keep-going`, lives lost after the armour change → with Shieldbearers and Shamans): `level1-example` 12 → 9, `level1-physical` 12 → 14, `level1-mixed` 8 → 13, `level4-mixed` 68 → 84 (defeat on wave 18 instead of 19). All the Level 1 runs still win; the extra losses fall in waves 18–20, where the reference layouts stop building and sit on 1000+ unspent gold. A first try that healed 8% every 3 s lost the mixed run on wave 20, so the heal was cut to 3% every 4 s and the Shieldbearer's health from 1.6× to 1.4×.
 
 ## Ending scenes
 - Victory: the camera sweeps over the castle and fireworks go off.

@@ -1,9 +1,9 @@
 // ---------- UI ----------
 const DS={arrow:'Fires at 1, 2 or 3 enemies at once, depending on its level.',cannon:'Hurls boulders that hit everything in an area and slow enemies for 1 second.',frost:'Teleports enemies back down the road, starting with the one closest to the castle. Bosses resist.',ballista:'Huge range and hits hard, piercing armour. Goes for the toughest enemy unless you tell it otherwise.',storm:'Chain lightning strikes 5, 6 or 7 enemies and stuns them for a moment. Lightning ignores armour.',alch:'Lobs poison flasks that deal damage over time in an area.',banner:'Nearby towers deal +20% damage.',vault:'Earns gold at the end of every wave.'};
 const ROLE={arrow:'Multi-shot',cannon:'Area · Slow',frost:'Control',ballista:'Sniper',storm:'Chain',alch:'Poison · Area',banner:'Support',vault:'Economy'};
-const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon']};
-// an enemy type's resistances as text, e.g. "−50% physical" (E[type].rs, see DTY in js/01-config.js)
-const resTxt=t=>Object.keys(E[t].rs).map(d=>(E[t].rs[d]>0?'−':'+')+Math.round(Math.abs(E[t].rs[d])*100)+'% '+DTY[d][0].toLowerCase()).join(', ');
+const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon'],guard:['🧱','Shieldbearers','shields stop arrows from the front'],shaman:['🧙','Shamans','heal nearby enemies']};
+// an enemy type's resistances (E[type].rs, see DTY in js/01-config.js) and special ability (FOE[type][2]) as text, e.g. "−50% physical"
+const resTxt=t=>Object.keys(E[t].rs).map(d=>(E[t].rs[d]>0?'−':'+')+Math.round(Math.abs(E[t].rs[d])*100)+'% '+DTY[d][0].toLowerCase()).concat(FOE[t][2]||[]).join(', ');
 let offMsg=0,hov=null;const TK=Object.keys(T),TC2={arrow:'#5cd17a',cannon:'#d98a3c',frost:'#9a6bff',ballista:'#e8e8e8',storm:'#4fd0ff',alch:'#9cff4a',banner:'#ff5a5a',vault:'#ffd24a'};
 const COIN='<svg><use href="#i-coin"/></svg>',setH=(el,h)=>{if(el._h!==h){el._h=h;el.innerHTML=h;}};
 const fmt=v=>v<10?v.toFixed(1).replace(/\.0$/,''):''+Math.round(v),tiles=r=>(r/60).toFixed(1);
@@ -46,8 +46,8 @@ eb>0?'<span class="t">Call wave '+(g.wave+1)+' early</span><span class="s"><b cl
 '<span class="t">Start wave '+(g.wave+1)+'</span><span class="s">'+foes(waveMix(g.wave+1))+'</span>');
 if(g.wave<MAXW&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
 const rz=Object.keys(n).filter(t=>resTxt(t));
-setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(t=='boss'?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · resists: '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
-(rz.length?'<span class="rz">'+rz.map(t=>'<span title="'+FOE[t][1]+' resist this damage">'+FOE[t][0]+' '+resTxt(t)+'</span>').join('')+'</span>':''));}
+setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(t=='boss'?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
+(rz.length?'<span class="rz">'+rz.map(t=>'<span title="'+FOE[t][1]+'">'+FOE[t][0]+' '+resTxt(t)+'</span>').join('')+'</span>':''));}
 else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave:'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s==g.spd));
 const pz=!!g.pause&&!g.over;$('pz').classList.toggle('on',pz);setH($('pz'),'<svg><use href="#i-'+(pz?'play':'pause')+'"/></svg>');$('pz').title=pz?'Resume (P)':'Pause (P)';$('pov').classList.toggle('on',pz&&!MENU.open);if(AU.pz!==pz){AU.pz=pz;auPause(pz);}

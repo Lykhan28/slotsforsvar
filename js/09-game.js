@@ -3,7 +3,8 @@ let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying])sc.remove(a.m);
 g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
 // enemy types of wave w in spawn order (the UI previews the next wave with this too)
-function waveMix(w){const n=5+w*2,q=[];for(let i=0;i<n;i++)q.push(w%5==0&&i==n-1?'boss':w>4&&i%5==4?'tank':w>2&&i%3==2?'fast':'norm');return q;}
+// from wave 8 Shieldbearers (guard), from wave 10 Shamans take some of the goblins' places
+function waveMix(w){const n=5+w*2,q=[];for(let i=0;i<n;i++)q.push(w%5==0&&i==n-1?'boss':w>4&&i%5==4?'tank':w>9&&i%11==6?'shaman':w>7&&i%7==3?'guard':w>2&&i%3==2?'fast':'norm');return q;}
 // the break between waves lasts BRK s of game time (g.brk counts up; it doesn't run before wave 1). Calling the next wave early pays
 // earlyBonus() gold for the time left; with auto-start on (autoW, a menu setting) the wave starts by itself when the break is over
 const BRK=25;let autoW=false;
@@ -12,7 +13,7 @@ function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;g.wt=0;g.q=waveMix(g.wave).map((type,i)=>({t:i*.8,type,p:i%PATHS.length}));ui();}
 // each breach has its own road (PATHS); the wave alternates between them
 function spawn(type,pi){if(type=='boss')snd('roar');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp,o=buildEnemy(type),R=PATHS[pi||0];o.m.scale.setScalar(.01);
-g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0}[type],age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig});}
+g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38}[type],hlr:1.5,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig});}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
 // targeting modes: a tower shoots the enemy in range with the highest tscore(); t.tm is the player's choice, else the tower type's default (T[k].tm), else First
@@ -23,11 +24,13 @@ const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m==
 const stat=t=>({d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1),r:T[t.k].r+10*(t.l-1),f:T[t.k].f});
 // damage multiplier for tower type k hitting enemy e (its resistance to the tower's damage type; the Ballista pierces physical armour)
 const dmul=(e,k)=>{const t=T[k].dt;return t=='phys'&&T[k].pr?1:1-(e.rs[t]||0);};
+// Shieldbearer: an Archer arrow or Ballista bolt flying at its front (within ~70° of head-on; dx,dy = the shot's travel direction) loses e.shd of its damage
+const shBlk=(e,k,dx,dy)=>{if(!e.shd||(k!='arrow'&&k!='ballista'))return 1;const L=Math.hypot(dx,dy);return L>0&&-(dx*Math.sin(e.dir)+dy*Math.cos(e.dir))/L>.34?1-e.shd:1;};
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;if(e.pt>0){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
+for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;if(e.hl){e.hlr-=dt;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.pt>0){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
 if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.type=='boss'?5:1;}}
@@ -37,13 +40,17 @@ if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tf
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0){b.dead=1;continue;}
 const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
 if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');for(const o of g.en)if(Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch'));o.hit=.15;}fx(e.x,e.y,0x7cff4a,.1,.75,.5,.1,true);burst(e.x,e.y,0x7cff4a,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');for(const o of g.en)if(Math.hypot(o.x-e.x,o.y-e.y)<=T.cannon.sp){const dd=b.d*dmul(o,'cannon');o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);}
-else{const dd=b.d*dmul(e,b.k);e.hp-=dd;hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y);if(b.k=='frost')banish(e,b.l);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
+else{const dd=b.d*dmul(e,b.k)*shBlk(e,b.k,e.x-b.x,e.y-b.y);e.hp-=dd;hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y);if(b.k=='frost')banish(e,b.l);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
 for(const e of g.en)if(e.hp<=0){if(e.leak)sc.remove(e.m);else{g.gold+=e.rw;snd('coin');popText(e.x,e.y,'+'+e.rw,'#ffd24a');burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);}}
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
 if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
+// Shaman: every HEAL.cd s a green pulse heals the other enemies within HEAL.r by e.hl of their max health (bosses a third of that)
+const HEAL={r:75,cd:4};
+function heal(e){if(e.hp<=0)return;healFx(e);
+for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)>HEAL.r)continue;const a=Math.min(o.max-o.hp,o.max*e.hl*(o.type=='boss'?.34:1));o.hp+=a;healFx(o,a);}}
 // Wizard: teleport an enemy back along the road (bosses resist), then it is immune for 4 s
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.type=='boss'?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}

@@ -62,7 +62,7 @@ Add an optional auto-start for waves (setting in the menu) with a countdown, and
 Introduce damage types (physical, magic, fire/poison, lightning) for towers and armour/resistances for enemies. The Black Knight should resist physical damage, the Ballista should pierce armour, and Storm should ignore armour. Show resistances in the next-wave preview and the damage numbers (e.g. grey for resisted). Update GAME_DESIGN.md with a damage-type table and check the balance with the simulator.
 ```
 
-- [ ] **10. Shieldbearer and Shaman**
+- [x] **10. Shieldbearer and Shaman**
 ```text
 Add two new enemies in the existing code-built style (see the enemy notes in CLAUDE.md – bakeE, rig names, no material swaps): a Shieldbearer whose tower shield blocks most frontal arrow/ballista damage, and a goblin Shaman who heals nearby enemies with a visible green pulse. Add them to waveMix from mid-game waves.
 ```

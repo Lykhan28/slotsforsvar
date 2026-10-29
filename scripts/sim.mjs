@@ -73,7 +73,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: noop }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop,
+  sc: { add: noop, remove: noop }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
