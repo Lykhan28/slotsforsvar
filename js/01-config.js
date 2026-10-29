@@ -59,7 +59,9 @@ const E={norm:{s:50,h:1,rw:5,r:11,col:0x7ed957,rs:{}},fast:{s:90,h:.6,rw:5,r:9,c
 // shd = share of Archer/Ballista damage the Shieldbearer's tower shield blocks from the front (shBlk() in js/09-game.js); hl = the Shaman's heal per pulse (heal())
 guard:{s:40,h:1.4,rw:8,r:12,col:0x9a7a4a,rs:{},shd:.75},
 // fy = flies at that height, straight from its breach to the gate (FPATHS), and only towers with air can hit it
-bat:{s:60,h:.6,rw:5,r:10,col:0x5a3a40,rs:{},fy:1.05},shaman:{s:45,h:.9,rw:9,r:11,col:0x7cff4a,rs:{},hl:.03}};
+bat:{s:60,h:.6,rw:5,r:10,col:0x5a3a40,rs:{},fy:1.05},
+// sap = Sapper: runs at a tower near the road and blows up, stunning it (sapMove() in js/09-game.js); spl = Troll: splits into that many goblins when killed (trollSplit())
+sapper:{s:65,h:.7,rw:6,r:10,col:0x71903c,rs:{},sap:1},troll:{s:30,h:2,rw:12,r:16,col:0x7d8a6a,rs:{},spl:2},shaman:{s:45,h:.9,rw:9,r:11,col:0x7cff4a,rs:{},hl:.03}};
 const P={st:0xece5d6,st2:0xd2c8b4,st3:0xf7f2e6,wd:0xc98a4b,wd2:0x8a5a2e,rd:0xe8483c,bl:0x3f86e0,pu:0x9a5be0,gd:0xffc93c,gr:0x7ed957};
 // game coords (pixels, origin at the board's top-left) → world; cell → world centre; HX/HZ = wall lines
 const wx=x=>(x-W*S/2)/S,wz=y=>(y-H*S/2)/S,cx=c=>c-(W-1)/2,cz=r=>r-(H-1)/2,HX=W/2+.17,HZ=H/2+.17;

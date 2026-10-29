@@ -51,6 +51,8 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 | Shieldbearer (guard) | 40 | 1.4 | 8 |
 | Goblin Shaman (shaman) | 45 | 0.9 | 9 |
 | Bat swarm (bat, flying) | 60 | 0.6 | 5 |
+| Goblin Sapper (sapper) | 65 | 0.7 | 6 (none if it blows up) |
+| Troll (troll) | 30 | 2.0 | 12 |
 
 ## Damage types and resistances
 Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each enemy type has resistances (`E[type].rs`, the share of that type's damage it shrugs off). `dmul(e,k)` in js/09-game.js applies them to every hit, including poison and each jump of the lightning chain.
@@ -73,8 +75,9 @@ Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each en
 | Shieldbearer | −75% from Archers and the Ballista when hit from the front | – | – | – |
 | Shaman | – | – | – | – |
 | Bat swarm | flying: Catapult can't hit it | – | flying: Alchemist can't hit it | – |
+| Sapper, Troll | – | – | – | – |
 
-Damage numbers are red for a full hit, **grey** when the enemy resisted part of it, and **pale gold** when the Ballista pierced armour. The next-wave preview has a line listing the coming enemies' resistances (hover an enemy icon for the same). Knights were cut from 2.6× to 1.8× health when they got their armour: against physical damage they are as tough as a 3.6× enemy, against everything else weaker than before.
+Damage numbers are red for a full hit, **grey** when the enemy resisted part of it, and **pale gold** when the Ballista pierced armour. The next-wave preview has a line listing the coming enemies' resistances, plus what an enemy type does on the wave it first appears (not if it was in the previous wave); hovering an enemy icon shows all of it. Knights were cut from 2.6× to 1.8× health when they got their armour: against physical damage they are as tough as a 3.6× enemy, against everything else weaker than before.
 
 **Simulator check** (`--keep-going`, lives lost before → after): `level1-example` (mostly physical, one Ballista, two Storm Towers) 11 → 12, `level1-physical` (Archers and Catapults only) 7 → 12, `level1-mixed` 8 → 8, `level4-mixed` 72 → 68. A one-sided physical build is punished, a mixed one is unchanged or better.
 
@@ -82,9 +85,15 @@ Damage numbers are red for a full hit, **grey** when the enemy resisted part of 
 
 **Flying enemies (Bat swarm):** an enemy with `fy` (its flying height) ignores the road and flies in a straight line from where its breach's road starts to where the road ends at the gate (`FPATHS` in js/01-config.js, one per breach, so on levels 7–8 they come from both breaches). On Greenmeadow the flight is 836 long against 1920 for the road (44%). Only towers with `air` can target it: **Archers, Ballista, Wizard and Storm Tower** (the Wizard banishes it back along its flight line, and Storm chains reach it). Catapult boulders and Alchemist flasks never target it, and their splash and poison skip it. Reaching the gate costs one life. The tower inspector shows "🦇 Hits flyers" or "Ground only" on every attacking tower.
 
+**Goblin Sapper:** carries a lit bomb overhead. As soon as a tower (any kind) is within 90 (`SAP.r`, 1.5 tiles) of it and isn't already stunned or targeted by another living Sapper, it leaves the road, runs at it 40% faster and blows up within 22 of it. That tower is **stunned for 4 s** (`SAP.st`): it doesn't shoot (its reload is frozen), a stunned Banner Tower gives no boost, and stars circle it. The Sapper is gone (no gold, no life lost). If the tower is sold first, the Sapper walks back to where it left the road and carries on. Killed on the way, it pays its gold and the bomb fizzles. Logic in `sapMove()` (js/09-game.js); tower stun is `t.stun` (not saved – it only happens mid-wave).
+
+**Troll:** slow and tough, with a basket of two goblins on its back. When killed (not when it leaks) it pays 12 gold and `spl` = 2 goblins jump out where it fell, each with **half** the normal goblin health for that wave, and carry on along its road (`trollSplit()`). Killing it near the gate is risky.
+
 **Goblin Shaman:** every 4 s (`HEAL.cd`, the first pulse 1.5 s after it appears) it sends out a green pulse that heals every other living enemy within 75 (`HEAL.r`, 1.25 tiles) by `hl` = 3% of that enemy's max health (Dragons by a third of that). It doesn't heal itself, and healing never goes above max health. Healed enemies show a green +number.
 
-Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon. From wave 6 every 6th enemy (positions 2, 8, 14, …) is a bat swarm. From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot; when two of them would take the same slot, the Shaman wins over the Shieldbearer and both win over a bat swarm).
+Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon. From wave 6 every 6th enemy (positions 2, 8, 14, …) is a bat swarm. From wave 9 every 8th (positions 6, 14, 22, …) is a Sapper, and from wave 12 every 17th (positions 11, 28, 45) is a Troll. From wave 8 every 7th enemy (positions 4, 11, 18, …) is a Shieldbearer, and from wave 10 every 11th (positions 7, 18, 29, …) is a Shaman, both instead of a goblin or wolf rider (a knight keeps its slot; when two of them would take the same slot the order is Troll, Shaman, Shieldbearer, Sapper, bat swarm).
+
+**Simulator check for Sappers and Trolls** (`--keep-going`, lives lost after bats → with both): `level1-example` 12 → 19, `level1-physical` 15 → 16, `level1-mixed` 7 → 11, `level4-mixed` 73 → 79 (defeat on wave 18 instead of 19). All Level 1 runs still win, but `level1-example` only just; it ends with ~1900 unspent gold, and adding six steps with it (Archers and a Storm Tower at 6,4 / 8,4, both upgraded to 3) brings it down to 5 lives lost. Trolls were the hard part: at 3× health with full-strength goblins, three per wave from wave 12, two Level 1 runs lost on wave 20, and lowering only their health barely helped – fewer Trolls (every 17th) and half-health goblins did. The Sapper's stun barely moved the numbers (4 s vs 2.5 s ≈ the same).
 
 **Simulator check for bat swarms** (`--keep-going`, lives lost before → after): `level1-example` 9 → 12, `level1-physical` 14 → 15, `level1-mixed` 13 → 7, `level4-mixed` 84 → 73 (defeat on wave 19 instead of 18). Bat health is very sensitive: at 0.5× the swarms were free gold, at 0.8× `level1-example` lost on wave 20, at 1.0× with speed 70 two of the Level 1 runs did. 0.6× keeps the overall difficulty about where it was. The reference layouts all have Archers and Storm Towers on the board centre, which the flight line crosses; a Catapult/Alchemist-heavy build would suffer more.
 

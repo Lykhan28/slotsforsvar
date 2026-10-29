@@ -73,7 +73,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: noop }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop,
+  sc: { add: noop, remove: noop }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
@@ -210,7 +210,7 @@ if (opt.json) { console.log(JSON.stringify(result, null, 2)); process.exit(0); }
 
 // ---------- report ----------
 const pad = (v, n) => String(v).padStart(n);
-const mixS = m => Object.entries(m).map(([k, n]) => n + (k == 'bat' ? 'v' : k[0])).join(' '); // v = bats (b is the boss)
+const mixS = m => Object.entries(m).map(([k, n]) => n + ({ bat: 'v', sapper: 'p', troll: 'r' }[k] || k[0])).join(' '); // v = bats, p = sappers, r = trolls (b, s, t are taken)
 console.log(`Level ${level}: ${LV.n}   start gold ${LV.gold}, enemy health ×${LV.hp}${opt.keep ? '   (--keep-going: defeat ignored)' : ''}`);
 console.log('\nwave  enemies         gold before  income  spent  gold after  lives  lost  towers   time');
 for (const r of waves) console.log(`${pad(r.wave, 4)}  ${mixS(r.mix).padEnd(15)} ${pad(r.goldStart, 11)} ${pad('+' + r.income, 7)} ${pad(r.spent ? -r.spent : 0, 6)} ${pad(r.goldEnd, 10)} ${pad(r.lifeEnd, 6)} ${pad(r.lost || '', 5)} ${pad(r.towers, 7)} ${pad(r.seconds + 's', 6)}`);

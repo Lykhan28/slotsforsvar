@@ -50,6 +50,8 @@ die_tank(){const t=T0();[820,1230,1900].forEach((f,i)=>voice('sine',f*rr(),t,.00
 die_guard(){const t=T0();voice('sawtooth',560*rr(),t,.005,.3,.09,1600,DS2(),.1).frequency.exponentialRampToValueAtTime(150,t+.3);nzs(t+.1,.25,'bandpass',1800,600,.2,DS2(),.1);},
 die_shaman(){const t=T0();voice('triangle',880*rr(),t,.01,.5,.08,3000,DS2(),.4).frequency.exponentialRampToValueAtTime(220,t+.5);nzs(t+.15,.1,'lowpass',500,200,.2,DS2(),0);},
 die_bat(){const t=T0();for(let i=0;i<3;i++)voice('sine',2600*rr(),t+i*.05,.002,.06,.05,9000,DS2(),.2).frequency.exponentialRampToValueAtTime(1400,t+i*.05+.06);},
+die_sapper(){const t=T0();voice('sawtooth',700*rr(),t,.005,.22,.08,1800,DS2(),.1).frequency.exponentialRampToValueAtTime(200,t+.22);nzs(t,.3,'highpass',3000,1500,.08,DS2(),.1);},
+die_troll(){const t=T0();voice('sawtooth',90*rr(),t,.03,.8,.3,600,DS2(),.3).frequency.exponentialRampToValueAtTime(45,t+.8);nzs(t+.3,.4,'lowpass',400,100,.3,DS2(),.1);},
 block(){const t=T0();[1250,1880].forEach((f,i)=>voice('sine',f*rr(),t,.001,.18-i*.05,.08,6000,DS2(),.15));nzs(t,.06,'highpass',2500,1500,.15,DS2(),.05);},
 heal(){const t=T0();[523,659,784].forEach((f,i)=>voice('triangle',f*rr(),t+i*.06,.02,.35,.05,3000,DS2(),.5));},
 die_boss(){const t=T0();voice('sawtooth',130,t,.04,1.4,.3,700,DS2(),.35).frequency.exponentialRampToValueAtTime(38,t+1.3);nzs(t,1.2,'lowpass',900,60,.45,DS2(),.4);voice('sine',60,t,.01,1,.5,200,DS2(),.1);},

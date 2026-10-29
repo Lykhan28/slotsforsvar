@@ -72,7 +72,7 @@ Add two new enemies in the existing code-built style (see the enemy notes in CLA
 Add a flying enemy (bat swarm or small wyvern) that flies straight from the breach to the gate, ignoring the road. Only Archers, Ballista, Storm and Wizard can hit flyers (not Catapult or Alchemist). Show this in the tower inspector and the next-wave preview.
 ```
 
-- [ ] **12. Sapper and Troll**
+- [x] **12. Sapper and Troll**
 ```text
 Add two enemies: a goblin Sapper that runs to the nearest tower near the road and blows up, stunning it for a few seconds, and a Troll that splits into two goblins when it dies. Make both readable at a glance (Sapper carries a lit bomb).
 ```
