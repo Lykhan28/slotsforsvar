@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Your progress is saved:** the game now remembers your run between waves. If you refresh the page, close the tab or quit, choose **Continue** in the menu to pick up where you left off, at the start of the next wave. The level list shows which levels have a run in progress.
+- **Restart level:** the menu has a new **Restart level** button (click it twice, so you can't lose a run by accident), and the victory and defeat screens now offer **Restart level** too.
 - **Project housekeeping:** added a balance simulator that plays through a level with a given set of towers in a few seconds, so future changes to difficulty can be tested properly before they reach you.
 - **Works offline:** the game no longer needs to fetch its 3D engine from the internet when it starts, so it loads faster and keeps working on a shaky connection or with no connection at all (when run locally).
 - **Project housekeeping:** added a roadmap of planned features (new enemies, upgrade paths, pause and game speed, spells, stars and more) to guide future updates.

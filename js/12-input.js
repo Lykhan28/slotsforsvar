@@ -3,9 +3,11 @@ const ray=new THREE.Raycaster(),pl=new THREE.Plane(new THREE.Vector3(0,1,0),0),p
 function cellAt(ev){const r=C.getBoundingClientRect();nd.set((ev.clientX-r.left)/r.width*2-1,-((ev.clientY-r.top)/r.height)*2+1);ray.setFromCamera(nd,cam);
 if(!ray.ray.intersectPlane(pl,pt))return null;return{c:Math.floor(pt.x+W/2),r:Math.floor(pt.z+H/2)};}
 const free=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&!road.has(c+','+r)&&!blk.has(c+','+r)&&!g.tw.some(t=>t.c==c&&t.r==r);
+// put a tower on the board (also used to restore a saved run)
+function addTw(k,c,r,l,inv){const t={k,c,r,x:c*S+S/2,y:r*S+S/2,l,cd:0,inv};buildTower(t);g.tw.push(t);return t;}
 function tap(ev){if(g.over)return;const k=cellAt(ev);if(!k)return;const ex=g.tw.find(t=>t.c==k.c&&t.r==k.r);
 if(ex){g.sel=g.sel===ex?null:ex;selRng();ui();return;}
-g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c){g.gold-=T[g.build].c;const t={k:g.build,c:k.c,r:k.r,x:k.c*S+S/2,y:k.r*S+S/2,l:1,cd:0,inv:T[g.build].c};buildTower(t);g.tw.push(t);snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
+g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
 selRng();ui();}
 function hover(ev){if(ev.pointerType!='mouse'||g.sel)return;const k=cellAt(ev);
 if(k&&free(k.c,k.r))showRng(cx(k.c),cz(k.r),T[g.build].r/60,g.gold>=T[g.build].c?0xffffff:0xff6666);else rng.visible=false;}

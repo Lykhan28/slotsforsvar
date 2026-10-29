@@ -158,7 +158,7 @@ function doSteps(inBreak) {
     if (!run('free')(st.c, st.r)) { warn.push(`"${st.s}": cell is not buildable (road, blocked, taken or off the board) – skipped`); pc++; continue; }
     const c = T[st.k].c; if (G.gold < c) return;
     G.gold -= c; spent += c;
-    // same tower object as tap() in js/12-input.js; head stands in for the 3D model (bullets start from its height)
+    // same tower object as addTw() in js/12-input.js; head stands in for the 3D model (bullets start from its height)
     G.tw.push({ k: st.k, c: st.c, r: st.r, x: st.c * 60 + 30, y: st.r * 60 + 30, l: 1, cd: 0, inv: c, head: { position: { y: 0 } } });
     log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++;
   }

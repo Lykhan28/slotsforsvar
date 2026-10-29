@@ -6,7 +6,7 @@ Up to date as of version 0.1.0 plus levels. The numbers live in `js/01-config.js
 Defend the castle through 20 waves on each of 8 levels. Enemies pour in through a breach in the wall and march along the road to the castle gate. Every enemy that gets through costs a life (a boss costs 5). You start with 20 lives and 120 gold.
 
 ## Levels
-Each level is a walled board with the same castle outside one of its walls. Winning a level unlocks the next; any unlocked level can be replayed from Levels in the menu.
+Each level is a walled board with the same castle outside one of its walls. Winning a level unlocks the next; any unlocked level can be replayed from Levels in the menu. A run is saved during every break between waves, so closing or refreshing the page and choosing Continue picks it up at the start of the next wave (a refresh mid-wave replays that wave from its start). Each level keeps its own saved run; winning, losing or Restart level (menu, end screen) ends it.
 
 | # | Level | Land | Board | Breaches → castle | Blocked tiles | Start gold | Enemy health |
 |---|---|---|---|---|---|---|---|

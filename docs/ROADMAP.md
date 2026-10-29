@@ -23,7 +23,7 @@ Vendor three.js r128 and the post-processing scripts into a vendor/ folder so th
 Build a headless balance simulator (Node script, e.g. npm run sim) that runs the game logic from js/09-game.js without rendering. Given a level and a tower layout, it should play all 20 waves and report lives lost, gold over time and which wave the run failed on. Document how to use it in CLAUDE.md, because future balance changes should be checked with it.
 ```
 
-- [ ] **3. Save and restart**
+- [x] **3. Save and restart**
 ```text
 Save the game state to localStorage between waves so a page refresh can resume the run (offer "Continue" in the main menu). Also add a "Restart level" button to the end screen and the in-game menu.
 ```
