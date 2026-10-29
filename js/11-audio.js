@@ -61,6 +61,8 @@ die_necro(){const t=T0(),o=voice('triangle',440*rr(),t,.02,1.1,.12,2500,DS2(),.6
 die_skel(){const t=T0();for(let i=0;i<6;i++)nzs(t+i*.045+rnd(0,.02),.04,'bandpass',2200+rnd(0,1500),800,.18,DS2(),.05,4);},
 summon(){const t=T0();[392,523,659].forEach((f,i)=>voice('sawtooth',f,t+i*.1,.01,.28,.07,1800,DS2(),.4));},
 raise(){const t=T0(),o=voice('sine',110,t,.1,.9,.2,800,DS2(),.6);o.frequency.exponentialRampToValueAtTime(220,t+.8);nzs(t,.6,'bandpass',600,300,.12,DS2(),.5,2);},
+h_barracks(){const t=T0();nzs(t,.05,'highpass',3000,1800,.16,DS2(),.04);voice('triangle',900*rr(),t,.001,.09,.07,5000,DS2(),.1).frequency.exponentialRampToValueAtTime(600,t+.09);},
+die_sol(){const t=T0();nzs(t,.18,'lowpass',700,250,.22,DS2(),.05);voice('square',240*rr(),t,.003,.2,.06,1200,DS2(),.05).frequency.exponentialRampToValueAtTime(90,t+.2);},
 block(){const t=T0();[1250,1880].forEach((f,i)=>voice('sine',f*rr(),t,.001,.18-i*.05,.08,6000,DS2(),.15));nzs(t,.06,'highpass',2500,1500,.15,DS2(),.05);},
 heal(){const t=T0();[523,659,784].forEach((f,i)=>voice('triangle',f*rr(),t+i*.06,.02,.35,.05,3000,DS2(),.5));},
 die_boss(){const t=T0();voice('sawtooth',130,t,.04,1.4,.3,700,DS2(),.35).frequency.exponentialRampToValueAtTime(38,t+1.3);nzs(t,1.2,'lowpass',900,60,.45,DS2(),.4);voice('sine',60,t,.01,1,.5,200,DS2(),.1);},

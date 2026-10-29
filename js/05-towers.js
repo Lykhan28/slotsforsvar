@@ -8,8 +8,8 @@ function seg(p,c,a,b,r){const d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];return eBone(p,c
 // a ring lying flat (torus), optionally glowing
 function ring(p,c,r,y,th,e,x,z){const m=eM(p,TORL,c,x||0,y,z||0,PI/2,0,0,e);m.scale.set(r,r,th||r);return m;}
 // a little crewman: tunic colour tun, hood colour hat (0x9aa3b0 = an iron kettle hat instead); bow=true draws a bow with an arrow nocked and a quiver on the back,
-// bow=2 a tall longbow, bow=3 a crossbow held level (no quiver)
-function chibi(h,x,z,tun,hat,bow){const xb=bow==3;const sk=0xffd9b0,lt=0x45301d,dk=0x2a1a10,G=new THREE.Group();G.position.set(x,0,z);h.add(G);
+// bow=2 a tall longbow, bow=3 a crossbow held level (no quiver), bow=4 a Barracks soldier: a sword in the right hand on its own pivot 'SW' (swung by solSync()) and a round shield of colour sh
+function chibi(h,x,z,tun,hat,bow,sh){const xb=bow==3,sd=bow==4;if(sd)bow=false;const sk=0xffd9b0,lt=0x45301d,dk=0x2a1a10,G=new THREE.Group();G.position.set(x,0,z);h.add(G);
 for(const k of[-1,1]){eM(G,capG(.016,.019,.075,8),0x3a3a48,k*.026,.115,0);eM(G,rboxG(.036,.032,.064,.012),lt,k*.026,.017,.008);}
 eM(G,lathG([[0,.095],[.058,.1],[.054,.15],[.047,.2],[.038,.245],[0,.256]],12),tun,0,0,0);eM(G,rboxG(.05,.1,.008,.003),hat,0,.18,.046,-.1);
 ring(G,lt,.053,.14,.06);eM(G,rboxG(.018,.016,.008,.003),0xffc93c,0,.14,.055);
@@ -20,7 +20,9 @@ for(const k of[-1,1]){eSp(G,0xffffff,.011,.009,.006,k*.02,.326,.041);eSp(G,0x1b1
 eSp(G,0xf0c090,.009,.01,.01,0,.314,.05);eM(G,rboxG(.014,.004,.005,.0015),0x7a3030,0,.296,.044);
 if(hat==0x9aa3b0){eM(G,domG(.054,.5),hat,0,.33,-.004);eM(G,lathG([[.082,.326],[.08,.334],[.052,.338]],14),hat,0,0,0);}
 else{eSp(G,hat,.054,.045,.054,0,.34,-.006);horn(G,hat,0,.37,-.02,.032,.1,3,PI-.35,0,-.35,0);eM(G,rboxG(.006,.045,.02,.002),0xb3202a,.035,.37,-.02,0,0,-.5);}
-if(xb){eM(G,rboxG(.032,.03,.22,.006),P.wd2,0,.19,.12);eM(G,rboxG(.02,.012,.16,.003),0x2b3342,0,.21,.13);part(G,'arc',0x5a5a68,.1,.06,.1,0,.2,.2).rotation.x=PI/2;
+if(sd){const sw=new THREE.Group();sw.name='SW';sw.userData.keep=true;sw.position.set(.062,.128,.022);G.add(sw);eCy(sw,0x45301d,.008,.04,0,0,0);eM(sw,rboxG(.06,.012,.016,.004),P.gd,0,.025,0);eM(sw,rboxG(.018,.15,.006,.003),0xdfe6ee,0,.105,0);eCnD(sw,0xdfe6ee,.009,.025,0,.19,0,0,1,0);
+eM(G,eg('shld',()=>new THREE.CylinderGeometry(.055,.055,.014,14)),sh||P.rd,-.075,.15,.04,PI/2,0,0);eSp(G,P.gd,.015,.015,.01,-.075,.15,.05);}
+else if(xb){eM(G,rboxG(.032,.03,.22,.006),P.wd2,0,.19,.12);eM(G,rboxG(.02,.012,.16,.003),0x2b3342,0,.21,.13);part(G,'arc',0x5a5a68,.1,.06,.1,0,.2,.2).rotation.x=PI/2;
 eCy(G,0xf0e6c8,.003,.2,0,.2,.2,0,0,PI/2);eCnD(G,0xdfe6ee,.012,.04,0,.22,.27,0,0,1);}
 else if(bow){const L=bow==2?1.5:1,bw=new THREE.Group();bw.rotation.y=-PI/2;bw.position.set(0,.19,.16);bw.scale.set(1,L,1);part(bw,'arc',P.wd2,.16,.16,.16,0,0,0).rotation.z=-PI/2;G.add(bw);
 eCy(G,0xf0e6c8,.003,.32*L,0,.19,.16);eCy(G,P.wd2,.005,.2,0,.19,.18,PI/2);eCnD(G,0xdfe6ee,.012,.04,0,.19,.3,0,0,1);
@@ -168,6 +170,18 @@ for(const k of[-1,1])eM(g,rboxG(.016,.24,.008,.003),0xb8c0c8,k*.04,BH+.32,R(.1)+
 h.position.y=y+.4;const sp=new THREE.Group();sp.userData.keep=true;h.add(sp);t.spin=sp;grp.push(sp);part(sp,'cyl',P.gd,.12,.025,.12,0,0,0,0x885500).rotation.x=PI/2;part(sp,'cyl',0xffe27a,.08,.03,.08,0,0,0,0xaa7700).rotation.x=PI/2;
 eM(sp,shpG('crown',[[-.04,-.02],[.04,-.02],[.05,.03],[.025,.01],[0,.04],[-.025,.01],[-.05,.03]],.04,.004),P.gd,0,0,0,0,0,0,0x885500);glow(h,0,0,0,.8,0xffd24a);
 if(l>=2)t.flag=flag(g,-.32,BH+.1,0,b==0?0x2a4a9a:b==1?0x6a1a1a:P.gd,.8);}
+else if(t.k=='barracks'){// barracks: a stone guardhouse with a timber-framed upper storey and a red tiled roof, a wide door, shields on the walls,
+// a rack of spears, a training dummy and a sergeant on the step; the soldiers themselves are separate models (solSync() in js/07-enemies.js)
+const a=.42*hs,y=BH+a,R=shaft(g,.38,a,P.st,0);part(g,'cyl',ac,.36,.05,.36,0,BH+a*.55,0);door(g,.38);
+part(g,'cyl',0xe8dcc0,.37,.24,.37,0,y+.12,0);for(let i=0;i<8;i++){const an=i/8*2*PI+PI/8;eM(g,rboxG(.035,.25,.02,.004),P.wd2,.375*Math.sin(an),y+.12,.375*Math.cos(an),0,an,0);
+eM(g,rboxG(.025,.3,.016,.003),P.wd2,.375*Math.sin(an+PI/8),y+.12,.375*Math.cos(an+PI/8),0,an+PI/8,i%2?.7:-.7);}
+for(const an of[0,PI/2,-PI/2])win(g,.38*Math.sin(an),y+.12,.38*Math.cos(an),.05,.09,an,0xfff0a0,0xffd24a);
+part(g,'cyl',P.wd2,.42,.03,.42,0,y+.245,0);part(g,'cone',RF(P.rd),.47,.42,.47,0,y+.47,0);eSp(g,P.gd,.03,.03,.03,0,y+.7,0,0x886600);
+for(const an of[PI*.3,-PI*.3]){const x=(R(.5)+.02)*Math.sin(an),z=(R(.5)+.02)*Math.cos(an);eM(g,eg('shld',()=>new THREE.CylinderGeometry(.055,.055,.014,14)),ac,x,BH+a*.55,z).quaternion.setFromUnitVectors(YUP,new THREE.Vector3(Math.sin(an),0,Math.cos(an)));
+eSp(g,P.gd,.014,.014,.01,x*1.04,BH+a*.55,z*1.04);for(const k of[-1,1])eM(g,rboxG(.012,.16,.006,.002),0xdfe6ee,x*1.06,BH+a*.55,z*1.06,0,an,k*.8);}
+const rx=-.36,rz=.18;eM(g,rboxG(.22,.03,.04,.006),P.wd2,rx,BH+.2,rz,0,.9,0);for(let i=0;i<4;i++){const o=(i-1.5)*.05;eCy(g,P.wd2,.007,.36,rx+o*Math.cos(.9),BH+.18,rz-o*Math.sin(.9));eCnD(g,0xdfe6ee,.012,.05,rx+o*Math.cos(.9),BH+.38,rz-o*Math.sin(.9),0,1,0);}
+eCy(g,P.wd2,.014,.3,.36,BH+.12,.2);eM(g,lathG([[0,0],[.05,.01],[.06,.07],[.045,.12],[0,.13]],10),0xc9a26a,.36,BH+.2,.2);eSp(g,0xc9a26a,.035,.035,.035,.36,BH+.36,.2);eCy(g,P.wd2,.008,.16,.36,BH+.24,.2,0,0,PI/2);
+h.position.y=y+.2;const sg=new THREE.Group();sg.position.set(.2,BH,.4);g.add(sg);chibi(sg,0,0,ac==P.gd?0xd9a520:0x8a2a22,0x9aa3b0,4,ac);t.flag=flag(g,.25,y+.36,-.25,ac,1);}
 else{// catapult: a planked deck with spoked wheels, an A-frame and axle, the throwing arm (t.arm) with a banded counterweight crate and a sling cup holding the stone (t.ball), a winch, ammunition and a crewman
 for(let i=0;i<7;i++)eM(g,rboxG(.088,.05,.62,.008),[P.wd,0x7a4a26,P.wd][i%3],(i-3)*.092,BH+.025,0);for(const z of[-.24,.24])eM(g,rboxG(.72,.05,.07,.01),P.wd2,0,BH+.075,z);
 for(const sx of[-1,1])for(const sz of[-1,1]){const W=new THREE.Group();W.position.set(sx*.38,BH+.13,sz*.22);W.rotation.y=PI/2;g.add(W);eM(W,TORL,0x5a3a1e,0,0,0).scale.setScalar(.13);eM(W,TORL,0x2b3342,0,0,0).scale.set(.14,.14,.08);

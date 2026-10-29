@@ -5,14 +5,17 @@ if(!ray.ray.intersectPlane(pl,pt))return null;return{c:Math.floor(pt.x+W/2),r:Ma
 const free=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&!road.has(c+','+r)&&!blk.has(c+','+r)&&!g.tw.some(t=>t.c==c&&t.r==r);
 // put a tower on the board (also used to restore a saved run)
 // br = level-3 upgrade branch (BRN), or null
-function addTw(k,c,r,l,inv,br){const t={k,c,r,x:c*S+S/2,y:r*S+S/2,l,cd:0,inv,br:br==null?null:br};buildTower(t);g.tw.push(t);return t;}
+function addTw(k,c,r,l,inv,br){const t={k,c,r,x:c*S+S/2,y:r*S+S/2,l,cd:0,inv,br:br==null?null:br};if(T[k].bar)barInit(t);buildTower(t);g.tw.push(t);return t;}
 function tap(ev){if(g.over)return;const k=cellAt(ev);if(!k)return;const ex=g.tw.find(t=>t.c==k.c&&t.r==k.r);
 if(ex){g.sel=g.sel===ex?null:ex;selRng();ui();return;}
-g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
+// a Barracks is selected and a road cell in its range is clicked: move its rally point there
+const bs=g.sel;if(bs&&bs.sol&&road.has(k.c+','+k.r)){const x=k.c*S+S/2,y=k.r*S+S/2;if(Math.hypot(x-bs.x,y-bs.y)<=stat(bs).r){setRally(bs,x,y);snd('click');burst(x,y,0xffe6a0,6,.8,.1);selRng();ui();return;}}
+g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
 selRng();ui();}
 function hover(ev){if(ev.pointerType!='mouse'||g.sel)return;const k=cellAt(ev);
-const tp=T[g.build],col=g.gold>=tp.c?0xffffff:0xff6666;
-if(k&&free(k.c,k.r)){showRng(cx(k.c),cz(k.r),tp.r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r:tp.r,col:g.gold>=tp.c?0xf0b840:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}
+const tp=T[g.build],ok=k&&(!tp.bar||nearRoad(k.c,k.r)),col=g.gold>=tp.c&&ok?0xffffff:0xff6666;
+// a Barracks must go next to the road: elsewhere its ring shows red
+if(k&&free(k.c,k.r)){showRng(cx(k.c),cz(k.r),tp.r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r:tp.r,col:g.gold>=tp.c&&ok?0xf0b840:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}
 C.addEventListener('pointerleave',()=>{if(COV.pv)selRng();});
 function zoom(f){cine=null;dist=clamp(dist*f,5,Math.max(26,CAM0.dist*1.3));setCam();}
 function pan(dx,dy){cine=null;const k=dist*.0022,s=Math.sin(az),c=Math.cos(az);tx=clamp(tx-(c*dx+s*dy)*k,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(tz+(s*dx-c*dy)*k,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}

@@ -308,7 +308,8 @@ COVC=[0x0a0a0c,0x3f7fd0,0x3fb36a,0xe2c040,0xe57d30,0xd83c30],_cm=new THREE.Matri
 const covM=L1(new THREE.InstancedMesh(new THREE.PlaneGeometry(.9,.9).rotateX(-PI/2),new THREE.MeshBasicMaterial({map:(()=>{const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d');
 q.fillStyle='#fff';q.beginPath();q.moveTo(16,4);q.arcTo(60,4,60,60,12);q.arcTo(60,60,4,60,12);q.arcTo(4,60,4,4,12);q.arcTo(4,4,60,4,12);q.fill();const t=new THREE.CanvasTexture(c);return t;})(),transparent:true,opacity:.6,depthWrite:false,toneMapped:false}),RC.length));
 covM.position.y=.035;covM.frustumCulled=false;covM.visible=false;rng.renderOrder=2;for(let i=0;i<RC.length;i++){covM.setMatrixAt(i,_cm.makeScale(0,1,0));covM.setColorAt(i,_cc.set(0xffffff));}sc.add(covM);
-function covUpd(){const a=t=>!T[t.k].sup&&!T[t.k].inc,s=g.sel,sh=g.over?null:COV.pv||(s&&a(s)?{x:s.x,y:s.y,r:stat(s).r,col:0xf0b840}:null),on=COV.on&&!g.over;
+// the coverage map counts attacking towers; a Barracks only tints its rally range while placed or selected
+function covUpd(){const a=t=>!T[t.k].sup&&!T[t.k].inc&&!T[t.k].bar,s=g.sel,sh=g.over?null:COV.pv||(s&&(a(s)||T[s.k].bar)?{x:s.x,y:s.y,r:stat(s).r,col:0xf0b840}:null),on=COV.on&&!g.over;
 const tw=on?g.tw.filter(a).map(t=>({x:t.x,y:t.y,r:stat(t).r})):[];if(on&&COV.pv)tw.push(COV.pv);
 const key=on+'|'+(sh?[sh.x,sh.y,sh.r,sh.col]:'')+'|'+tw.map(t=>t.x+','+t.y+','+t.r).join(';');if(key===COV.key)return;COV.key=key;
 covM.visible=on||!!sh;if(!covM.visible)return;

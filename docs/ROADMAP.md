@@ -109,7 +109,7 @@ Add a branch choice at the level-3 upgrade for Archers (Longbowmen: range / Cros
 Add level-3 branch choices for Ballista, Alchemist, Banner Tower and Treasury, in the same style as the existing branches. Propose two interesting options for each and pick ones that fit the damage-type system.
 ```
 
-- [ ] **19. Barracks**
+- [x] **19. Barracks**
 ```text
 Add a Barracks tower placed next to the road that sends 3 soldiers to block enemies at a rally point (movable). Soldiers fight, can die and respawn. Flyers ignore them. Build the soldiers from the chibi style.
 ```

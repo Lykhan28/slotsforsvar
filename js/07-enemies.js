@@ -413,6 +413,26 @@ dm.scale.set(R,R*.45,R);dm.userData.o=.1;G.add(dm);const sp=new THREE.Group();G.
 for(let i=0;i<8;i++){const a=i/8*2*PI,m=L1(new THREE.Mesh(geo('oct'),bm(0xffd27a)));m.scale.set(.03,.05,.03);m.position.set(R*.9*Math.sin(a),.08,R*.9*Math.cos(a));sp.add(m);}
 glow(G,0,.2,0,R*.6,0xffb43a);}
 return G;}
+// ---------- Barracks soldiers (logic: soldiers() in js/09-game.js) ----------
+// one template per level: a chibi soldier (js/05-towers.js) scaled up to goblin size, tunic and shield in the level colour, iron kettle hat,
+// the sword on its own pivot 'SW', and a small health bar; each soldier is a clone (t.sg holds a Barracks' soldiers)
+const STPL={},SOLC=[[0x8a2a22,P.rd],[0x2f5a9a,P.bl],[0xd9a520,P.gd]];
+function solTpl(l){if(STPL[l])return STPL[l];const G=new THREE.Group(),b=new THREE.Group();b.scale.setScalar(2.3);G.add(b);chibi(b,0,0,SOLC[l-1][0],0x9aa3b0,4,SOLC[l-1][1]);
+const sw=b.getObjectByName('SW');bakeE(b);bakeE(sw);blob(G,.3);
+const bg=L1(new THREE.Sprite(SB)),fg=L1(new THREE.Sprite(SF));bg.scale.set(.36,.07,1);bg.position.y=1.05;bg.renderOrder=10;bg.name='bb';fg.name='bar';fg.scale.set(.33,.045,1);fg.position.y=1.05;fg.renderOrder=11;G.add(bg,fg);
+return STPL[l]=G;}
+// the rally flag: shown on the rally point of the selected Barracks
+let RFL=null;
+function solSync(t,dt){if(!t.sg){t.sg=new THREE.Group();sc.add(t.sg);}
+for(const d of t.sol){if(!d.m||d.ml!==t.l){if(d.m)t.sg.remove(d.m);d.m=solTpl(t.l).clone(true);d.ml=t.l;d.swp=d.m.getObjectByName('SW');d.bar=d.m.getObjectByName('bar');d.bb=d.m.getObjectByName('bb');d.bar.material=SF.clone();t.sg.add(d.m);}
+const on=d.hp>0;d.m.visible=on;if(!on)continue;d.m.position.set(wx(d.x),d.mv&&dt>0?Math.abs(Math.sin(tt*13+d.i*2))*.06:0,wz(d.y));d.m.rotation.y=d.dir;
+if(d.sw>0)d.sw=Math.max(0,d.sw-dt*4);d.swp.rotation.x=d.sw>0?Math.sin((1-d.sw)*PI)*1.7:-.15;d.m.children[0].rotation.x=d.hit>0?-.15:0;if(d.hit>0)d.hit-=dt;
+const hr=Math.max(0,d.hp/d.max),full=hr>=.999;d.bar.visible=d.bb.visible=!full;if(!full){d.bar.scale.x=.33*Math.max(hr,.001);d.bar.center.set(.5/Math.max(hr,.001),.5);d.bar.material.color.setHex(hr>.5?0x4aa8ff:hr>.25?0xf1c40f:0xe74c3c);}}
+if(g.sel===t){if(!RFL){RFL=new THREE.Group();flag(RFL,0,0,0,0xffe6a0,.9);ring(RFL,0xffe6a0,.3,.02,.15,0xaa8833);sc.add(RFL);}RFL.visible=true;RFL.position.set(wx(t.rp.x),0,wz(t.rp.y));}}
+// hide the rally flag when no Barracks is selected (called once a frame from sync())
+function rallyHide(){if(RFL&&!(g.sel&&g.sel.sol))RFL.visible=false;}
+// a soldier falls: a puff of dust and a clank (it respawns at the tower)
+function solDie(t,d){snd('die_sol');burst(d.x,d.y,0x9aa3b0,8,1,.4);burst(d.x,d.y,0xd8cbb0,6,.8,.2);}
 // Plague spreading from a dying enemy: a purple ring as wide as its reach
 function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x8a4ab0,10,1,.3);}
 function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}

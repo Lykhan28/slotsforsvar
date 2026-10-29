@@ -32,12 +32,14 @@ Options:
 
 Build steps, done in order as soon as there is enough gold (a step waits until it can be paid for,
 and the steps after it wait too):
-  <tower> c,r      build a tower on cell c,r: arrow cannon frost ballista storm alch banner vault
+  <tower> c,r      build a tower on cell c,r: arrow cannon frost ballista storm alch banner vault barracks
+                   (a Barracks only next to the road; its rally point starts on the nearest road cell)
   up c,r [BRANCH]  upgrade the tower on c,r (max level 3). Archers, Catapult, Wizard and Storm Tower pick a branch at level 3, by the start
                    of its name: longbow crossbow / fire boulder / archmage time / tempest thunder (also on a level-3 tower without one).
                    Without a branch they get a plain level 3, as before branches – not possible in the game, kept for comparisons
   sell c,r         sell the tower on c,r (60% back; a full refund if it was built in this same break, like Undo in the game)
   target c,r MODE  set the targeting of the tower on c,r: first last strong fast close (free, done at once)
+  rally c,r C,R    move the rally point of the Barracks on c,r to road cell C,R (within its range; free, done at once)
   wave N           wait until the break before wave N`;
 
 const args = process.argv.slice(2);
@@ -84,7 +86,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
@@ -125,7 +127,7 @@ const mixS = m => Object.entries(m).map(([k, n]) => n + (WL[k] || '?')).join(' '
 
 // ---------- --map ----------
 function boardMap(towers = []) {
-  const road = run('road'), blk = run('blk'), ch = { arrow: 'A', cannon: 'C', frost: 'W', ballista: 'B', storm: 'S', alch: 'P', banner: 'F', vault: 'V' };
+  const road = run('road'), blk = run('blk'), ch = { arrow: 'A', cannon: 'C', frost: 'W', ballista: 'B', storm: 'S', alch: 'P', banner: 'F', vault: 'V', barracks: 'K' };
   const rows = ['    ' + [...Array(W)].map((_, c) => String(c).padStart(3)).join('')];
   for (let r = 0; r < H; r++) rows.push(String(r).padStart(3) + ' ' + [...Array(W)].map((_, c) => {
     const t = towers.find(t => t.c == c && t.r == r), k = c + ',' + r;
@@ -157,6 +159,8 @@ if (opt.waves) {
 
 // ---------- build steps ----------
 const parsed = steps.map((s, n) => {
+  const ry = String(s).trim().match(/^rally\s+(\d+)\s*,\s*(\d+)\s+(\d+)\s*,\s*(\d+)$/);
+  if (ry) return { k: 'rally', c: +ry[1], r: +ry[2], rc: +ry[3], rr: +ry[4], s };
   const m = String(s).trim().match(/^(\w+)\s+(\d+)(?:\s*,\s*(\d+))?(?:\s+(\w+))?$/);
   if (!m) die(`build step ${n + 1} "${s}" – expected e.g. "arrow 3,2", "up 3,2", "sell 3,2", "target 3,2 strong" or "wave 5"`);
   const [, k, a, b, tm] = m;
@@ -202,16 +206,27 @@ function doSteps(inBreak) {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
       t.tm = st.tm; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: 0 }); pc++; continue;
     }
+    if (st.k == 'rally') {
+      // same rules as tap() in js/12-input.js
+      const x = st.rc * 60 + 30, y = st.rr * 60 + 30;
+      if (!t || !t.sol) { warn.push(`"${st.s}": no Barracks there – skipped`); pc++; continue; }
+      if (!run('road').has(st.rc + ',' + st.rr) || Math.hypot(x - t.x, y - t.y) > run('stat')(t).r) { warn.push(`"${st.s}": not a road cell in its range – skipped`); pc++; continue; }
+      run('setRally')(t, x, y); log.push({ wave: G.wave, t: G.wt, s: st.s, cost: 0 }); pc++; continue;
+    }
     if (st.k == 'sell') {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
+      run('barGone')(t);
       // same as sellVal() in js/10-ui.js
       const v = !G.run && t.bw === G.wave ? t.inv : Math.round(t.inv * .6); G.gold += v; spent -= v; G.tw = G.tw.filter(x => x !== t); log.push({ wave: G.wave, t: G.wt, s: st.s, cost: -v }); pc++; continue;
     }
     if (!run('free')(st.c, st.r)) { warn.push(`"${st.s}": cell is not buildable (road, blocked, taken or off the board) – skipped`); pc++; continue; }
+    if (T[st.k].bar && !run('nearRoad')(st.c, st.r)) { warn.push(`"${st.s}": a Barracks must stand next to the road – skipped`); pc++; continue; }
     const c = T[st.k].c; if (G.gold < c) return;
     G.gold -= c; spent += c;
     // same tower object as addTw() in js/12-input.js; head stands in for the 3D model (bullets start from its height)
-    G.tw.push({ k: st.k, c: st.c, r: st.r, x: st.c * 60 + 30, y: st.r * 60 + 30, l: 1, cd: 0, inv: c, bw: G.run ? undefined : G.wave, head: { position: { y: 0 } } });
+    const nt = { k: st.k, c: st.c, r: st.r, x: st.c * 60 + 30, y: st.r * 60 + 30, l: 1, cd: 0, inv: c, bw: G.run ? undefined : G.wave, head: { position: { y: 0 } } };
+    if (T[st.k].bar) run('barInit')(nt);
+    G.tw.push(nt);
     log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++;
   }
 }

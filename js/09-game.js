@@ -1,6 +1,6 @@
 // ---------- game ----------
 let g;
-function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn])sc.remove(a.m);
+function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}
 g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
@@ -42,12 +42,12 @@ const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-zones(dt);
-for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
+zones(dt);soldiers(dt);
+for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;if(e.bk&&held(e))m=0;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
 if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.lv||1;}}
-buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t),br=tbr(t);let best=null,bp=-Infinity;
+buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc||T[t.k].bar)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t),br=tbr(t);let best=null,bp=-Infinity;
 // a Wizard skips enemies it can't banish yet; a Time Warden skips enemies already in a time field
 for(const e of g.en){if(e.hp<=0||e.out||(t.k=='frost'&&(br&&br.tz?e.tf<1:e.bn>0))||(e.fy&&!T[t.k].air)||dmul(e,t.k,br)<=0)continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=tscore(t,e,tm);if(p>bp){bp=p;best=e;}}}
 if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,br,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k,brn(t))}));}}}
@@ -94,6 +94,39 @@ for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
+// ---------- Barracks ----------
+// A Barracks stands next to the road (a road cell centre within BAR.near) and keeps BAR.n soldiers (t.sol) at its rally point t.rp, a road cell centre within its range.
+// Each soldier guards a post round the rally point; when a ground enemy comes within BAR.eng of the rally point it runs at it (unblocked ones first, then the one
+// closest to the castle) and fights. The first soldier to reach an enemy blocks it (e.bk): it stops walking and hits back at that soldier every BAR.ecd s for edmg().
+// A soldier at 0 health falls and comes back from the tower after BAR.rsp s (not while the Barracks is stunned); out of a fight it heals BAR.reg of its health a second.
+// Flyers and faded Ghosts are ignored. Soldier damage comes from stat() (level, banners) and goes through dmul() like any physical hit. Models: solSync() in js/07-enemies.js
+const BAR={n:3,hp:80,rsp:8,sp:75,eng:60,rg:22,reg:.08,ecd:1,near:90};
+const solHp=t=>BAR.hp*(1+.5*(t.l-1));
+// enemy melee damage per hit on a soldier: grows with the wave; big enemies hit harder, bosses much harder
+const edmg=e=>4*Math.pow(1.12,g.wave)*(e.bs?3:Math.sqrt(e.h));
+// can a Barracks go on cell c,r: a road cell next to it
+const nearRoad=(c,r)=>[...road].some(k=>{const[a,b]=k.split(',');return Math.hypot(a-c,b-r)*S<=BAR.near;});
+// a new Barracks: rally point on the nearest road cell, soldiers waiting to come out
+function barInit(t){let bd=Infinity;for(const k of road){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2,d=Math.hypot(x-t.x,y-t.y);if(d<bd){bd=d;t.rp={x,y};}}
+t.sol=[];for(let i=0;i<BAR.n;i++)t.sol.push({i,x:t.x,y:t.y,hp:solHp(t),max:solHp(t),cd:0,rs:0,e:null,dir:0});}
+// move the rally point (to a road cell centre within range); soldiers drop their fights and run there
+function setRally(t,x,y){t.rp={x,y};for(const d of t.sol){if(d.e&&d.e.bk===d)d.e.bk=null;d.e=null;}}
+// a Barracks is sold or undone: its soldiers let go of the enemies they hold
+function barGone(t){if(t.sol)for(const d of t.sol){if(d.e&&d.e.bk===d)d.e.bk=null;d.e=null;d.hp=0;}}
+const post=(t,d)=>{const a=d.i/BAR.n*2*PI+.5;return{x:t.rp.x+Math.sin(a)*16,y:t.rp.y+Math.cos(a)*16};};
+// is enemy e held by the soldier blocking it (alive and close enough)
+const held=e=>{const d=e.bk;return d.hp>0&&d.e===e&&Math.hypot(d.x-e.x,d.y-e.y)<=BAR.rg+6;};
+function soldiers(dt){for(const t of g.tw){if(!t.sol)continue;const s=stat(t),mx=solHp(t),br=tbr(t);
+for(const d of t.sol){if(d.max!==mx){d.hp+=mx-d.max;d.max=mx;}
+if(d.hp<=0){if(!(t.stun>0))d.rs-=dt;if(d.rs<=0){d.hp=mx;d.x=t.x;d.y=t.y;d.cd=0;}continue;}
+let e=d.e;if(e&&(e.hp<=0||e.out||Math.hypot(e.x-t.rp.x,e.y-t.rp.y)>BAR.eng*1.6)){if(e.bk===d)e.bk=null;e=d.e=null;}
+if(!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||Math.hypot(o.x-t.rp.x,o.y-t.rp.y)>BAR.eng)continue;const p=prog(o)-(o.bk&&o.bk.hp>0&&o.bk!==d?1e6:0);if(p>bp){bp=p;e=o;}}
+if(e){d.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=d;}}
+const g2=e?{x:e.x,y:e.y}:post(t,d),dx=g2.x-d.x,dy=g2.y-d.y,L=Math.hypot(dx,dy),stop=e?BAR.rg:0,m=BAR.sp*dt;d.mv=0;
+if(L>.01)d.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(m,L-stop)/L;d.x+=dx*k;d.y+=dy*k;d.mv=1;}
+if(e&&L<=BAR.rg+6){if(e.bk!==d&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=d;d.cd-=dt;if(d.cd<=0){d.cd=s.f;d.sw=1;const dd=s.d*dmul(e,t.k,br);e.hp-=dd;hf(e,.15,dd,t.k,dx,dy,br);}
+if(e.bk===d){e.dir=Math.atan2(d.x-e.x,d.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;d.hp-=edmg(e);d.hit=.2;if(d.hp<=0){d.rs=BAR.rsp*(t.l>=3?.75:1);e.bk=null;d.e=null;solDie(t,d);}}}}
+else if(!e)d.hp=Math.min(mx,d.hp+mx*BAR.reg*dt);}}}
 // Giant Slayer: damage multiplier on big enemies (bosses, and types with at least 1.8× a goblin's health)
 const big=(e,b)=>b&&b.gs&&(e.bs||e.h>=1.8)?b.gs:1;
 // Skewer: the bolt carries on through its target and hits up to b.sk more enemies within 18 of its line, up to 150 beyond the target
@@ -117,7 +150,7 @@ if(z.k=='fire'){e.hp-=z.d*dmul(e,'cannon',FIRE)*dt;e.lk='cannon';if(Math.random(
 for(const z of g.zn)if(z.t<=0)zoneEnd(z);g.zn=g.zn.filter(z=>z.t>0);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
-for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);
+for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);rallyHide();
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;
@@ -125,7 +158,7 @@ if(t.k=='frost'){t.head.rotation.y+=dt*1.5;t.head.position.y=t.hy+Math.sin(tt*2+
 if(t.arm){t.arm.rotation.x=-.8+Math.sin(q*PI)*1.5;t.ball.visible=q<.05;}
 if(t.stf)t.stf.rotation.x=-q*.7;if(t.rcl)t.rcl.position.z=-q*.1;if(t.ball&&!t.arm)t.ball.visible=q<.05;if(t.spin)t.spin.rotation.y+=dt*2;
 t.head.scale.setScalar(t.k=='cannon'?1+.1*(t.l-1):1+q*.1);
-if(t.flag)t.flag.rotation.y=Math.sin(tt*3+t.c)*.35;
+if(t.flag)t.flag.rotation.y=Math.sin(tt*3+t.c)*.35;if(t.sol)solSync(t,dt);
 // stunned by a Sapper: stars circle the top of the tower and it smokes
 if(t.stun>0){if(!t.stG){const gq=new THREE.Group();for(let i=0;i<4;i++){const m=new THREE.Mesh(geo('oct'),STARM);m.scale.set(.07,.1,.07);gq.add(m);}t.stG=gq;t.m.add(gq);}t.stG.visible=true;
 t.stG.children.forEach((m,i)=>{const a=tt*5+i*PI/2;m.position.set(Math.cos(a)*.38,t.head.position.y+.55+Math.sin(a*2)*.05,Math.sin(a)*.38);m.rotation.y=a*2;});if(dt>0&&Math.random()<dt*5)fx(t.x,t.y,0x4a4a4a,.08,.35,.9,t.head.position.y+.3+Math.random()*.3);}
