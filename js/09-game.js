@@ -2,18 +2,21 @@
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying])sc.remove(a.m);
 g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};selRng();ui();}
-// enemy types of wave w in spawn order (the UI previews the next wave with this too)
-// special enemies take some of the goblins' and wolf riders' places: SPX lists [type, first wave, slot] in order of precedence; a level's ex (js/01-config.js) says
-// which ones it uses and how often – the i'th enemy is that type when i % every == slot % every
-const SPX=[['troll',12,10],['shaman',10,6],['guard',8,3],['sapper',9,5],['ghost',3,2],['imp',4,0],['bat',6,1]];
-function waveMix(w){const n=5+w*2,q=[],ex=LV.ex||{};for(let i=0;i<n;i++){const bs=LV.bs||['boss'];let t=w%5==0&&i==n-1?bs[(w/5-1)%bs.length]:w>4&&i%5==4?'tank':null;
-if(!t)for(const[k,w0,o]of SPX)if(ex[k]&&w>=w0&&i%ex[k]==o%ex[k]){t=k;break;}q.push(t||(w>2&&i%3==2?'fast':'norm'));}return q;}
+// wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
+// throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
+function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
+for(const tk of(c<0?s:s.slice(c+1)).trim().split(/\s+/)){if(!tk)continue;if(tk[0]=='~'){t+=+tk.slice(1);continue;}
+const m=tk.match(/^(\d+)([a-z]+)(?:\/([\d.]+))?(?:@(\d))?$/);if(!m)throw Error(LV.n+' wave '+w+': bad group "'+tk+'"');
+gap=m[3]?+m[3]:.8;if(q.length)t+=gap;for(let j=0;j<+m[1];j++){const k=WC[m[2][j%m[2].length]];if(!k)throw Error(LV.n+' wave '+w+': unknown enemy letter in "'+tk+'"');
+if(j)t+=gap;q.push({t:+t.toFixed(2),type:k,p:(m[4]!=null?+m[4]:i)%PATHS.length});i++;}}return q;}
+// enemy types of wave w in spawn order (the UI previews the next wave with this) and its name ('' if none)
+const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=LV.wv[w-1]||'',c=s.indexOf(':');return c<0?'':s.slice(0,c).trim();};
 // the break between waves lasts BRK s of game time (g.brk counts up; it doesn't run before wave 1). Calling the next wave early pays
 // earlyBonus() gold for the time left; with auto-start on (autoW, a menu setting) the wave starts by itself when the break is over
 const BRK=25;let autoW=false;
 const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&g.wave<MAXW?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
-function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;g.wt=0;g.q=waveMix(g.wave).map((type,i)=>({t:i*.8,type,p:i%PATHS.length}));ui();}
+function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;g.wt=0;g.q=waveQ(g.wave);ui();}
 // each breach has its own road (PATHS); the wave alternates between them
 function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}

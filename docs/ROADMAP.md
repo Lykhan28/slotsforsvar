@@ -92,7 +92,7 @@ When an enemy type appears for the first time, pause briefly and show a small ca
 Add three new bosses alongside the Dragon: a Goblin King who summons goblins, a Siege Ram that takes 10 lives if it reaches the gate, and a Necromancer who raises skeletons from dead enemies. Let each level choose its bosses, and give each a boss health bar at the top of the screen.
 ```
 
-- [ ] **16. Designed waves**
+- [x] **16. Designed waves**
 ```text
 Replace the formula waves with hand-designed waves per level (a data table in js/01-config.js): wolf rushes, knight pushes, mixed swarms, breathers. Keep waveMix() working for the preview. Use the simulator so every level is winnable but gets harder.
 ```

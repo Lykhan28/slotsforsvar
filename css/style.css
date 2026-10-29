@@ -111,6 +111,7 @@ kbd{display:inline-block;min-width:20px;padding:2px 6px;border-radius:6px;border
 #nw .mx{display:flex;gap:8px;color:var(--ink)}
 #nw .mx span{display:flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
 #nw .boss{color:var(--bad)}
+#nw .wn{color:var(--ink);font-weight:700}
 #nw{flex-wrap:wrap;row-gap:3px}
 #nw .rz{flex-basis:100%;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 10px;font-size:11px;font-weight:500;color:#a9a9a9}
 .btn.go{height:54px;flex-direction:column;gap:1px;border-radius:14px;border-color:rgba(255,190,120,.55);background:linear-gradient(180deg,#c8452f,#7d1d12);color:#fff1da;box-shadow:0 6px 20px rgba(160,40,20,.4),inset 0 1px 0 rgba(255,220,180,.35)}

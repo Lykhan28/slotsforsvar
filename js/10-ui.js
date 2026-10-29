@@ -74,16 +74,17 @@ function ui(){bossBar();const w=g.run?waveMix(g.wave).length:0,left=g.en.length+
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
 setH($('wave'),'<small>Wave </small>'+g.wave+' / '+MAXW);$('wbar').style.width=((g.wave-(g.run?left/w:0))/MAXW*100)+'%';
 // in the break: "Call wave N early" with the bonus for the time left (and the auto-start countdown), then plain "Start wave N" once the time is up
-const bl=brkLeft(),eb=earlyBonus(),foes=nm=>{const b=nm.find(t=>E[t].bs);return nm.filter(t=>!E[t].bs).length+' enemies'+(b?' and '+(b=='boss'?'a dragon':'the '+BST[b][0]):'');};
+const bl=brkLeft(),eb=earlyBonus(),foes=nm=>{const nb={};for(const t of nm)if(E[t].bs)nb[t]=(nb[t]||0)+1;
+return nm.filter(t=>!E[t].bs).length+' enemies'+Object.keys(nb).map(b=>' and '+(nb[b]>1?(nb[b]==2?'two ':nb[b]+' ')+(b=='boss'?'dragons':BST[b][0]+'s'):b=='boss'?'a dragon':'the '+BST[b][0])).join('');};
 $('start').disabled=g.run||g.over;$('start').classList.toggle('early',eb>0);setH($('start'),g.run?'<span class="t">Under attack</span><span class="s">'+left+' enemies left</span>':
 eb>0?'<span class="t">Call wave '+(g.wave+1)+' early</span><span class="s"><b class="eb">'+COIN+'+'+eb+' bonus</b> · '+(autoW?'starts in ':'')+Math.ceil(bl)+'s'+(autoW?'':' left')+'</span><i class="cdb" style="width:'+(bl/BRK*100).toFixed(1)+'%"></i>':
 '<span class="t">Start wave '+(g.wave+1)+'</span><span class="s">'+foes(waveMix(g.wave+1))+'</span>');
 if(g.wave<MAXW&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
 // the line under the icons always lists resistances, and an ability only for enemy types that weren't in the previous wave (every icon's tooltip has it all)
 const pv=g.wave?waveMix(g.wave):[],rt=t=>resTxt(t,!pv.includes(t)),rz=Object.keys(n).filter(rt);
-setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(E[t].bs?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
+setH($('nw'),'<span>'+(waveName(g.wave+1)?'Next: <b class="wn">'+waveName(g.wave+1)+'</b>':'Next wave')+'</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(E[t].bs?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
 (rz.length?'<span class="rz">'+rz.map(t=>'<span title="'+FOE[t][1]+'">'+FOE[t][0]+' '+rt(t)+'</span>').join('')+'</span>':''));}
-else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave:'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
+else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave+(waveName(g.wave)?' · <b class="wn">'+waveName(g.wave)+'</b>':''):'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s==g.spd));
 const pz=!!g.pause&&!g.over;$('pz').classList.toggle('on',pz);setH($('pz'),'<svg><use href="#i-'+(pz?'play':'pause')+'"/></svg>');$('pz').title=pz?'Resume (P)':'Pause (P)';$('pov').classList.toggle('on',pz&&!MENU.open&&!FC.open);if(AU.pz!==pz){AU.pz=pz;auPause(pz);}
 for(const k of TK){const b=$('b_'+k);b.classList.toggle('on',g.build===k&&!g.sel);b.classList.toggle('poor',g.gold<T[k].c);}

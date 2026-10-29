@@ -3,6 +3,9 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Hand-crafted waves:** every level now has its own 20 waves instead of the same pattern everywhere, and each one has a name, shown in the next-wave panel: tight **wolf rushes**, slow **knight pushes**, **shield walls**, long **mixed swarms**, **bone hordes** on Barrow Moor, **imp swarms** in the Badlands, **pincer** attacks down both roads at once, and a calm **breather** after every boss. New enemies arrive one land at a time, so you meet them more gradually, and the final bosses now come after their escort with a moment to aim at them.
+- **Every level is winnable:** the later levels were rebalanced so a solid defence can hold all 20 waves, while each land still costs a few more lives than the last. Barrow Moor and the Dread Wastes in particular are no longer near-impossible.
+- The wave button now says "two dragons" when two are coming.
 - **Three new bosses** join the Dragon, and every level now has its own line-up of bosses for waves 5, 10, 15 and 20.
 - **New boss: Goblin King** – a fat goblin in a crown and ermine who calls two more goblins to his side every few seconds.
 - **New boss: Siege Ram** – a slow wooden battering ram pushed by goblins. If it reaches the gate it smashes it for **10 lives**.

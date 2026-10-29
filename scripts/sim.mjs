@@ -16,10 +16,13 @@ const HELP = `Castle Defense balance simulator
   npm run sim -- <layout.json> [options]
   npm run sim -- --level N [--build "arrow 3,2" --build "up 3,2" ...] [options]
   npm run sim -- --map N            print level N's board (cell coordinates, roads, blocked cells)
+  npm run sim -- --waves N          print level N's wave table (LV.wv): mix, health, gold and length of every wave
 
 Options:
   --level N        level 1-8 (overrides the layout file)
   --build "..."    add one build step (repeatable, appended after the file's steps)
+  --hp X           try another enemy health multiplier for the level (instead of its hp in LEVELS)
+  --gold N         try another starting gold for the level
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
   --early          call every wave early ("Call wave early" button) and collect the full early bonus;
                    without it each wave starts the moment the last one ends, with no bonus
@@ -42,6 +45,9 @@ for (let i = 0; i < args.length; i++) {
   if (a == '--help' || a == '-h') { console.log(HELP); process.exit(0); }
   else if (a == '--level') opt.level = +next();
   else if (a == '--map') opt.map = +next();
+  else if (a == '--waves') opt.waves = +next();
+  else if (a == '--hp') opt.hp = +next();
+  else if (a == '--gold') opt.gold = +next();
   else if (a == '--build') opt.build.push(next());
   else if (a == '--keep-going') opt.keep = true;
   else if (a == '--early') opt.early = true;
@@ -59,13 +65,16 @@ if (opt.file) {
   if (!existsSync(f)) die(`layout file not found: ${opt.file}`);
   try { layout = JSON.parse(readFileSync(f, 'utf8')); } catch (e) { die(`${opt.file}: ${e.message}`); }
 }
-const level = opt.map || opt.level || layout.level || 1;
+const level = opt.map || opt.waves || opt.level || layout.level || 1;
 const nLevels = (src('js/01-config.js').match(/^const LEVELS=\[([\s\S]*?)\];/m)?.[1].match(/^\{n:/gm) || []).length;
 if (!(Number.isInteger(level) && level >= 1 && level <= nLevels)) die(`level must be 1-${nLevels}, got ${level}`);
 const steps = [...(layout.build || []), ...opt.build];
-if (!opt.map && !steps.length && !opt.file && !opt.level) { console.log(HELP); process.exit(0); }
+if (!opt.map && !opt.waves && !steps.length && !opt.file && !opt.level) { console.log(HELP); process.exit(0); }
 
 // ---------- sandbox with the real game code ----------
+// leaked enemies of the current wave by type: the game removes a leaked enemy's model (sc.remove) while it's still in g.en with leak set
+let leaked = {};
+function countLeak(m) { if (!m || !m.en) return; const e = vm.runInContext('g', ctx).en.find(o => o.m === m); if (e && e.leak) leaked[e.type] = (leaked[e.type] || 0) + 1; }
 const noop = () => {};
 let seed = opt.seed >>> 0 || 1;
 const ctx = vm.createContext({
@@ -73,9 +82,9 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: noop }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
-  buildEnemy: () => ({ m: { scale: { setScalar: noop } }, rig: {} }),
+  buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
 });
 vm.runInContext(`Math.random=(()=>{let s=${seed};return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})();`, ctx);
@@ -105,7 +114,12 @@ vm.runInContext(src('js/09-game.js'), ctx, { filename: 'js/09-game.js' });
 vm.runInContext(['volley', 'zap', 'buffs'].map(n => extractFn(enemies, n, 'js/07-enemies.js')).join('\n'), ctx, { filename: 'js/07-enemies.js (excerpt)' });
 vm.runInContext(extractLine(input, /^const free=.*$/m, 'const free', 'js/12-input.js'), ctx, { filename: 'js/12-input.js (excerpt)' });
 const run = code => vm.runInContext(code, ctx);
+if (opt.hp) run(`LV.hp=${opt.hp}`);
+if (opt.gold) run(`LV.gold=${opt.gold}`);
 const LV = run('LV'), T = run('T'), W = run('W'), H = run('H'), MAXW = run('MAXW');
+// one letter per enemy type, as in the wave tables (WC in js/01-config.js)
+const WL = Object.fromEntries(Object.entries(run('WC')).map(([l, k]) => [k, l]));
+const mixS = m => Object.entries(m).map(([k, n]) => n + (WL[k] || '?')).join(' ');
 
 // ---------- --map ----------
 function boardMap(towers = []) {
@@ -121,6 +135,21 @@ if (opt.map) {
   console.log(`Level ${level}: ${LV.n} – ${W}×${H} cells, ${LV.gold} starting gold, enemy health ×${LV.hp}, ${LV.p.length} road(s)`);
   console.log(boardMap());
   console.log(`\n# road   x blocked   . buildable   (cells are "column,row", e.g. "arrow 3,2")`);
+  process.exit(0);
+}
+
+// ---------- --waves ----------
+// units = the wave's health counted in goblins (sum of E[type].h; goblins summoned, raised or split off later aren't counted), hp = its real total health
+if (opt.waves) {
+  const E = run('E'), wq = run('waveQ'), wn = run('waveName');
+  console.log(`Level ${level}: ${LV.n}   enemy health ×${LV.hp}\nLetters: ${Object.entries(run('WC')).map(([l, k]) => l + ' ' + k).join(', ')}\n`);
+  console.log('wave  name                  enemies                         count  units      hp  gold  spawns');
+  for (let w = 1; w <= MAXW; w++) {
+    let q; try { q = wq(w); } catch (e) { die(e.message); }
+    const m = {}; for (const o of q) m[o.type] = (m[o.type] || 0) + 1;
+    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = 30 * Math.pow(1.2, w) * LV.hp * u, gd = q.reduce((a, o) => a + E[o.type].rw, 0);
+    console.log(`${String(w).padStart(4)}  ${wn(w).slice(0, 20).padEnd(20)}  ${mixS(m).padEnd(31)} ${String(q.length).padStart(5)} ${u.toFixed(1).padStart(6)} ${String(Math.round(hp)).padStart(7)} ${String(gd).padStart(5)} ${((q.at(-1)?.t || 0).toFixed(1) + 's').padStart(7)}`);
+  }
   process.exit(0);
 }
 
@@ -180,6 +209,7 @@ let time = 0, failed = null;
 const dt = opt.dt, update = run('update'), startWave = run(opt.early ? 'callEarly' : 'startWave');
 for (let w = 1; w <= MAXW; w++) {
   // a row covers the break before wave w (building) and the wave itself: goldStart + income - spent = goldEnd
+  leaked = {};
   const G0 = g(), row = { wave: w, goldStart: G0.gold, lifeStart: lives(), spentBefore: spent, towers: 0, mix: run('waveMix')(w).reduce((o, k) => (o[k] = (o[k] || 0) + 1, o), {}) };
   const earned0 = G0.gold + spent; // gold + everything spent so far only grows by income
   doSteps(true);
@@ -192,7 +222,7 @@ for (let w = 1; w <= MAXW; w++) {
     if (wt > 3600) die(`wave ${w} did not end after an hour of game time – something is stuck`);
   }
   const G = g();
-  Object.assign(row, { goldEnd: G.gold, income: G.gold + spent - earned0, spent: spent - row.spentBefore, lifeEnd: Math.max(lives(), opt.keep ? -Infinity : 0), lost: row.lifeStart - lives(), seconds: +wt.toFixed(1), towers: G.tw.length });
+  Object.assign(row, { goldEnd: G.gold, income: G.gold + spent - earned0, spent: spent - row.spentBefore, lifeEnd: Math.max(lives(), opt.keep ? -Infinity : 0), lost: row.lifeStart - lives(), seconds: +wt.toFixed(1), towers: G.tw.length, leaked });
   delete row.spentBefore;
   waves.push(row);
   if (lives() <= 0 && !failed) failed = w;
@@ -210,10 +240,9 @@ if (opt.json) { console.log(JSON.stringify(result, null, 2)); process.exit(0); }
 
 // ---------- report ----------
 const pad = (v, n) => String(v).padStart(n);
-const mixS = m => Object.entries(m).map(([k, n]) => n + ({ bat: 'v', sapper: 'p', troll: 'r', imp: 'i', ghost: 'h', king: 'k', ram: 'm', necro: 'x', skel: 'z' }[k] || k[0])).join(' '); // v bats, p sappers, r trolls, i imps, h ghosts, k Goblin King, m Siege Ram, x Necromancer, z skeletons (b, s, t, g are taken)
 console.log(`Level ${level}: ${LV.n}   start gold ${LV.gold}, enemy health ×${LV.hp}${opt.keep ? '   (--keep-going: defeat ignored)' : ''}`);
-console.log('\nwave  enemies         gold before  income  spent  gold after  lives  lost  towers   time');
-for (const r of waves) console.log(`${pad(r.wave, 4)}  ${mixS(r.mix).padEnd(15)} ${pad(r.goldStart, 11)} ${pad('+' + r.income, 7)} ${pad(r.spent ? -r.spent : 0, 6)} ${pad(r.goldEnd, 10)} ${pad(r.lifeEnd, 6)} ${pad(r.lost || '', 5)} ${pad(r.towers, 7)} ${pad(r.seconds + 's', 6)}`);
+console.log('\nwave  enemies         gold before  income  spent  gold after  lives  lost  towers   time  leaked');
+for (const r of waves) console.log(`${pad(r.wave, 4)}  ${mixS(r.mix).padEnd(15)} ${pad(r.goldStart, 11)} ${pad('+' + r.income, 7)} ${pad(r.spent ? -r.spent : 0, 6)} ${pad(r.goldEnd, 10)} ${pad(r.lifeEnd, 6)} ${pad(r.lost || '', 5)} ${pad(r.towers, 7)} ${pad(r.seconds + 's', 6)}  ${mixS(r.leaked)}`);
 console.log('\n' + boardMap(G.tw));
 if (warn.length) console.log('\nWarnings:\n  ' + warn.join('\n  '));
 if (pc < parsed.length) console.log(`\nNot reached: ${parsed.length - pc} build step(s) from "${parsed[pc].s}" on (never enough gold, or the run ended first).`);
