@@ -113,6 +113,8 @@ kbd{display:inline-block;min-width:20px;padding:2px 6px;border-radius:6px;border
 .btn.go:hover:not(:disabled){filter:brightness(1.12)}
 .btn.go .t{font:700 15px var(--disp);letter-spacing:.06em}
 .btn.go .s{font-size:11px;font-weight:500;opacity:.8}
+.btn.go{position:relative;overflow:hidden}.btn.go .eb{color:#ffe08a;font-weight:700}.btn.go .eb svg{width:11px;height:11px;vertical-align:-1px;margin-right:2px}.btn.go.early .s{opacity:.95}.btn.go.early .t{font-size:13px;letter-spacing:.03em;white-space:nowrap}
+.btn.go .cdb{position:absolute;left:0;bottom:0;height:3px;background:linear-gradient(90deg,#ffd27a,#ffb347);box-shadow:0 0 6px rgba(255,200,110,.6);transition:width .22s linear}
 .btn.go:disabled{opacity:1;background:linear-gradient(180deg,rgba(200,69,47,.35),rgba(125,29,18,.35));box-shadow:none;border-color:rgba(255,190,120,.25)}
 .btn.go:disabled .t::before{content:'';display:inline-block;width:7px;height:7px;margin:0 8px 2px 0;border-radius:50%;background:#ff7a6b;box-shadow:0 0 8px #ff7a6b;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.25}}

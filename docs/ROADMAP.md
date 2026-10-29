@@ -50,7 +50,7 @@ Add hotkeys U (upgrade) and S (sell) for the selected tower, and let the player 
 While placing a tower, show its range circle and tint the road tiles it would cover. Add a toggle (C key) that shows a heat-map of how many towers cover each road tile.
 ```
 
-- [ ] **8. Wave flow**
+- [x] **8. Wave flow**
 ```text
 Add an optional auto-start for waves (setting in the menu) with a countdown, and a "Call wave early" button that gives bonus gold based on the time left. Show the bonus on the button.
 ```

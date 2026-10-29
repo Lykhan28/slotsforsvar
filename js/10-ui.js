@@ -36,7 +36,11 @@ return h+'<div class="chips">'+c.join('')+'</div>';}
 function ui(){const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
 setH($('wave'),'<small>Wave </small>'+g.wave+' / '+MAXW);$('wbar').style.width=((g.wave-(g.run?left/w:0))/MAXW*100)+'%';
-$('start').disabled=g.run||g.over;setH($('start'),g.run?'<span class="t">Under attack</span><span class="s">'+left+' enemies left</span>':'<span class="t">Start wave '+(g.wave+1)+'</span><span class="s">'+(nm=>nm.filter(t=>t!='boss').length+' enemies'+(nm.includes('boss')?' and a dragon':''))(waveMix(g.wave+1))+'</span>');
+// in the break: "Call wave N early" with the bonus for the time left (and the auto-start countdown), then plain "Start wave N" once the time is up
+const bl=brkLeft(),eb=earlyBonus(),foes=nm=>nm.filter(t=>t!='boss').length+' enemies'+(nm.includes('boss')?' and a dragon':'');
+$('start').disabled=g.run||g.over;$('start').classList.toggle('early',eb>0);setH($('start'),g.run?'<span class="t">Under attack</span><span class="s">'+left+' enemies left</span>':
+eb>0?'<span class="t">Call wave '+(g.wave+1)+' early</span><span class="s"><b class="eb">'+COIN+'+'+eb+' bonus</b> · '+(autoW?'starts in ':'')+Math.ceil(bl)+'s'+(autoW?'':' left')+'</span><i class="cdb" style="width:'+(bl/BRK*100).toFixed(1)+'%"></i>':
+'<span class="t">Start wave '+(g.wave+1)+'</span><span class="s">'+foes(waveMix(g.wave+1))+'</span>');
 if(g.wave<MAXW&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
 setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(t=='boss'?' class="boss"':'')+' title="'+FOE[t][1]+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>');}
 else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave:'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
@@ -58,7 +62,7 @@ b.innerHTML='<i class="hk">'+(i+1)+'</i><span class="ic">'+T[k].ic+'</span><span
 b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=()=>{hov=null;ui();};$('towers').appendChild(b);});
 // pause and speed: the HUD buttons, P and F; starting a wave also resumes
 function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}
-const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);startWave();};
+const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);callEarly();};
 // targeting: inspector buttons or T on the selected tower (kept through upgrades and saved with the run)
 function setTm(t,m){if(!t||T[t.k].sup||T[t.k].inc||!TGM[m])return;t.tm=m;snd('click');ui();}
 $('info').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-tm]');if(b)setTm(g.sel,b.dataset.tm);};

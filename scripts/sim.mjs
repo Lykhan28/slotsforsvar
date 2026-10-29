@@ -21,6 +21,8 @@ Options:
   --level N        level 1-8 (overrides the layout file)
   --build "..."    add one build step (repeatable, appended after the file's steps)
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
+  --early          call every wave early ("Call wave early" button) and collect the full early bonus;
+                   without it each wave starts the moment the last one ends, with no bonus
   --json           print the full result as JSON instead of the table
   --dt S           simulation step in seconds (default 1/60)
   --seed N         seed for Math.random (only affects looks in the game, kept for reproducibility)
@@ -42,6 +44,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a == '--map') opt.map = +next();
   else if (a == '--build') opt.build.push(next());
   else if (a == '--keep-going') opt.keep = true;
+  else if (a == '--early') opt.early = true;
   else if (a == '--json') opt.json = true;
   else if (a == '--dt') opt.dt = +next();
   else if (a == '--seed') opt.seed = +next();
@@ -174,7 +177,7 @@ function doSteps(inBreak) {
 
 const waves = [], gold = [];
 let time = 0, failed = null;
-const dt = opt.dt, update = run('update'), startWave = run('startWave');
+const dt = opt.dt, update = run('update'), startWave = run(opt.early ? 'callEarly' : 'startWave');
 for (let w = 1; w <= MAXW; w++) {
   // a row covers the break before wave w (building) and the wave itself: goldStart + income - spent = goldEnd
   const G0 = g(), row = { wave: w, goldStart: G0.gold, lifeStart: lives(), spentBefore: spent, towers: 0, mix: run('waveMix')(w).reduce((o, k) => (o[k] = (o[k] || 0) + 1, o), {}) };

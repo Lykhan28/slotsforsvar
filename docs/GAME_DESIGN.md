@@ -25,6 +25,7 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 - Gold for every enemy killed (`rw`), plus a wave bonus of `20 + 2 × wave` at the end of each wave.
 - Upgrading costs `price × 0.8 × level` (level 1→2, 2→3). Selling refunds 60% of everything spent on the tower. **Undo:** a tower placed during the break between waves can be taken back for a full refund (including upgrades bought on it) until the next wave starts – the Sell button turns into Undo, and Ctrl+Z/Z undoes the latest one. Towers placed mid-wave can only be sold.
 - Each upgrade gives +60% damage and +10 range.
+- **Break and early call:** after each wave (not before wave 1) there is a 25 s break, counted in game time (it stops while paused and runs faster at ×2/×3). Starting the next wave during the break ("Call wave N early", Space) pays `floor(seconds left × (0.4 + 0.04 × wave))` gold – about 11 after wave 1, 20 after wave 10, 29 after wave 19 – shown on the button. With **Auto-start waves** on (menu → Settings, off by default) the next wave starts by itself when the break runs out; with it off the button just says "Start wave N" once the time is up. In the simulator, `--early` calls every wave at once for the full bonus (about +380 gold over a run on level 1).
 
 ## Towers (price / range / damage / reload)
 | Tower | Price | Range | Damage | Reload | Special |

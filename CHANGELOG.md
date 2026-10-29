@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Call waves early for bonus gold:** after each wave you get a 25-second break. Start the next wave before the time is up and you earn bonus gold – the more time left, the bigger the bonus, and it grows in later waves. The wave button shows the bonus and the seconds left.
+- **Auto-start waves:** a new option in Settings starts the next wave by itself when the break runs out, so the battle keeps flowing. It's off by default.
 - **See what a tower will reach:** while you choose where to place a tower, the road tiles inside its range light up in gold (red if you can't afford it yet). Selecting a tower shows the same.
 - **Coverage map:** press **C** (or the new grid button by the minimap) to colour the whole road by how many towers reach each tile. Dark tiles are gaps nobody covers; blue, green, yellow, orange and red mean 1 to 5+ towers. While it's on, the tower you're placing is counted too, so you can see the gaps it would fill.
 - **Upgrade and sell hotkeys:** with a tower selected, press **U** to upgrade it or **S** to sell it.
