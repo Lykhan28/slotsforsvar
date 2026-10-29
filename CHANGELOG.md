@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **See what a tower will reach:** while you choose where to place a tower, the road tiles inside its range light up in gold (red if you can't afford it yet). Selecting a tower shows the same.
+- **Coverage map:** press **C** (or the new grid button by the minimap) to colour the whole road by how many towers reach each tile. Dark tiles are gaps nobody covers; blue, green, yellow, orange and red mean 1 to 5+ towers. While it's on, the tower you're placing is counted too, so you can see the gaps it would fill.
 - **Upgrade and sell hotkeys:** with a tower selected, press **U** to upgrade it or **S** to sell it.
 - **Undo:** changed your mind? A tower you place between waves can be taken back for a full refund, upgrades included, until you start the next wave. The Sell button turns into **Undo**, and **Ctrl+Z** takes back the last tower you placed. The help popover lists all the new keys.
 - **Targeting modes:** select a tower to choose who it shoots at: **First**, **Last**, **Strongest**, **Fastest** or **Closest**. Press **T** to cycle through them. The Ballista still goes for the strongest enemy and everything else for the one in front, until you change it. Your choices are kept when you upgrade and are saved with your run.

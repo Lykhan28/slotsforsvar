@@ -10,7 +10,9 @@ if(ex){g.sel=g.sel===ex?null:ex;selRng();ui();return;}
 g.sel=null;if(free(k.c,k.r)&&g.gold>=T[g.build].c){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
 selRng();ui();}
 function hover(ev){if(ev.pointerType!='mouse'||g.sel)return;const k=cellAt(ev);
-if(k&&free(k.c,k.r))showRng(cx(k.c),cz(k.r),T[g.build].r/60,g.gold>=T[g.build].c?0xffffff:0xff6666);else rng.visible=false;}
+const tp=T[g.build],col=g.gold>=tp.c?0xffffff:0xff6666;
+if(k&&free(k.c,k.r)){showRng(cx(k.c),cz(k.r),tp.r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r:tp.r,col:g.gold>=tp.c?0xf0b840:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}
+C.addEventListener('pointerleave',()=>{if(COV.pv)selRng();});
 function zoom(f){cine=null;dist=clamp(dist*f,5,Math.max(26,CAM0.dist*1.3));setCam();}
 function pan(dx,dy){cine=null;const k=dist*.0022,s=Math.sin(az),c=Math.cos(az);tx=clamp(tx-(c*dx+s*dy)*k,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(tz+(s*dx-c*dy)*k,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 const ptrs=new Map();let dn=null,drag=false,pin=null;

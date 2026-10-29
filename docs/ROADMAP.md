@@ -45,7 +45,7 @@ Add per-tower targeting modes: First, Last, Strongest, Fastest, Closest. Make th
 Add hotkeys U (upgrade) and S (sell) for the selected tower, and let the player undo a tower placed during the build phase for a full refund until the next wave starts. Update the ? help popover.
 ```
 
-- [ ] **7. Coverage overlay**
+- [x] **7. Coverage overlay**
 ```text
 While placing a tower, show its range circle and tint the road tiles it would cover. Add a toggle (C key) that shows a heat-map of how many towers cover each road tile.
 ```
