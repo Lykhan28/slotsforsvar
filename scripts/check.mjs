@@ -9,8 +9,9 @@ import { execFileSync } from 'node:child_process';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'index.html'), 'utf8');
 const local = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map(m => m[1]);
+const vendor = [...html.matchAll(/<script src="(vendor\/[^"]+)"/g)].map(m => m[1]);
 let ok = true;
-for (const f of local) if (!existsSync(join(root, f))) { console.error('Mangler fil:', f); ok = false; }
+for (const f of [...vendor, ...local]) if (!existsSync(join(root, f))) { console.error('Mangler fil:', f); ok = false; }
 const all = local.map(f => readFileSync(join(root, f), 'utf8')).join('');
 const tmp = join(mkdtempSync(join(tmpdir(), 'sf-')), 'all.js');
 writeFileSync(tmp, all);

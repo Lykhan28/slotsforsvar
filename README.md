@@ -9,7 +9,7 @@ A medieval 3D tower defense game for the browser. All the graphics and sound are
    npm install
    npm run dev
    ```
-3. Open http://localhost:5173 in a browser. (You need an internet connection, since three.js is loaded from a CDN.)
+3. Open http://localhost:5173 in a browser. No internet connection needed: three.js is included in `vendor/`.
 
 You can also open `archive/slotsforsvar-en-fil.html`: that's the whole game in a single file, exactly as it was in the original chat (still in Danish).
 
@@ -28,6 +28,7 @@ Some ideas for what to ask first:
 index.html        the page; loads the scripts in order
 css/style.css     styling (Warcraft-style interface)
 js/               the game code, split up by topic (see CLAUDE.md)
+vendor/three/     three.js r128 + the post-processing scripts it needs
 docs/             game design: rules, numbers, ideas
 archive/          the old single-file version
 scripts/check.mjs quick code check without a browser

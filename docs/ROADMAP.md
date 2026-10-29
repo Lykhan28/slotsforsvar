@@ -13,7 +13,7 @@ A plan for growing the game, written as ready-to-use prompts. Each prompt is mea
 
 ## Phase 0 – Foundations
 
-- [ ] **1. Vendor three.js**
+- [x] **1. Vendor three.js**
 ```text
 Vendor three.js r128 and the post-processing scripts into a vendor/ folder so the game no longer depends on CDNs. Update index.html, check that everything (bloom, AO, grade) still works, and remove the CDN note from CLAUDE.md.
 ```
