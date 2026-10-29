@@ -213,6 +213,20 @@ function buildEnemy(type){const v=type=='norm'&&Math.random()<.5?1:0,key=type+v;
 g.traverse(o=>{if(o.isMesh&&o!==ice){o.userData.m0=o.material;meshes.push(o);}});b.traverse(n=>{if(n.name)rig[n.name]=n;});// a Ghost gets its own see-through copies of its materials (gm) so it can fade without touching the shared enemy materials
 let gm=null;if(type=='ghost'){gm=[];b.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.72;o.material.depthWrite=false;o.castShadow=false;gm.push(o.material);}});}
 return{m:g,body:b,ice,bar,meshes,rig,gm};}
+// portrait of an enemy type for the new-enemy card and the bestiary: its template rendered by the main renderer into a small sRGB render target
+// (own lights, transparent background, turned three-quarters), read back into a PNG data URL and cached in PORT
+const PORT={};let PRT=null;
+function portrait(type){if(PORT[type])return PORT[type];const S=192;
+if(!PRT){PRT={rt:new THREE.WebGLRenderTarget(S,S,{encoding:THREE.sRGBEncoding}),sc:new THREE.Scene(),cam:new THREE.PerspectiveCamera(28,1,.05,60),cv:document.createElement('canvas'),px:new Uint8Array(S*S*4)};
+PRT.sc.environment=sc.environment;PRT.sc.add(new THREE.HemisphereLight(0xfff2dd,0x4a3c28,1));const d=new THREE.DirectionalLight(0xfff0d8,2.4);d.position.set(2,4,3);PRT.sc.add(d);
+PRT.cam.layers.enableAll();PRT.cv.width=PRT.cv.height=S;}
+const key=type+'0';if(!tpl[key])tpl[key]=makeEnemy(type,0);const o=tpl[key].clone(true),b=o.getObjectByName('body');
+o.traverse(c=>{if((c.isSprite&&!c.material.map)||c.name=='ice'||c.material===BLM)c.visible=false;});b.rotation.y=.55;PRT.sc.add(o);o.updateMatrixWorld(true);
+const bb=new THREE.Box3();b.traverse(c=>{if(c.isMesh&&c.visible)bb.expandByObject(c);});const ct=bb.getCenter(new THREE.Vector3()),sz=bb.getSize(new THREE.Vector3()),h=Math.max(sz.y,sz.x,sz.z)*.52;
+PRT.cam.position.copy(ct).add(new THREE.Vector3(0,.3,1).normalize().multiplyScalar(h/Math.tan(14*PI/180)));PRT.cam.lookAt(ct);
+const cc=R.getClearColor(new THREE.Color()),ca=R.getClearAlpha(),tm=R.toneMappingExposure;R.setClearColor(0,0);R.toneMappingExposure=1;R.setRenderTarget(PRT.rt);R.clear();R.render(PRT.sc,PRT.cam);
+R.readRenderTargetPixels(PRT.rt,0,0,S,S,PRT.px);R.setRenderTarget(null);R.setClearColor(cc,ca);R.toneMappingExposure=tm;PRT.sc.remove(o);
+const q=PRT.cv.getContext('2d'),im=q.createImageData(S,S);for(let y=0;y<S;y++)im.data.set(PRT.px.subarray((S-1-y)*S*4,(S-y)*S*4),y*S*4);q.putImageData(im,0,0);return PORT[type]=PRT.cv.toDataURL();}
 const BR={norm:[.4,.22],fast:[.4,.3],tank:[.6,.3],boss:[1.0,.55],guard:[.45,.26],shaman:[.4,.22],bat:[1.05,.28],sapper:[.4,.22],troll:[.9,.42],ghost:[.6,.26],imp:[.3,.18]},HT={norm:.8,fast:1.05,tank:1.4,boss:2.3,guard:.95,shaman:.9,bat:1.3,sapper:1,troll:1.6,ghost:1,imp:.75},UPV=new THREE.Vector3(0,1,0);
 const ICEM=new THREE.MeshStandardMaterial({color:new THREE.Color(0x9fe8ff).convertSRGBToLinear(),transparent:true,opacity:.3,roughness:.08,metalness:.1,envMapIntensity:1.6,depthWrite:false}),
 ICEM2=new THREE.MeshStandardMaterial({color:new THREE.Color(0xbfefff).convertSRGBToLinear(),transparent:true,opacity:.75,roughness:.1,envMapIntensity:1.6,emissive:new THREE.Color(0x2a9fe0).convertSRGBToLinear(),emissiveIntensity:.35}),

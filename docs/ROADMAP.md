@@ -82,7 +82,7 @@ Add two enemies: a goblin Sapper that runs to the nearest tower near the road an
 Add a Ghost that phases out (untargetable, translucent) for 1 s every few seconds, appearing mainly in Barrow Moor, and a Fire Imp that is immune to poison and fire, appearing on the lava levels. Let LEVELS control which special enemies each level uses.
 ```
 
-- [ ] **14. Enemy codex**
+- [x] **14. Enemy codex**
 ```text
 When an enemy type appears for the first time, pause briefly and show a small card with its picture/name and what makes it special. Add a "Bestiary" page in the main menu listing every enemy seen so far (saved in localStorage).
 ```

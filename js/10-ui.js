@@ -3,7 +3,32 @@ const DS={arrow:'Fires at 1, 2 or 3 enemies at once, depending on its level.',ca
 const ROLE={arrow:'Multi-shot',cannon:'Area · Slow',frost:'Control',ballista:'Sniper',storm:'Chain',alch:'Poison · Area',banner:'Support',vault:'Economy'};
 const FOE={norm:['👺','Goblins'],fast:['🐺','Wolf riders'],tank:['🛡️','Black knights'],boss:['🐉','Dragon'],guard:['🧱','Shieldbearers','shields stop arrows from the front'],shaman:['🧙','Shamans','heal nearby enemies'],bat:['🦇','Bat swarms','fly straight to the gate; Catapults and Alchemists can’t hit them'],sapper:['💣','Sappers','blow up a tower beside the road, stunning it for 4s'],troll:['🧌','Trolls','two goblins jump out when one dies'],ghost:['👻','Ghosts','fade out of reach for 1s every few seconds'],imp:['😈','Fire imps']};
 // an enemy type's resistances (E[type].rs, see DTY in js/01-config.js) and special ability (FOE[type][2], left out when ab===false) as text, e.g. "−50% physical"
-const resTxt=(t,ab)=>Object.keys(E[t].rs).map(d=>E[t].rs[d]>=1?'immune to '+DTY[d][0].toLowerCase():(E[t].rs[d]>0?'−':'+')+Math.round(Math.abs(E[t].rs[d])*100)+'% '+DTY[d][0].toLowerCase()).concat(ab===false?[]:FOE[t][2]||[]).join(', ');
+const resL=t=>Object.keys(E[t].rs).map(d=>E[t].rs[d]>=1?'immune to '+DTY[d][0].toLowerCase():(E[t].rs[d]>0?'−':'+')+Math.round(Math.abs(E[t].rs[d])*100)+'% '+DTY[d][0].toLowerCase()),resTxt=(t,ab)=>resL(t).concat(ab===false?[]:FOE[t][2]||[]).join(', ');
+// bestiary entries in the order the bestiary lists them: singular name and what to know about it (shown on the new-enemy card and in the menu's Bestiary)
+const BST={norm:['Goblin','The backbone of every horde. Weak on its own, dangerous in numbers – some carry spiked clubs, others rusty cleavers.'],
+fast:['Wolf Rider','A goblin on a snarling wolf. Fragile, but almost twice as fast as a goblin on foot, so don’t let them slip past.'],
+tank:['Black Knight','Full plate and a greatsword. Its armour shrugs off half of all physical damage – answer it with magic, poison, lightning or the Ballista.'],
+boss:['Dragon','Every fifth wave ends with one. Huge health, shrugs off half of all fire and poison, and costs five lives if it reaches the gate.'],
+bat:['Bat Swarm','Flies straight from the breach to the gate, ignoring the road. Catapults and Alchemists can’t reach it; Archers, the Ballista, Wizards and Storm Towers can.'],
+guard:['Shieldbearer','Its tower shield blocks most of the damage from arrows and Ballista bolts that hit it from the front. Hit it from the side or behind, or with anything that isn’t an arrow.'],
+sapper:['Goblin Sapper','Carries a lit bomb. When it passes a tower next to the road it charges and blows up, knocking the tower out for 4 seconds. Stop it before it gets there.'],
+shaman:['Goblin Shaman','Every few seconds a green pulse from its staff heals the enemies around it. Take it down first.'],
+troll:['Troll','Big, slow and tough, with two goblins in a basket on its back. When it falls they jump out and keep running – so kill it early, not at the gate.'],
+ghost:['Ghost','Every few seconds it fades out for a moment. While faded nothing can target or hurt it, and arrows already in the air pass straight through.'],
+imp:['Fire Imp','A little devil from the lava fields. Immune to fire and poison, so the Alchemist can’t touch it.']},BSK=Object.keys(BST);
+// facts about an enemy type as chips: health compared with a goblin, speed, gold, flying, resistances
+const foeChips=t=>{const e=E[t];return['❤️ ×'+e.h+' health','👣 '+(e.s<=35?'Slow':e.s<=50?'Steady':e.s<=65?'Quick':'Fast'),COIN+e.rw+' gold',...(e.fy?['🦇 Flies']:[]),...(t=='boss'?['Costs 5 lives']:[]),...resL(t)].map(x=>'<span class="chip">'+x+'</span>').join('');};
+// first sighting: the first time an enemy type ever spawns (remembered in localStorage sfseen: type → [level, wave]) the game pauses and a card introduces it;
+// it carries on by itself after FC.t s, or with the button, a click on the card, Space, Enter or Esc. Several new types in one wave queue up
+let SEEN={};try{SEEN=JSON.parse(localStorage.getItem('sfseen')||'{}')||{};}catch(e){}
+const FC={open:false,q:[],t:7,tm:0,wp:false};
+function foeSeen(t){if(SEEN[t]||!BST[t])return;SEEN[t]=[LVN+1,g.wave];try{localStorage.setItem('sfseen',JSON.stringify(SEEN));}catch(e){}FC.q.push(t);if(!FC.open)foeNext();}
+function foeNext(){const t=FC.q.shift();if(!t)return;FC.open=true;FC.wp=!!g.pause;setPause(true);const el=$('foe');
+setH(el,'<div class="ovbox"><span class="k">New enemy</span><img alt="" src="'+portrait(t)+'"><h2>'+BST[t][0]+'</h2><p>'+BST[t][1]+'</p><div class="chips">'+foeChips(t)+'</div><button class="btn" id="f_ok">Got it</button><i class="fbar" style="animation-duration:'+FC.t+'s"></i></div>');
+el.classList.add('on');clearTimeout(FC.tm);FC.tm=setTimeout(foeDone,FC.t*1000);ui();}
+function foeDone(){if(!FC.open)return;clearTimeout(FC.tm);FC.open=false;$('foe').classList.remove('on');if(!FC.wp)setPause(false);ui();if(FC.q.length)setTimeout(foeNext,250);}
+$('foe').onclick=e=>{if(e.target.closest('.ovbox'))foeDone();};
+addEventListener('keydown',e=>{if(!FC.open||MENU.open||![' ','Enter','Escape'].includes(e.key))return;e.preventDefault();e.stopImmediatePropagation();foeDone();},true);
 let offMsg=0,hov=null;const TK=Object.keys(T),TC2={arrow:'#5cd17a',cannon:'#d98a3c',frost:'#9a6bff',ballista:'#e8e8e8',storm:'#4fd0ff',alch:'#9cff4a',banner:'#ff5a5a',vault:'#ffd24a'};
 const COIN='<svg><use href="#i-coin"/></svg>',setH=(el,h)=>{if(el._h!==h){el._h=h;el.innerHTML=h;}};
 const fmt=v=>v<10?v.toFixed(1).replace(/\.0$/,''):''+Math.round(v),tiles=r=>(r/60).toFixed(1);
@@ -53,7 +78,7 @@ setH($('nw'),'<span>Next wave</span><span class="mx">'+Object.keys(n).map(t=>'<s
 (rz.length?'<span class="rz">'+rz.map(t=>'<span title="'+FOE[t][1]+'">'+FOE[t][0]+' '+rt(t)+'</span>').join('')+'</span>':''));}
 else setH($('nw'),'<span>'+(g.run?'Wave '+g.wave:'Final wave')+'</span><span class="mx">'+(g.run?left+' left':'')+'</span>');
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s==g.spd));
-const pz=!!g.pause&&!g.over;$('pz').classList.toggle('on',pz);setH($('pz'),'<svg><use href="#i-'+(pz?'play':'pause')+'"/></svg>');$('pz').title=pz?'Resume (P)':'Pause (P)';$('pov').classList.toggle('on',pz&&!MENU.open);if(AU.pz!==pz){AU.pz=pz;auPause(pz);}
+const pz=!!g.pause&&!g.over;$('pz').classList.toggle('on',pz);setH($('pz'),'<svg><use href="#i-'+(pz?'play':'pause')+'"/></svg>');$('pz').title=pz?'Resume (P)':'Pause (P)';$('pov').classList.toggle('on',pz&&!MENU.open&&!FC.open);if(AU.pz!==pz){AU.pz=pz;auPause(pz);}
 for(const k of TK){const b=$('b_'+k);b.classList.toggle('on',g.build===k&&!g.sel);b.classList.toggle('poor',g.gold<T[k].c);}
 const s=g.sel,k=s?s.k:hov||g.build;$('sel').style.display=s?'flex':'none';$('ip').style.setProperty('--ac',TC2[k]);
 if(!s&&performance.now()<offMsg)setH($('info'),'<div class="ih"><div class="ihn"><b>Locked</b></div></div><p class="ds">🔒 Not available yet.</p>');else setH($('info'),infoHTML(k,s));

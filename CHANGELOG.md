@@ -3,6 +3,8 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Meet the enemy:** the first time you ever run into a new kind of enemy, the game pauses for a moment and a card shows what it looks like and what makes it special. It carries on by itself after a few seconds, or press **Space** / click **Got it**.
+- **Bestiary:** a new page in the main menu lists every enemy you've met so far – with a picture, a description, its health, speed, gold and resistances, and where you first met it. The ones you haven't met yet are dark silhouettes.
 - **New enemy: Ghost** – a hooded, see-through wraith that haunts **Barrow Moor** (and now and then Darkwood and the Dread Wastes). Every few seconds it fades almost out of sight for a second: while it's faded, no tower can target it, arrows already flying at it pass straight through, and splash and poison can't touch it.
 - **New enemy: Fire Imp** – a little red devil with a flaming head and a pitchfork, found on the lava levels (**Scorched Badlands** and **The Dread Wastes**). It's immune to fire and poison, so Alchemists ignore it – bring other towers.
 - Levels can now each have their own special enemies – that is how the Ghosts and Fire Imps keep to their home turf.

@@ -30,11 +30,16 @@ if(s===runS)return;runS=s;try{localStorage.setItem(RUNK,s);}catch(e){}}
 function loadRun(){const d=savedRun(LVN);if(!d||inGame())return;g.gold=Math.max(0,+d.gold||0);g.lives=Math.min(20,d.lives);g.wave=d.wave|0;g.spd=[1,2,3].includes(d.spd)?d.spd:1;
 for(const[k,c,r,l,inv,tm,nu]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,r,clamp(l|0,1,3),+inv||T[k].c);if(TGM[tm])t.tm=tm;if(nu)t.bw=g.wave;}ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
-function mPage(p){MENU.pg=p;for(const k of['main','levels','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
+function mPage(p){MENU.pg=p;for(const k of['main','levels','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
 $('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+(inGame()?' · '+(g.run?'paused on wave '+g.wave+' of '+MAXW:g.wave?'wave '+g.wave+' of '+MAXW+' cleared':'getting ready'):'');
 const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');}
 function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}
 function menuClose(){MENU.open=false;$('menu').style.display='none';}
+// bestiary: every enemy type in BST order; ones met so far (SEEN) with portrait, description and facts, the rest as a dark silhouette. Portraits are rendered one per tick so the page opens at once
+function mBest(){const el=$('m_bl'),n=BSK.filter(t=>SEEN[t]).length;$('m_bn').textContent=n+' of '+BSK.length+' enemies met'+(n<BSK.length?' – the rest are still out there.':'. You’ve seen them all!');el.innerHTML='';
+const q=[];for(const t of BSK){const s=SEEN[t],d=document.createElement('div');d.className='bst'+(s?'':' no');
+d.innerHTML='<img alt="">'+'<div class="bt"><b>'+(s?BST[t][0]:'???')+'</b><p>'+(s?BST[t][1]:'Not met yet.')+'</p>'+(s?'<div class="chips">'+foeChips(t)+'</div><small>First met: '+(LEVELS[s[0]-1]?LEVELS[s[0]-1].n:'?')+', wave '+s[1]+'</small>':'')+'</div>';el.appendChild(d);q.push([d.firstChild,t]);}
+const step=()=>{const j=q.shift();if(!j||MENU.pg!='bestiary')return;j[0].src=portrait(j[1]);setTimeout(step,0);};setTimeout(step,0);}
 // settings: [label, current value, toggle]; music/sound reuse the HUD buttons so both stay in sync
 const OPTS=[['Auto-start waves',()=>OPT.auto,()=>optSet('auto')],['Music',()=>AU.on.m,()=>$('mu').onclick()],['Sound effects',()=>AU.on.s,()=>$('sf').onclick()],...(PP?[['Glow effects',()=>GFX.glow,()=>gfxSet('glow')]]:[]),...(AO?[['Ambient occlusion',()=>GFX.ao,()=>gfxSet('ao')]]:[]),['Shadows',()=>GFX.shadows,()=>gfxSet('shadows')],['High resolution',()=>GFX.sharp,()=>gfxSet('sharp')]];
 function mOpts(){const el=$('m_opts');el.innerHTML='';for(const[n,get,flip]of OPTS){const r=document.createElement('div'),b=document.createElement('button');r.className='mopt';r.textContent=n;b.className='wb';
@@ -54,10 +59,10 @@ function menuBack(){MENU.quit=false;loadRun();if(AU.m)AU.m.gain.setTargetAtTime(
 $('m_play').onclick=()=>{if(g.over)reset();menuClose();};
 // Restart level asks for a second click, so a misclick doesn't throw the run away
 $('m_rs').onclick=()=>{const b=$('m_rs');if(b.classList.contains('warn'))restartLevel();else{b.classList.add('warn');b.textContent='Lose this run? Click again';}};
-$('m_lv').onclick=()=>mPage('levels');$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
+$('m_lv').onclick=()=>mPage('levels');$('m_bst').onclick=()=>mPage('bestiary');$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
 document.querySelectorAll('#menu [data-back]').forEach(b=>b.onclick=()=>mPage('main'));
 $('mn').onclick=menuOpen;
 // while the menu is open, game hotkeys are off; Esc goes back a page or resumes a game in progress
 addEventListener('keydown',e=>{if(!MENU.open)return;e.stopImmediatePropagation();auInit();if(e.key!='Escape'||e.repeat)return;
-if(MENU.pg=='settings'||MENU.pg=='changelog'||MENU.pg=='levels')mPage('main');else if(MENU.pg=='main'&&inGame())menuClose();},true);
+if(MENU.pg=='settings'||MENU.pg=='changelog'||MENU.pg=='levels'||MENU.pg=='bestiary')mPage('main');else if(MENU.pg=='main'&&inGame())menuClose();},true);
 gfxApply();
