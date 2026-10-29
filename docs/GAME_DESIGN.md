@@ -23,7 +23,7 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 
 ## Economy
 - Gold for every enemy killed (`rw`), plus a wave bonus of `20 + 2 × wave` at the end of each wave.
-- Upgrading costs `price × 0.8 × level` (level 1→2, 2→3). Selling refunds 60% of everything spent on the tower.
+- Upgrading costs `price × 0.8 × level` (level 1→2, 2→3). Selling refunds 60% of everything spent on the tower. **Undo:** a tower placed during the break between waves can be taken back for a full refund (including upgrades bought on it) until the next wave starts – the Sell button turns into Undo, and Ctrl+Z/Z undoes the latest one. Towers placed mid-wave can only be sold.
 - Each upgrade gives +60% damage and +10 range.
 
 ## Towers (price / range / damage / reload)
@@ -55,7 +55,7 @@ Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apar
 - Defeat: the castle burns, the keep collapses and the enemy army cheers.
 
 ## Controls
-Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it, right-click anywhere (or Esc) to deselect it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave (and resumes if paused), P pauses/resumes, T changes the selected tower's targeting, F cycles game speed ×1/×2/×3 (also buttons next to the wave button), Q/E rotate. While paused you can still build, upgrade, sell and move the camera; the music drops to a quiet bed. At ×2/×3 everything in the game runs faster, and the music picks up a little. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects; ? lists the controls. ☰ or Esc opens the main menu (pauses the game); Settings there has music, sound, glow, shadows and resolution. Hovering a tower in the dock shows its DPS, damage, fire rate and range.
+Mouse/touch: click an empty tile to build, click a tower to upgrade or sell it, right-click anywhere (or Esc) to deselect it. Drag to rotate the camera (360°), scroll/pinch to zoom, right-drag/two fingers to pan. Keys 1–8 pick a tower, Space starts the wave (and resumes if paused), P pauses/resumes, U upgrades and S sells (or undoes) the selected tower, Ctrl+Z (or Z) undoes the last tower placed this break, T changes the selected tower's targeting, F cycles game speed ×1/×2/×3 (also buttons next to the wave button), Q/E rotate. While paused you can still build, upgrade, sell and move the camera; the music drops to a quiet bed. At ×2/×3 everything in the game runs faster, and the music picks up a little. Click the minimap to jump there. ♪ and 🔊 toggle music and sound effects; ? lists the controls. ☰ or Esc opens the main menu (pauses the game); Settings there has music, sound, glow, shadows and resolution. Hovering a tower in the dock shows its DPS, damage, fire rate and range.
 
 ## Open questions
 - Is the Wizard too strong or too weak? (Tune distance, reload and the 4 s immunity in `banish()` / `T.frost`.)

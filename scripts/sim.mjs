@@ -29,7 +29,7 @@ Build steps, done in order as soon as there is enough gold (a step waits until i
 and the steps after it wait too):
   <tower> c,r      build a tower on cell c,r: arrow cannon frost ballista storm alch banner vault
   up c,r           upgrade the tower on c,r (max level 3)
-  sell c,r         sell the tower on c,r (60% back)
+  sell c,r         sell the tower on c,r (60% back; a full refund if it was built in this same break, like Undo in the game)
   target c,r MODE  set the targeting of the tower on c,r: first last strong fast close (free, done at once)
   wave N           wait until the break before wave N`;
 
@@ -160,13 +160,14 @@ function doSteps(inBreak) {
     }
     if (st.k == 'sell') {
       if (!t) { warn.push(`"${st.s}": no tower there – skipped`); pc++; continue; }
-      const v = Math.round(t.inv * .6); G.gold += v; spent -= v; G.tw = G.tw.filter(x => x !== t); log.push({ wave: G.wave, t: G.wt, s: st.s, cost: -v }); pc++; continue;
+      // same as sellVal() in js/10-ui.js
+      const v = !G.run && t.bw === G.wave ? t.inv : Math.round(t.inv * .6); G.gold += v; spent -= v; G.tw = G.tw.filter(x => x !== t); log.push({ wave: G.wave, t: G.wt, s: st.s, cost: -v }); pc++; continue;
     }
     if (!run('free')(st.c, st.r)) { warn.push(`"${st.s}": cell is not buildable (road, blocked, taken or off the board) – skipped`); pc++; continue; }
     const c = T[st.k].c; if (G.gold < c) return;
     G.gold -= c; spent += c;
     // same tower object as addTw() in js/12-input.js; head stands in for the 3D model (bullets start from its height)
-    G.tw.push({ k: st.k, c: st.c, r: st.r, x: st.c * 60 + 30, y: st.r * 60 + 30, l: 1, cd: 0, inv: c, head: { position: { y: 0 } } });
+    G.tw.push({ k: st.k, c: st.c, r: st.r, x: st.c * 60 + 30, y: st.r * 60 + 30, l: 1, cd: 0, inv: c, bw: G.run ? undefined : G.wave, head: { position: { y: 0 } } });
     log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++;
   }
 }

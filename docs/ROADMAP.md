@@ -40,7 +40,7 @@ Add pause (P key and a HUD button) and game speed 1×/2×/3× (a HUD toggle and 
 Add per-tower targeting modes: First, Last, Strongest, Fastest, Closest. Make them selectable in the tower inspector and cycle them with the T key. Keep the Ballista's default as Strongest and the Wizard's as First. Update tstat()/infoHTML() if needed.
 ```
 
-- [ ] **6. Hotkeys and undo**
+- [x] **6. Hotkeys and undo**
 ```text
 Add hotkeys U (upgrade) and S (sell) for the selected tower, and let the player undo a tower placed during the build phase for a full refund until the next wave starts. Update the ? help popover.
 ```
