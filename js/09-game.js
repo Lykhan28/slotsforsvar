@@ -21,6 +21,8 @@ const tmode=t=>t.tm||T[t.k].tm||'first';
 // strong is plain health (ties keep the first found, as before); fast breaks ties by progress
 const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m=='fast'?e.s+prog(e)*1e-6:-Math.hypot(e.x-t.x,e.y-t.y);
 const stat=t=>({d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1),r:T[t.k].r+10*(t.l-1),f:T[t.k].f});
+// damage multiplier for tower type k hitting enemy e (its resistance to the tower's damage type; the Ballista pierces physical armour)
+const dmul=(e,k)=>{const t=T[k].dt;return t=='phys'&&T[k].pr?1:1-(e.rs[t]||0);};
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
@@ -34,8 +36,8 @@ for(const e of g.en){if(e.hp<=0||(t.k=='frost'&&e.bn>0))continue;if(Math.hypot(e
 if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k)}));}}}
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0){b.dead=1;continue;}
 const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
-if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');for(const o of g.en)if(Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d);o.hit=.15;}fx(e.x,e.y,0x7cff4a,.1,.75,.5,.1,true);burst(e.x,e.y,0x7cff4a,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');for(const o of g.en)if(Math.hypot(o.x-e.x,o.y-e.y)<=T.cannon.sp){o.hp-=b.d;hf(o,.25,b.d,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);}
-else{e.hp-=b.d;hf(e,.2,b.d,b.k,e.x-b.x,e.y-b.y);if(b.k=='frost')banish(e,b.l);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
+if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');for(const o of g.en)if(Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch'));o.hit=.15;}fx(e.x,e.y,0x7cff4a,.1,.75,.5,.1,true);burst(e.x,e.y,0x7cff4a,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');for(const o of g.en)if(Math.hypot(o.x-e.x,o.y-e.y)<=T.cannon.sp){const dd=b.d*dmul(o,'cannon');o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);}
+else{const dd=b.d*dmul(e,b.k);e.hp-=dd;hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y);if(b.k=='frost')banish(e,b.l);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
 for(const e of g.en)if(e.hp<=0){if(e.leak)sc.remove(e.m);else{g.gold+=e.rw;snd('coin');popText(e.x,e.y,'+'+e.rw,'#ffd24a');burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);}}
 for(const b of g.bu)if(b.dead)sc.remove(b.m);

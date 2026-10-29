@@ -3,6 +3,7 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-29
+- **Damage types and armour:** every tower now deals physical, magic, fire & poison or lightning damage (shown on the tower card). **Black Knights** wear heavy armour and shrug off half of all physical damage from Archers and Catapults, but they now have less health, so magic, poison and lightning cut through them. The **Ballista** pierces armour, and the **Storm Tower**'s lightning ignores it. **Dragons** shrug off half of the Alchemist's fire & poison. Resisted hits show grey damage numbers and armour-piercing hits show pale gold. The next-wave preview lists what the coming enemies resist.
 - **Call waves early for bonus gold:** after each wave you get a 25-second break. Start the next wave before the time is up and you earn bonus gold – the more time left, the bigger the bonus, and it grows in later waves. The wave button shows the bonus and the seconds left.
 - **Auto-start waves:** a new option in Settings starts the next wave by itself when the break runs out, so the battle keeps flowing. It's off by default.
 - **See what a tower will reach:** while you choose where to place a tower, the road tiles inside its range light up in gold (red if you can't afford it yet). Selecting a tower shows the same.

@@ -132,8 +132,9 @@ yr={norm:[.22,.5],fast:[.28,.5],tank:[.3,.8],boss:[.75,1.1]}[e.type],yy=rnd(yr[0
 part(a,'box',P.wd2,.016*k,.016*k,L,0,0,-L/2);part(a,'box',P.rd,.05*k,.012,.06,0,0,-L*.9);part(a,'box',P.rd,.012,.05*k,.06,0,0,-L*.9);part(a,'cone',0xdfe6ee,.02*k,.04,.02*k,0,0,.01).rotation.x=PI/2;
 a.position.set(-lx*R0+rnd(-.03,.03),yy,-lz*R0+rnd(-.03,.03));a.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(lx,rnd(-.15,.15),lz).normalize());
 e.body.add(a);e.stuck.push({a,t:0,sc:e.type=='boss'?1.8:1});if(e.stuck.length>7){const o=e.stuck.shift();e.body.remove(o.a);}}
+// hit feedback; damage numbers are grey when the enemy resisted part of the hit, pale gold when the Ballista pierced its armour
 function hf(o,h,d,kind,dx,dy){snd('h_'+kind);o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
-if(d>0&&txts.length<40){popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=o.type=='boss'?2.3:o.type=='tank'?1.4:o.type=='fast'?1.15:1;}
+if(d>0&&txts.length<40){const rs=o.rs[T[kind].dt]||0;popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),dmul(o,kind)<1?'#a9a9a9':rs>0?'#ffe08a':'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=o.type=='boss'?2.3:o.type=='tank'?1.4:o.type=='fast'?1.15:1;}
 burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a}[o.type],o.type=='tank'?5:3,.8,.5);
 if(kind=='arrow'||kind=='ballista')stick(o,dx||0,dy||1,kind=='ballista');else if(kind=='cannon')o.stn=1;else if(kind=='storm')o.shk=2.8;}
 function tfx(t){snd('f_'+t.k);const c={arrow:0xdcc9a0,cannon:0xcfc2a0,frost:0x9ff7ff,ballista:0xe8e0c8,storm:0x7fd8ff,alch:0x7cff4a}[t.k];if(!c)return;burst(t.x,t.y,c,t.k=='cannon'?7:t.k=='arrow'?2:5,t.k=='storm'?1.2:.8,t.head.position.y+.1);if(t.k=='cannon')fx(t.x,t.y,0xcfc2a0,.2,.7,.35,.3);}
@@ -198,7 +199,7 @@ for(let i=0;i<ps.length-1;i++){const d=ps[i+1].clone().sub(ps[i]),L=d.length(),m
 glow(g2,b.x,b.y,b.z,.45,0x3f9aff);sc.add(g2);bolts.push({g:g2,t:0});}
 function zap(t,best,s){const hit=[best],n=T.storm.ch+t.l-1;let cur=best;
 for(let i=1;i<n;i++){let nx=null,nd=90;for(const o of g.en){if(o.hp<=0||hit.includes(o))continue;const dd=Math.hypot(o.x-cur.x,o.y-cur.y);if(dd<nd){nd=dd;nx=o;}}if(!nx)break;hit.push(nx);cur=nx;}
-let f={x:t.x,y:t.y,h:t.head.position.y},dm=s.d;for(const o of hit){o.hp-=dm;hf(o,.2,dm,'storm');o.stun=.2;bolt(f.x,f.y,f.h,o.x,o.y,.45);f={x:o.x,y:o.y,h:.45};dm*=.92;}}
+let f={x:t.x,y:t.y,h:t.head.position.y},dm=s.d;for(const o of hit){const dd=dm*dmul(o,'storm');o.hp-=dd;hf(o,.2,dd,'storm');o.stun=.2;bolt(f.x,f.y,f.h,o.x,o.y,.45);f={x:o.x,y:o.y,h:.45};dm*=.92;}}
 function buffs(){for(const t of g.tw)t.buff=1;for(const s of g.tw)if(T[s.k].sup){const r=stat(s).r;for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r)t.buff+=.2+.1*(s.l-1);}}
 function mkBullet(k){if(k=='ballista'){const a=new THREE.Group();part(a,'box',P.wd2,.04,.04,.55,0,0,0);part(a,'cone',0xdfe6ee,.055,.14,.055,0,0,.33).rotation.x=PI/2;part(a,'box',P.rd,.1,.012,.1,0,0,-.25);part(a,'box',P.rd,.012,.1,.1,0,0,-.25);sc.add(a);return a;}
 if(k=='alch'){const q=new THREE.Group();part(q,'sph',0xbaff8a,.075,.09,.075,0,0,0,0x3fbf1f);part(q,'cyl',P.wd2,.025,.03,.025,0,.1,0);glow(q,0,0,0,.4,0x7cff4a);sc.add(q);return q;}if(k=='arrow'){const a=new THREE.Group();part(a,'box',P.wd2,.025,.025,.3,0,0,0);part(a,'cone',0xdfe6ee,.04,.09,.04,0,0,.18).rotation.x=PI/2;part(a,'box',P.rd,.05,.012,.07,0,0,-.13);part(a,'box',P.rd,.012,.05,.07,0,0,-.13);sc.add(a);return a;}

@@ -33,8 +33,8 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 | Archers | 50 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the best ones by its targeting mode) |
 | Catapult | 100 | 110 | 30 | 1.4 s | Area damage (radius 55). Slows enemies hit by 20/40/60% for 1 s |
 | Wizard | 110 | 115 | 8 | 3.0 s | Banish: teleports its target (default First) 1/1.5/2 tiles back down the road (bosses only a third as far). A banished enemy is immune to banishing for 4 s, so several Wizards spread out |
-| Ballista | 125 | 190 | 66 | 2.2 s | Targets Strongest by default (the enemy with the most health left) |
-| Storm Tower | 150 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump |
+| Ballista | 125 | 190 | 66 | 2.2 s | Targets Strongest by default (the enemy with the most health left). Pierces armour |
+| Storm Tower | 150 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump. Lightning ignores armour |
 | Alchemist | 90 | 115 | 7.8/s | 1.1 s | Poison flask, radius 45, poisons for 3 s |
 | Banner Tower | 120 | 120 | – | – | +20% damage (+10% per level) to towers in range |
 | Treasury | 150 | – | – | – | 15 gold × level at the end of each wave |
@@ -46,8 +46,31 @@ Tower placement gets harder level by level: more blocked tiles (often right wher
 |---|---|---|---|
 | Goblin (norm) | 50 | 1.0 | 5 |
 | Wolf rider (fast) | 90 | 0.6 | 5 |
-| Black knight (tank) | 35 | 2.6 | 10 |
+| Black knight (tank) | 35 | 1.8 | 10 |
 | Dragon (boss) | 30 | 12 | 50 |
+
+## Damage types and resistances
+Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each enemy type has resistances (`E[type].rs`, the share of that type's damage it shrugs off). `dmul(e,k)` in js/09-game.js applies them to every hit, including poison and each jump of the lightning chain.
+
+| Tower | Damage type | Notes |
+|---|---|---|
+| Archers | Physical | |
+| Catapult | Physical | |
+| Ballista | Physical | **Pierces armour:** ignores physical resistance (`pr:1`) |
+| Wizard | Magic | |
+| Alchemist | Fire & poison | Resistance lowers the poison per second |
+| Storm Tower | Lightning | **Ignores armour:** no enemy resists lightning |
+
+| Enemy | Physical | Magic | Fire & poison | Lightning |
+|---|---|---|---|---|
+| Goblin | – | – | – | – |
+| Wolf rider | – | – | – | – |
+| Black knight | −50% | – | – | – |
+| Dragon | – | – | −50% | – |
+
+Damage numbers are red for a full hit, **grey** when the enemy resisted part of it, and **pale gold** when the Ballista pierced armour. The next-wave preview has a line listing the coming enemies' resistances (hover an enemy icon for the same). Knights were cut from 2.6× to 1.8× health when they got their armour: against physical damage they are as tough as a 3.6× enemy, against everything else weaker than before.
+
+**Simulator check** (`--keep-going`, lives lost before → after): `level1-example` (mostly physical, one Ballista, two Storm Towers) 11 → 12, `level1-physical` (Archers and Catapults only) 7 → 12, `level1-mixed` 8 → 8, `level4-mixed` 72 → 68. A one-sided physical build is punished, a mixed one is unchanged or better.
 
 Base health = `30 × 1.2^wave`. Wave n has `5 + 2n` enemies, spawning 0.8 s apart. From wave 3 every 3rd enemy is a wolf rider, from wave 5 every 5th is a knight, and every 5th wave ends with a dragon.
 

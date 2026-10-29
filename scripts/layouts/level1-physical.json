@@ -1,0 +1,9 @@
+{
+  "level": 1,
+  "note": "Physical damage only (Archers and Catapults) on Greenmeadow – shows how much the Black Knights' armour costs a one-sided build.",
+  "build": [
+    "arrow 8,2", "arrow 3,4", "cannon 5,2", "arrow 3,5", "up 8,2", "cannon 5,4", "arrow 6,2", "up 3,4",
+    "up 5,2", "up 5,4", "arrow 7,4", "up 8,2", "up 3,4", "cannon 4,4", "up 6,2", "up 7,4", "up 3,5",
+    "up 6,2", "up 7,4", "up 4,4", "up 5,2", "up 5,4", "up 4,4", "up 3,5", "arrow 4,2", "up 4,2", "up 4,2"
+  ]
+}

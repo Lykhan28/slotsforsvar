@@ -1,0 +1,9 @@
+{
+  "level": 1,
+  "note": "A mixed build on Greenmeadow: archers early, then an Alchemist and a Storm Tower for the armoured knights and a Ballista for the dragons.",
+  "build": [
+    "arrow 8,2", "arrow 3,4", "cannon 5,2", "alch 4,4", "up 8,2", "storm 6,2", "ballista 10,4", "up 3,4",
+    "arrow 3,5", "up 6,2", "up 5,2", "up 4,4", "banner 5,4", "up 10,4", "storm 7,4", "up 6,2", "up 7,4",
+    "up 8,2", "up 3,4", "up 10,4", "up 4,4", "up 7,4", "frost 4,2", "up 3,5", "up 5,2", "up 3,5", "up 5,4"
+  ]
+}

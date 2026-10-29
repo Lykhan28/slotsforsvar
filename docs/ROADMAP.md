@@ -57,7 +57,7 @@ Add an optional auto-start for waves (setting in the menu) with a countdown, and
 
 ## Phase 2 – Enemies
 
-- [ ] **9. Armour system**
+- [x] **9. Armour system**
 ```text
 Introduce damage types (physical, magic, fire/poison, lightning) for towers and armour/resistances for enemies. The Black Knight should resist physical damage, the Ballista should pierce armour, and Storm should ignore armour. Show resistances in the next-wave preview and the damage numbers (e.g. grey for resisted). Update GAME_DESIGN.md with a damage-type table and check the balance with the simulator.
 ```
