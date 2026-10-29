@@ -68,6 +68,7 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 8 tower types (the Wizard has key `frost` for historical reasons; it now banishes enemies back along the road via `banish()` in js/09-game.js, enemy field `bn` = immunity timer), 4 enemy types, 20 waves, boss every 5th wave.
 
 ## Ideas / roadmap
+**The plan lives in `docs/ROADMAP.md`:** 49 numbered prompts in order, each one a session. When you finish one, tick its box (`- [x]`) in the same commit. The older notes below are covered there too.
 - Difficulty modes, highscores, pause. More levels: add an entry to `LEVELS` (and a theme if needed).
 - Barracks tower (soldiers that block enemies), more enemy types (flying, healers, armoured).
 - Vendor three.js locally; optionally migrate to ES modules + Vite once the split has settled.
