@@ -207,7 +207,7 @@ body.over #panel{opacity:0;transform:translateY(20px);pointer-events:none}body.o
 #nw{display:none}.btn.go{flex:1;height:48px}.seg{width:156px;align-self:stretch;align-content:center}
 body.over #panel{opacity:.3}
 }
-@media (max-width:700px) and (max-height:700px){.sts{display:none}#ip .chips{display:none}}
+@media (max-width:700px) and (max-height:700px){.sts{display:none}#ip .chips{display:none}#ip .tgm>.sl,#ip .brs>.sl{display:none}#foe img{width:96px;height:96px}#foe p{font-size:12.5px}}
 
 /* ---- main menu (js/14-menu.js) ---- */
 #menu{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 45%,rgba(10,7,4,.2),rgba(8,5,2,.75))}
@@ -302,3 +302,31 @@ body.over #panel{opacity:.3}
 #sty em{display:block;margin-top:16px;font:600 11px var(--ui);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:#8a6a40}
 @keyframes unroll{0%{transform:scaleY(.04);opacity:0}60%{opacity:1}100%{transform:scaleY(1);opacity:1}}
 @media (max-width:700px){#sty .parch{padding:24px 20px 16px}#sty h2{font-size:20px}#sty p{font-size:14.5px}}
+
+/* ---- touch: long-press info sheet (#lp, js/10-ui.js) and bigger phone targets ---- */
+#lp{position:absolute;left:50%;top:50%;z-index:4;display:none;flex-direction:column;gap:10px;width:min(360px,calc(100% - 20px));max-height:calc(100% - 20px);overflow:auto;padding:14px;border-radius:var(--r);background:var(--glass2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid color-mix(in srgb,var(--ac) 40%,var(--line));box-shadow:var(--sh);transform:translate(-50%,-50%);animation:fade .2s}
+#lp.on{display:flex}#lp>div{display:flex;flex-direction:column;gap:10px}
+#lp .lpx{text-align:center;font-size:11px;color:var(--ink3)}
+#lp .ds{display:block}#lp .sts{display:grid}#lp .chips{display:flex}
+#help li.tch{display:none}
+.tile,#hcard,#zm button,.seg button,#rep,.btn{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+@media (pointer:coarse){#help li.tch{display:grid}#help li{grid-template-columns:110px 1fr}#help h3::after{content:" · tap to close";font:600 10px var(--ui);letter-spacing:.08em;color:var(--ink3)}}
+@media (max-width:700px){
+#lp{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:calc(100% - 16px);transform:none}
+#lp .sts{grid-template-columns:1fr}#lp .st,#lp .st.nob{grid-template-columns:76px 1fr auto}#lp .st .sb{display:block}
+/* 40px+ targets: the camera/sound buttons in two columns beside the minimap, taller speed and pause buttons, the repair button, the tower panel's buttons */
+#zm{display:grid;grid-template-columns:repeat(2,40px);gap:2px;padding:3px;border-radius:16px}#zm button{width:40px;height:40px;border-radius:12px}#zm button svg{width:19px;height:19px}
+.pill{height:36px}#rep{height:30px;padding:0 10px 0 8px}
+#spd{width:176px;align-content:stretch}#spd button{height:auto;min-height:42px}
+#sel .btn{height:44px}.tgm .seg button{height:36px}.brc button{padding:10px}
+/* the dock: one row while every tile gets 44px, else two rows of five (#dock is the container) */
+@container (max-width:440px){#towers{grid-template-columns:repeat(5,1fr);gap:4px}#towers .tile{height:52px}}
+#hcard{grid-column:auto}
+#evt{width:max-content;max-width:calc(100% - 24px)}
+#help{top:10px;max-height:calc(100% - 20px);overflow:auto}
+/* overlays never taller than the view; the end screen takes the whole screen (the panel steps aside) */
+#foe .ovbox,#ov .ovbox,#pov .ovbox{max-height:100%;overflow:auto}#ov .ovbox>*,#foe .ovbox>*{flex:none}body.over #panel{display:none}
+/* the inspector stays short (chips live in the long-press sheet) and says so on touch screens */
+#ip .chips{display:none}
+}
+@media (max-width:700px) and (pointer:coarse){#info::after{content:'Hold a tower or button for details';font-size:11px;color:var(--ink3)}}

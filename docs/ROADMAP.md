@@ -246,7 +246,7 @@ Add positional audio (sounds fade with distance from the camera target) and more
 
 ## Phase 9 – Mobile and accessibility
 
-- [ ] **44. Touch UI**
+- [x] **44. Touch UI**
 ```text
 Improve the phone experience: bigger touch targets, long-press a tower or dock item to see its info, and make sure every new HUD element fits at ≤700 px. Test with the mobile viewport.
 ```

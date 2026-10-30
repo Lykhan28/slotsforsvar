@@ -141,7 +141,7 @@ const s=g.sel,k=s?s.k:hov||g.build;$('sel').style.display=s?'flex':'none';$('ip'
 if(g.run&&g.aim!=null)setH($('info'),'<div class="ih"><div class="iic">'+HAB[g.aim].ic+'</div><div class="ihn"><b>'+HAB[g.aim].n+'</b><span class="tag">Pick a spot</span></div></div><p class="ds">'+(HAB[g.aim].road?'Click a road tile for the soldiers to hold.':'Click where the arrows should fall.')+' Right-click or Esc to cancel.</p>');
 else if(g.run&&!s&&g.hero&&(hovA!=null||performance.now()>=offMsg))setH($('info'),heroHTML(hovA));else if(!s&&performance.now()<offMsg)setH($('info'),'<div class="ih"><div class="ihn"><b>'+offT[0]+'</b></div></div><p class="ds">'+offT[1]+'</p>');else setH($('info'),infoHTML(k,s));
 if(s){const bp=brPick(s);setH($('up'),bp?'Choose a path ↑':s.l>=3?'Max level':'Upgrade '+COIN+upCost(s));$('up').disabled=bp||s.l>=3||g.gold<upCost(s);const u=canUndo(s);setH($('sell'),(u?'Undo ':'Sell ')+COIN+sellVal(s));$('sell').title=u?'Undo (S or Ctrl+Z) – full refund until the wave starts':'Sell (S) – 60% back';$('sell').disabled=!!g.run;if(g.run)$('sell').title='Towers can only be sold between waves';}
-document.body.classList.toggle('over',!!g.over);document.body.classList.toggle('wave',!!g.run&&!g.over);habUI();
+document.body.classList.toggle('over',!!g.over);document.body.classList.toggle('wave',!!g.run&&!g.over);habUI();lpUI();
 const sov=g.over&&performance.now()-(g.overT||0)>2200&&!STY.open;$('ov').style.display=sov?'flex':'none';
 const last=LVN>=LEVELS.length-1,oh=g.won?'<span class="k" style="--ac:var(--ok)">'+(last?'Victory · the final level':'Victory · level '+(LVN+1)+' of '+LEVELS.length)+' · '+DF.n+'</span><h2>'+(last?'The kingdom is saved!':'The castle is saved!')+'</h2>'+starH(g.stN||1)+'<small class="stt">'+(g.stB&&g.stN>g.stB?'<b>New best!</b> ':'')+starT(DF)+'</small><p>'+(last?'Even the Dread Wastes couldn’t break you. All '+MAXW+' waves held back, with '+g.lives+' lives to spare.':'All '+MAXW+' waves held back, with '+g.lives+' lives to spare.')+'</p>'+
 (last?'<button class="btn go" id="again"><span class="t">Restart level</span></button><button class="btn" id="inf">∞ Endless mode</button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="inf">∞ Endless mode</button><button class="btn" id="again">Restart level</button>')
@@ -156,6 +156,22 @@ b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=(
 const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Kirkevang – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult?'Once a wave':a.cd+'s')+'</b><span class="cdv"></span></button>').join('');
 HAB.forEach((a,i)=>{const b=$('a_'+i);b.onclick=()=>cast(i);b.onpointerenter=e=>{if(e.pointerType=='mouse'){hovA=i;ui();}};b.onpointerleave=()=>{hovA=null;ui();};});
 $('hcard').onclick=()=>{const h=g.hero;if(!h)return;cine=null;tx=wx(h.hp>0?h.x:heroHome().x);tz=wz(h.hp>0?h.y:heroHome().y);setCam();};
+// long-press (touch/pen only): hold a dock tile, an ability tile, the hero card or a tower on the board (js/12-input.js) for LPMS ms to open the info sheet #lp,
+// drawn by ui() from LP: k = tower type, t = a placed tower (also selected), a = ability index, h = the hero; pv = a placing preview ring to clear on close.
+// The click that ends a long-press is swallowed (LP.sup), and while the sheet is open a tap anywhere outside it only closes it.
+const LP={on:false,sup:0},LPMS=420;
+function lpOpen(o){Object.assign(LP,{k:null,t:null,a:null,h:false,pv:0},o,{on:true});try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}snd('click');ui();}
+function lpClose(){if(!LP.on)return;LP.on=false;$('lp').classList.remove('on');if(LP.pv){LP.pv=0;selRng();}ui();}
+function lpress(el,fn){let tm=0,x0=0,y0=0;const no=()=>{clearTimeout(tm);tm=0;};
+el.addEventListener('pointerdown',e=>{if(e.pointerType=='mouse')return;no();x0=e.clientX;y0=e.clientY;tm=setTimeout(()=>{tm=0;LP.sup=performance.now()+1500;fn();},LPMS);});
+el.addEventListener('pointermove',e=>{if(tm&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)no();});for(const n of ['pointerup','pointercancel','pointerleave'])el.addEventListener(n,no);}
+TK.forEach(k=>lpress($('b_'+k),()=>lpOpen({k})));HAB.forEach((a,i)=>lpress($('a_'+i),()=>lpOpen({a:i})));lpress($('hcard'),()=>lpOpen({h:true}));
+addEventListener('click',e=>{if(performance.now()<LP.sup){LP.sup=0;e.preventDefault();e.stopImmediatePropagation();}},true);
+addEventListener('pointerdown',e=>{if(!LP.on||e.target.closest&&e.target.closest('#lp'))return;e.stopImmediatePropagation();LP.sup=performance.now()+1500;lpClose();},true);
+addEventListener('keydown',e=>{if(LP.on&&e.key=='Escape'){e.stopImmediatePropagation();lpClose();}},true);
+$('lp').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-tm]'),p=e.target.closest&&e.target.closest('[data-br]');if(b&&LP.t)setTm(LP.t,b.dataset.tm);else if(p&&LP.t)upTw(LP.t,+p.dataset.br);else lpClose();};
+function lpUI(){if(!LP.on)return;if(g.over||MENU.open||LP.t&&!g.tw.includes(LP.t)||(LP.h||LP.a!=null)&&!g.hero){lpClose();return;}
+const el=$('lp'),k=LP.t?LP.t.k:LP.k;el.style.setProperty('--ac',k?TC2[k]:'var(--gold)');setH(el.firstChild,k?infoHTML(k,LP.t):heroHTML(LP.a));el.classList.add('on');}
 // an aimed spell (Rain of Arrows, Reinforcements) first waits for a click on the board (g.aim; again or right-click/Esc cancels), the rest go off at once
 function cast(i){const a=HAB[i];if(!a||!g.run)return;if(a.aim){if(g.aim===i)g.aim=null;else if(g.scd[i]<=0){g.aim=i;g.sel=null;selRng();}else snd('click');ui();return;}if(heroCast(i))ui();else snd('click');}
 function habUI(){const h=g.hero;if(!h||!g.run)return;const dead=h.hp<=0,c=$('hcard'),nx=h.lv<HERO.mx?HERO.xp[h.lv]:0,p0=h.lv>1?HERO.xp[h.lv-1]:0;c.classList.toggle('dead',dead);
@@ -172,7 +188,7 @@ function covTog(){COV.on=!COV.on;$('cv').classList.toggle('on',COV.on);$('covl')
 $('covl').querySelector('.sw').innerHTML=COVC.map((c,i)=>'<i style="background:#'+new THREE.Color(c).getHexString()+'">'+(i<5?i:'5+')+'</i>').join('');$('cv').onclick=covTog;
 $('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);else if(e.target.closest('#inf'))goLevel(LVN,DFN,true);};
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
-$('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};
+$('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};$('help').onclick=()=>{$('help').classList.remove('on');$('hp').classList.remove('on');};
 // a tower placed in this break (t.bw) can be undone for everything spent on it, upgrades too, until the wave starts; otherwise selling gives 60% back
 const canUndo=t=>!!t&&!g.run&&!g.over&&t.bw===g.wave,sellVal=t=>canUndo(t)?t.inv:Math.round(t.inv*.6);
 // no selling while a wave runs

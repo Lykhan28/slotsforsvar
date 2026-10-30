@@ -21,7 +21,8 @@ g.sel=null;if(g.run){if(free(k.c,k.r)){offMsg=performance.now()+2500;offT=['Wave
 else if(burnAt(k.c,k.r)){offMsg=performance.now()+2500;offT=['Burning ground','🔥 This ground is on fire – nothing can be built here until it burns out.'];snd('click');}
 else if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');towerAnimStart(t,'build');}
 selRng();ui();}
-function hover(ev){if(ev.pointerType!='mouse')return;
+// f = show the placing preview for a touch too (a long-press on an empty cell, lpBoard())
+function hover(ev,f){if(ev.pointerType!='mouse'&&!f)return;
 // aiming a spell: its ring follows the pointer (red where it can't go)
 if(g.aim!=null){const k=cellAt(ev),a=HAB[g.aim];if(!k){rng.visible=false;return;}if(a.road){const ok=onB(k.c,k.r);showRng(cx(k.c),cz(k.r),.5,ok?0xffd24a:0xff6666);}
 else{const ok=k.c>=0&&k.c<W&&k.r>=0&&k.r<H;showRng(pt.x,pt.z,a.r/60,ok?0xffd24a:0xff6666);}return;}
@@ -33,18 +34,22 @@ C.addEventListener('pointerleave',()=>{if(COV.pv)selRng();});
 function zoom(f){cine=null;dist=clamp(dist*f,5,Math.max(26,CAM0.dist*1.3));setCam();}
 function pan(dx,dy){cine=null;const k=dist*.0022,s=Math.sin(az),c=Math.cos(az);tx=clamp(tx-(c*dx+s*dy)*k,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(tz+(s*dx-c*dy)*k,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 const ptrs=new Map();let dn=null,drag=false,pin=null;
+// touch long-press on the board (LPMS, js/10-ui.js): on a tower it selects it and opens its info sheet; on an empty cell between waves
+// it previews the chosen tower's range there and shows its info instead of building; the release then does nothing
+let lpT=0;function lpBoard(){lpT=0;if(!dn||drag||g.over||g.aim!=null)return;const p={clientX:dn.x,clientY:dn.y},k=cellAt(p);if(!k)return;const t=g.tw.find(o=>o.c==k.c&&o.r==k.r);
+if(t){dn=null;g.sel=t;selRng();lpOpen({t});}else if(!g.run&&free(k.c,k.r)){dn=null;g.sel=null;selRng();hover(p,true);lpOpen({k:g.build,pv:1});}}
 C.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.12:.89);},{passive:false});
 // right-click anywhere drops the selected tower; on the board it waits for pointerup so a right-drag pan keeps it
 function unsel(){if(g.aim!=null){g.aim=null;selRng();ui();return;}if(g.sel){g.sel=null;selRng();ui();}}
-document.addEventListener('contextmenu',e=>{if(MENU.open)return;e.preventDefault();if(!C.contains(e.target))unsel();});
+document.addEventListener('contextmenu',e=>{if(MENU.open)return;e.preventDefault();if(e.pointerType&&e.pointerType!='mouse')return;if(!C.contains(e.target))unsel();});
 C.addEventListener('pointerdown',e=>{cine=null;C.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-if(ptrs.size==1){dn={x:e.clientX,y:e.clientY,az,pol,btn:e.button,sh:e.shiftKey};drag=false;}
+clearTimeout(lpT);if(ptrs.size==1){dn={x:e.clientX,y:e.clientY,az,pol,btn:e.button,sh:e.shiftKey};drag=false;if(e.pointerType!='mouse')lpT=setTimeout(lpBoard,LPMS);}
 else{drag=true;dn=null;const[a,b]=[...ptrs.values()];pin={d:Math.hypot(a.x-b.x,a.y-b.y)||1,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};}});
 C.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p){hover(e);return;}
 const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;
 if(ptrs.size>=2&&pin){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoom(pin.d/d);pan(mx-pin.mx,my-pin.my);pin={d,mx,my};return;}
 if(!dn)return;const dx=e.clientX-dn.x,dy=e.clientY-dn.y;
-if(drag||Math.hypot(dx,dy)>8){drag=true;if(dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
-const up=e=>{const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(ptrs.size<2)pin=null;if(dn&&had&&!drag&&e.type=='pointerup'){if(dn.btn===0)tap(e);else if(dn.btn===2)unsel();}if(!ptrs.size)dn=null;};
+if(drag||Math.hypot(dx,dy)>8){drag=true;clearTimeout(lpT);if(dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
+const up=e=>{clearTimeout(lpT);const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(ptrs.size<2)pin=null;if(dn&&had&&!drag&&e.type=='pointerup'){if(dn.btn===0)tap(e);else if(dn.btn===2)unsel();}if(!ptrs.size)dn=null;};
 C.addEventListener('pointerup',up);C.addEventListener('pointercancel',up);
 $('zi').onclick=()=>zoom(.8);$('zo').onclick=()=>zoom(1.25);$('zr').onclick=()=>{({az,pol,dist,tx,tz}=CAM0);setCam();};
