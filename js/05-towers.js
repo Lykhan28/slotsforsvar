@@ -62,10 +62,10 @@ h.position.y=y+.08;
 if(b==0){// Longbowmen: three hooded archers in forest green with tall longbows, a bundle of long arrows and a green banner on a high pole
 for(const[x,z]of[[0,0],[-.16,-.1],[.16,-.1]])chibi(h,x,z,0x3f7d3a,0x2d5f2b,2);for(let i=0;i<7;i++){const x=-.2+rnd(-.02,.02),z=.14+rnd(-.02,.02);eCy(g,P.wd2,.005,.3,x,y+.25,z);eM(g,rboxG(.004,.03,.014,.0015),0x2d5f2b,x,y+.38,z);}
 ring(g,P.wd2,.035,y+.2,.3,0,-.2,.14);t.flag=flag(g,0,y+.1,-.3,0x2d6a3a,1.4);}
-else if(b==1){// Crossbow Nest: a roofed wooden hoarding round the top, crossbowmen in iron hats, a spanning winch and a crate of bolts
+else if(b==1){// Crossbow Nest: a roofed wooden hoarding round the top, four crossbowmen in iron hats, a spanning winch and a crate of bolts
 for(let i=0;i<10;i++){const an=i/10*2*PI,x=.45*Math.sin(an),z=.45*Math.cos(an);eM(g,rboxG(.27,.17,.03,.008),[P.wd,0x7a4a26][i%2],x,y+.12,z,0,an,0);eM(g,rboxG(.3,.02,.12,.006),P.wd2,x*1.04,y+.22,z*1.04,-.5,an,0);
 eCy(g,P.wd2,.012,.3,.39*Math.sin(an+.31),y+.07,.39*Math.cos(an+.31));if(i%2)eM(g,rboxG(.025,.07,.035,.004),0x14101e,x*1.005,y+.12,z*1.005,0,an,0);}
-for(const[x,z]of[[0,0],[-.16,-.1],[.16,-.1]])chibi(h,x,z,0x8a2f2a,0x9aa3b0,3);eM(g,rboxG(.14,.07,.09,.01),P.wd,.2,y+.12,-.16);for(let i=0;i<5;i++)eCy(g,0x5a3a1e,.006,.12,.16+i*.02,y+.17,-.16,PI/2);
+for(const[x,z]of[[-.09,.06],[.09,.06],[-.18,-.1],[.18,-.1]])chibi(h,x,z,0x8a2f2a,0x9aa3b0,3);eM(g,rboxG(.14,.07,.09,.01),P.wd,.2,y+.12,-.16);for(let i=0;i<5;i++)eCy(g,0x5a3a1e,.006,.12,.16+i*.02,y+.17,-.16,PI/2);
 eCy(g,0x5a5a68,.03,.14,-.2,y+.14,-.12,0,0,PI/2);t.flag=flag(g,0,y+.1,-.3,0x6a2a2a,1);}
 else{chibi(h,0,0,0x3fae6b,P.rd,true);if(l>=2)chibi(h,-.16,-.1,0x3b86e0,P.bl,true);if(l>=3)chibi(h,.16,-.1,0xffb020,P.gd,true);t.flag=flag(g,0,y+.1,-.3,ac,.9);}}
 else if(t.k=='frost'){// wizard: a lilac tower ringed with glowing runes, lit windows, a side turret with a balcony, a magic circle on top and the wizard himself

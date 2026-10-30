@@ -12,7 +12,7 @@ function gfxApply(){if(bloom)bloom.enabled=gq('glow');if(AO)AO.pass.enabled=gq('
 function aqTick(ms){if(!GFX.auto||MENU.open||document.hidden||ms>250)return;AQ.t+=ms;AQ.n++;if(AQ.t<3000)return;const avg=AQ.t/AQ.n;AQ.t=AQ.n=0;if(AQ.w>0){AQ.w--;return;}if(avg<AQF)return;
 const k=AQS.find(s=>gq(s)&&(s!='ao'||AO)&&(s!='glow'||bloom));if(!k)return;AQ.off.add(k);AQ.w=1;gfxApply();}
 // gameplay settings (localStorage sfopt): auto-start = the next wave starts by itself when the break countdown runs out
-const OPT={auto:false,shake:true,cb:false};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;
+const OPT={auto:false,shake:true,cb:false,fcam:false};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;$('fc').classList.toggle('on',!!OPT.fcam);
 function optSet(k){OPT[k]=!OPT[k];try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}autoW=!!OPT.auto;if(k=='cb')cbApply();ui();}
 // colourblind mode (OPT.cb): health bar colours (hpC) and status icons (stIco) in js/07-enemies.js are read every frame; the coverage colours, its legend and the range ring are refreshed here
 function cbApply(){covPal();covLeg();if(g)selRng();}

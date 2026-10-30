@@ -245,7 +245,7 @@ banner:{n:'Banner Tower',ic:'🚩',c:120,r:120,d:0,f:99,sup:1},vault:{n:'Treasur
 // bar = Barracks: built next to the road, sends BAR.n soldiers to a rally point on the road within r; d/f = each soldier's sword hit and swing time (BAR and soldiers() in js/09-game.js)
 barracks:{n:'Barracks',ic:'⚔️',c:90,r:130,d:7,f:1,dt:'phys',bar:1}};
 // upgrade branches: the level-3 upgrade of these towers is a choice of two (t.br = 0/1; brn(t) in js/09-game.js gives the picked one). Numbers on top of the normal level 3:
-// dm/fm = damage/reload multiplier, rg = extra range, pr = pierces armour, ch = extra chain jumps, stn = stun per lightning hit (bosses a third),
+// dm/fm = damage/reload multiplier, rg = extra range, pr = pierces armour, xa = extra Archer targets per volley, ch = extra chain jumps, stn = stun per lightning hit (bosses a third),
 // bd = Catapult damage on the target it was aimed at (splash sp around it), fz = Catapult burning ground [radius, seconds, share of the shot's damage per second, fire],
 // grp = Wizard banishes everyone within that distance of its target, tz = Wizard time field [radius, seconds, speed left] instead of banishing,
 // sk = Ballista bolt also hits up to that many enemies in a line behind its target, gs = damage multiplier on big enemies (bosses and E.h >= 1.8),
@@ -253,7 +253,7 @@ barracks:{n:'Barracks',ic:'⚔️',c:90,r:130,d:7,f:1,dt:'phys',bar:1}};
 // hs = Banner: extra attack speed for towers in range, hr = Banner: towers in range ignore every resistance below 1 (immunities stay),
 // shp = Barracks soldier health multiplier, arm = share of enemy damage a soldier shrugs off, sn = number of soldiers, rsf = respawn time multiplier,
 // it = Treasury interest at the end of a wave [share of your gold, most per wave], bty = Treasury: extra share of gold for enemies killed in its range
-const BRN={arrow:[{n:'Longbowmen',ic:'🎯',ds:'Longbows reach much further.',rg:40},{n:'Crossbow Nest',ic:'🔩',ds:'Heavy bolts pierce armour and hit harder.',pr:1,dm:1.3}],
+const BRN={arrow:[{n:'Longbowmen',ic:'🎯',ds:'Longbows reach much further.',rg:40},{n:'Crossbow Nest',ic:'🔩',ds:'A fourth crossbowman joins: heavy bolts hit harder, at four enemies at once.',xa:1,dm:1.3}],
 cannon:[{n:'Fire Pots',ic:'🔥',ds:'Clay pots of burning pitch set the ground on fire for a few seconds.',fz:[50,3,.3]},{n:'Boulder',ic:'🪨',ds:'A huge boulder crushes the enemy it lands on; the splash is a little smaller.',bd:3,sp:48}],
 frost:[{n:'Archmage',ic:'✨',ds:'Banishes its target and every enemy close to it.',grp:60},{n:'Time Warden',ic:'⏳',ds:'Stops banishing. Each shot leaves a field of slowed time that holds enemies back.',tz:[80,4,.4]}],
 storm:[{n:'Tempest',ic:'🌪️',ds:'Lightning jumps between many more enemies.',ch:4},{n:'Thunderlord',ic:'🔨',ds:'Slower, heavier strikes that stun every enemy in the chain.',ch:-1,dm:2,fm:1.7,stn:1.2}],

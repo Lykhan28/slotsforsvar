@@ -41,6 +41,8 @@ canvas#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-ac
 #zm button:hover{background:rgba(255,224,160,.12);color:var(--gold2)}
 #zm button.off{color:var(--ink3)}#zm button.off svg{opacity:.45}
 #zm button.on{background:rgba(255,224,160,.16);color:var(--gold2)}
+/* ✕ clear selection: touch screens only (a mouse has right-click), and only while a tower is selected or a spell aimed */
+#zm #clr{display:none}@media (pointer:coarse){#zm #clr.vis{display:grid;color:var(--gold2)}}
 #covl{display:none;padding:8px 10px;border-radius:14px;background:var(--glass2);border:1px solid var(--line);box-shadow:var(--sh);font-size:11px;font-weight:600;color:var(--ink2);flex-direction:column;gap:6px;align-items:flex-end}#covl.on{display:flex}
 #covl .sw{display:flex;gap:3px}#covl .sw i{width:24px;height:18px;border-radius:5px;display:grid;place-items:center;font:700 10.5px var(--ui);font-style:normal;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
 #help{display:none;width:320px;padding:14px 16px;border-radius:var(--r);background:var(--glass2)}

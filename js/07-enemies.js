@@ -483,7 +483,7 @@ if(boss&&e.rig.W0){e.rig.W0.rotation.z=-1.1*f;e.rig.W1.rotation.z=1.1*f;}
 e.m.scale.set(sx*s2,sy*s2,sx*s2);
 if(p>=1){sc.remove(e.m);if(e.gm)e.gm.forEach(m=>m.dispose());if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}}}
 function volley(t,s){const ts=[],br=tbr(t);for(const e of g.en)if(e.hp>0&&!e.out&&(!e.fy||T[t.k].air)&&dmul(e,t.k,br)>0&&Math.hypot(e.x-t.x,e.y-t.y)<=s.r)ts.push(e);const tm=tmode(t);ts.sort((a,b)=>tscore(t,b,tm)-tscore(t,a,tm));
-ts.slice(0,t.l).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',br,d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow',brn(t)),w:i*.07}));}
+ts.slice(0,t.l+(brn(t)&&brn(t).xa||0)).forEach((e,i)=>g.bu.push({x:t.x,y:t.y,l:t.l,tg:e,k:'arrow',br,d:s.d,y0:t.head.position.y+.15,d0:Math.hypot(e.x-t.x,e.y-t.y)||1,m:mkBullet('arrow',brn(t)),w:i*.07}));}
 const bolts=[];
 function bolt(x1,y1,h1,x2,y2,h2,hv){const g2=new THREE.Group(),a=new THREE.Vector3(wx(x1),h1,wz(y1)),b=new THREE.Vector3(wx(x2),h2,wz(y2)),ps=[a],up=new THREE.Vector3(0,1,0);
 for(let i=1;i<7;i++){const q=a.clone().lerp(b,i/7);q.x+=rnd(-.08,.08);q.y+=rnd(-.08,.08);q.z+=rnd(-.08,.08);ps.push(q);}ps.push(b);
@@ -569,7 +569,7 @@ for(let i=0;i<4;i++)r['L'+i].rotation.x=mv?Math.sin(gp+(i<2?0:PI)+(i%2)*.6)*.7:0
 // rocks onto its forelegs; the slash arc flashes during the chop
 if(h.sw>0)h.sw=Math.max(0,h.sw-dt*3);const sk=h.sw>0,q=1-h.sw;r.SW.rotation.x=sk?(q<.35?-1.3*q/.35:-1.3+3.2*Math.min(1,(q-.35)/.35)):-.15;
 r.RD.rotation.x=sk?Math.sin(q*PI)*.32:0;if(sk)r.BD.rotation.x=-Math.sin(q*PI)*.07;r.SL.visible=r.SL2.visible=sk&&q>.38;if(r.SL.visible){const f=(q-.38)/.62;r.SL.material.opacity=Math.min(1,1.4*(1-f));r.SL.scale.setScalar(.85+f*.45);r.SL.rotation.z=-f*1.1;r.SL2.scale.setScalar(.75+f*.4);r.SL2.rotation.z=-.4-f*1.1;}if(h.hit>0)h.hit-=dt;
-const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2,showR=g.run&&!ride&&!g.over;h.rg.visible=showR;if(showR){h.rg.position.x=wx(h.tx);h.rg.position.z=wz(h.ty);h.rg.scale.setScalar(HERO.eng/60);h.rg.material.color.setHex(h.e?0xffd24a:0xffffff);h.rg.material.color.convertSRGBToLinear();h.rg.material.opacity=h.e?.55:.22;}
+const showR=g.run&&!h.go&&!g.over;h.rg.visible=showR;if(showR){h.rg.position.x=wx(h.tx);h.rg.position.z=wz(h.ty);h.rg.scale.setScalar(HERO.eng/60);h.rg.material.color.setHex(h.e?0xffd24a:0xffffff);h.rg.material.color.convertSRGBToLinear();h.rg.material.opacity=h.e?.55:.22;}
 const fe=h.e&&h.e.hp>0?h.e:null;h.tg.visible=!!fe&&!g.over;if(fe){h.tg.position.x=wx(fe.x);h.tg.position.z=wz(fe.y);h.tg.scale.setScalar(.38+Math.sin(tt*8)*.03);}
 const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:OPT.cb?(hr>.25?0xe69f00:0xcc79a7):hr>.25?0xf1a43c:0xe74c3c);}}
 // ---------- spell looks (logic: heroCast()/spells() in js/09-game.js) ----------

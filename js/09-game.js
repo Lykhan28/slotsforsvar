@@ -62,7 +62,7 @@ const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv
 const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1)*crysM(t.c,t.r),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r)*darkM(t),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)*coldM(t)/(t.oc>0?MECH.bolt.f:1)};};
 // the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
 const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
-// damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista and Crossbow Nest pierce physical armour);
+// damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista pierces physical armour);
 // b.dt overrides the damage type (the Fire Pots' burning ground is fire)
 // e.ac > 0 = Acid Brew ate its armour: physical damage ignores its resistance and does ACID extra; b.hr (Blessed Standard) ignores every resistance below 1
 const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;if(t=='phys'&&e.ac>0)return 1+ACID;return t=='phys'&&(T[k].pr||b&&b.pr)?1:1-(e.rs[t]||0)*(b&&b.hr&&e.rs[t]<1?0:1);};
@@ -91,9 +91,9 @@ for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trollSplit(e);
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
-if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;g.aim=null;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(FLD.length)harvest();
+if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;g.aim=null;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=Math.round(T[t.k].inc*t.l*(t.buff||1));g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(FLD.length)harvest();
 // Royal Bank: interest on the gold held after the wave's income
-for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.min(b.it[1],Math.floor(g.gold*b.it[0]));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(INF)infRec();else if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
+for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.round(Math.min(b.it[1],Math.floor(g.gold*b.it[0]))*(t.buff||1));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(INF)infRec();else if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
 // Sapper: once a tower stands within SAP.r it leaves the road, runs at it (40% faster) and blows up beside it, stunning it for SAP.st s (no gold for that);
 // if the tower is sold first it walks back to where it left the road. Returns true while it is off the road (update() then skips the road walk)
 const SAP={r:90,st:4};
@@ -155,13 +155,15 @@ const onB=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&road.has(c+','+r);
 function heroInit(){const p=heroHome();return{x:p.x,y:p.y,tx:p.x,ty:p.y,lv:1,xp:0,hp:HERO.hp,max:HERO.hp,cd:0,rs:0,e:null,dir:-PI/2,mv:0,sw:0,ult:1};}
 const heroRel=h=>{if(h.e&&h.e.bk===h)h.e.bk=null;h.e=null;};
 // send him to (x,y) (a road cell centre); he drops his fight
-function heroGo(x,y){const h=g.hero;if(!h||h.hp<=0)return false;h.tx=x;h.ty=y;heroRel(h);return true;}
+// h.go = riding to a new post on the player's order (he fights nothing on the way); cleared on arrival. Chasing an enemy a little way off his post is not riding –
+// deciding that from the distance made him drop his target every other frame and turn back and forth until the enemy reached him
+function heroGo(x,y){const h=g.hero;if(!h||h.hp<=0)return false;h.tx=x;h.ty=y;h.go=1;heroRel(h);return true;}
 function heroXp(e){const h=g.hero;if(!h||h.hp<=0||h.lv>=HERO.mx||Math.hypot(e.x-h.x,e.y-h.y)>HERO.xr)return;h.xp+=e.rw;
 while(h.lv<HERO.mx&&h.xp>=HERO.xp[h.lv]){h.lv++;const s=hst(h);h.hp=Math.min(s.hp,h.hp+(s.hp-h.max)+s.hp*.3);h.max=s.hp;heroLvl(h);}}
 function heroUpd(dt){const h=g.hero;if(!h)return;
-if(h.hp<=0){h.rs-=dt;if(h.rs<=0){const p=heroHome(),s=hst(h);Object.assign(h,{x:p.x,y:p.y,tx:p.x,ty:p.y,hp:s.hp,max:s.hp,e:null,cd:0});}return;}
+if(h.hp<=0){h.rs-=dt;if(h.rs<=0){const p=heroHome(),s=hst(h);Object.assign(h,{x:p.x,y:p.y,tx:p.x,ty:p.y,hp:s.hp,max:s.hp,e:null,cd:0,go:0});}return;}
 const s=hst(h);if(h.max!==s.hp){h.hp+=s.hp-h.max;h.max=s.hp;}
-const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2;if(ride&&h.e)heroRel(h);
+if(h.go&&Math.hypot(h.tx-h.x,h.ty-h.y)<=2)h.go=0;const ride=!!h.go;if(ride&&h.e)heroRel(h);
 let e=h.e;if(e&&(e.hp<=0||e.out||Math.hypot(e.x-h.tx,e.y-h.ty)>HERO.eng*1.6)){heroRel(h);e=null;}
 if(!ride&&!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||Math.hypot(o.x-h.tx,o.y-h.ty)>HERO.eng)continue;const p=prog(o)-(o.bk&&o.bk.hp>0&&o.bk!==h?1e6:0);if(p>bp){bp=p;e=o;}}
 if(e){h.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=h;}}
@@ -242,7 +244,7 @@ function skewer(e,b){const dx=e.x-b.x,dy=e.y-b.y,L=Math.hypot(dx,dy)||1,ux=dx/L,
 for(const o of g.en){if(o===e||o.hp<=0||o.out||(o.fy&&!T[b.k].air))continue;const px=o.x-e.x,py=o.y-e.y,a=px*ux+py*uy;if(a<-10||a>150||Math.abs(px*uy-py*ux)>18)continue;hit.push([a,o]);}
 hit.sort((p,q)=>p[0]-q[0]);for(const[,o]of hit.slice(0,b.br.sk)){const dd=b.d*dmul(o,b.k,b.br)*shBlk(o,b.k,ux,uy)*big(o,b.br);o.hp-=dd;hf(o,.2,dd,b.k,ux,uy,b.br);}}
 // Bounty Office: extra gold for an enemy killed within its range (the best one counts, they don't stack)
-function bounty(e){let v=0;for(const t of g.tw){const b=brn(t);if(b&&b.bty&&!(t.stun>0)&&Math.hypot(e.x-t.x,e.y-t.y)<=stat(t).r)v=Math.max(v,Math.ceil(e.rw*b.bty));}return v;}
+function bounty(e){let v=0;for(const t of g.tw){const b=brn(t);if(b&&b.bty&&!(t.stun>0)&&Math.hypot(e.x-t.x,e.y-t.y)<=stat(t).r)v=Math.max(v,Math.ceil(e.rw*b.bty*(t.buff||1)));}return v;}
 // Plague: a poisoned enemy that dies passes its poison to every ground enemy within e.pg (who can spread it again)
 function plague(e){plagueFx(e,e.pg);for(const o of g.en)if(o!==e&&o.hp>0&&!o.fy&&!o.out&&dmul(o,'alch')>0&&Math.hypot(o.x-e.x,o.y-e.y)<=e.pg){o.pt=3;o.pd=Math.max(o.pd||0,e.pd);o.pg=e.pg;o.hit=.15;}}
 // Wizard hit: a plain or Archmage Wizard banishes (the Archmage also everyone within grp of the target); a Time Warden leaves a time field instead

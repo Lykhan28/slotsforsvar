@@ -39,8 +39,9 @@ const ptrs=new Map();let dn=null,drag=false,pin=null;
 let lpT=0;function lpBoard(){lpT=0;if(!dn||drag||g.over||g.aim!=null)return;const p={clientX:dn.x,clientY:dn.y},k=cellAt(p);if(!k)return;const t=g.tw.find(o=>o.c==k.c&&o.r==k.r);
 if(t){dn=null;g.sel=t;selRng();lpOpen({t});}else if(!g.run&&free(k.c,k.r)){dn=null;g.sel=null;selRng();hover(p,true);lpOpen({k:g.build,pv:1});}}
 C.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.12:.89);},{passive:false});
-// right-click anywhere drops the selected tower; on the board it waits for pointerup so a right-drag pan keeps it
-function unsel(){if(g.aim!=null){g.aim=null;selRng();ui();return;}if(g.sel){g.sel=null;selRng();ui();}}
+// right-click anywhere (or the ✕ button on touch) clears everything picked at once: the selected tower and a spell being aimed; on the board it waits for pointerup so a right-drag pan keeps it
+const selAny=()=>g.aim!=null||!!g.sel;
+function unsel(){if(!selAny())return;g.aim=null;g.sel=null;if(LP.on)lpClose();selRng();ui();}
 document.addEventListener('contextmenu',e=>{if(MENU.open)return;e.preventDefault();if(e.pointerType&&e.pointerType!='mouse')return;if(!C.contains(e.target))unsel();});
 C.addEventListener('pointerdown',e=>{cine=null;C.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
 clearTimeout(lpT);if(ptrs.size==1){dn={x:e.clientX,y:e.clientY,az,pol,btn:e.button,sh:e.shiftKey};drag=false;if(e.pointerType!='mouse')lpT=setTimeout(lpBoard,LPMS);}
@@ -49,7 +50,11 @@ C.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p){hover(
 const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;
 if(ptrs.size>=2&&pin){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoom(pin.d/d);pan(mx-pin.mx,my-pin.my);pin={d,mx,my};return;}
 if(!dn)return;const dx=e.clientX-dn.x,dy=e.clientY-dn.y;
-if(drag||Math.hypot(dx,dy)>8){drag=true;clearTimeout(lpT);if(dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
+if(drag||Math.hypot(dx,dy)>8){drag=true;clearTimeout(lpT);if(!OPT.fcam||dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
 const up=e=>{clearTimeout(lpT);const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(ptrs.size<2)pin=null;if(dn&&had&&!drag&&e.type=='pointerup'){if(dn.btn===0)tap(e);else if(dn.btn===2)unsel();}if(!ptrs.size)dn=null;};
 C.addEventListener('pointerup',up);C.addEventListener('pointercancel',up);
 $('zi').onclick=()=>zoom(.8);$('zo').onclick=()=>zoom(1.25);$('zr').onclick=()=>{({az,pol,dist,tx,tz}=CAM0);setCam();};
+// Free cam (OPT.fcam, saved with the gameplay settings): off = dragging only moves the camera and it keeps the default angle; on = the old controls
+// (drag rotates and tilts, right-drag/Shift-drag moves, Q/E turn). Switching it off swings the view back to the default angle where it is
+function fcamSet(on){OPT.fcam=on;try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}if(!on){cine=null;az=CAM0.az;pol=CAM0.pol;setCam();}$('fc').classList.toggle('on',on);}
+$('fc').onclick=()=>fcamSet(!OPT.fcam);$('clr').onclick=unsel;
