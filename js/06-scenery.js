@@ -252,6 +252,16 @@ for(let i=0;i<12;i++){const p=freeSpot(0);if(!p)continue;const g=groupAt(p.x,p.z
 for(let i=0;i<7;i++){const p=freeSpot(.5,true);if(!p)continue;const y=gh(p.x,p.z)+rnd(.4,.9);for(const d of[-.06,.06])glow(sc,p.x+d,y,p.z,.14,0xffd84a);}}
 if(LV.th=='marsh'){for(let i=0;i<16;i++){const p=freeSpot(.4);if(p){pool(p.x,p.z,rnd(.6,1.8),BOG);keepOut.push([p.x,p.z,.9]);}}
 for(let i=0;i<14;i++){const p=freeSpot(0);if(p){const g=groupAt(p.x,p.z);part(g,'tap',0x3a3024,.13,rnd(.2,.45),.13,0,.15,0);}}}
+// level mechanics on the board (MECH in js/01-config.js): Darkwood's fog lies on the FOG cells as a ground haze plus slow wisps (fogs, drifted in moteAnim);
+// Mirefen's bog road cells (BOGC) are flooded, with reeds in the corners and lily pads the enemies wade through
+const fogs=[];if(FOG.size){const hz=new THREE.MeshBasicMaterial({map:GT,color:new THREE.Color(0xc4d2c8).convertSRGBToLinear(),transparent:true,opacity:.42,depthWrite:false}),HZG=new THREE.PlaneGeometry(1,1).rotateX(-PI/2),
+wm=new THREE.SpriteMaterial({map:GT,color:new THREE.Color(0xb8c8bc).convertSRGBToLinear(),transparent:true,opacity:.2,depthWrite:false});
+for(const k of FOG){const[c,r]=k.split(',').map(Number),x=cx(c),z=cz(r),h=L1(new THREE.Mesh(HZG,hz));h.position.set(x,.05,z);h.scale.set(1.7,1,1.7);h.rotation.y=rnd(0,6);sc.add(h);
+for(let i=0;i<2;i++){const s2=L1(new THREE.Sprite(wm)),y=rnd(.25,.6);s2.position.set(x,y,z);s2.scale.set(rnd(1.1,1.6),rnd(.45,.7),1);sc.add(s2);fogs.push({s:s2,x,z,y,v:rnd(.15,.35),ph:rnd(0,6)});}}}
+const MUD=BOGC.size?new THREE.MeshStandardMaterial({color:new THREE.Color(0x454a28).convertSRGBToLinear(),roughness:.12,metalness:.1,normalMap:WN,normalScale:new THREE.Vector2(.5,.5),envMapIntensity:1.3}):null;
+for(const k of BOGC){const[c,r]=k.split(',').map(Number),x=cx(c),z=cz(r),g=groupAt(x,z,0);pool(x,z,.64,MUD,.025);
+for(let q=0;q<4;q++)for(let i=0;i<4;i++){const a=PI/4+q*PI/2+rnd(-.3,.3),d=rnd(.4,.52);part(g,'cyl',[0x6a7040,0x7a7c48,0x58603a][i%3],.012,rnd(.25,.5),.012,Math.sin(a)*d,.15,Math.cos(a)*d).rotation.set(rnd(-.2,.2),0,rnd(-.2,.2));}
+for(let i=0;i<3;i++){const a=rnd(0,6),d=rnd(.15,.38);part(g,'cyl',0x4f7a34,rnd(.05,.08),.008,rnd(.05,.08),Math.sin(a)*d,.04,Math.cos(a)*d).castShadow=false;}}
 if(LV.th=='moor'){for(let i=0;i<60;i++){const p=freeSpot(-.4);if(!p)continue;const g=groupAt(p.x,p.z);grave(g,0,0,rnd(-.4,.4)+(ZF<0?PI:0),rnd(.9,1.3));}
 for(let i=0;i<10;i++){const p=freeSpot(0);if(!p)continue;const g=groupAt(p.x,p.z),a=rnd(0,6);for(let j=0;j<4;j++){const ox=Math.cos(a)*j*.45,oz=Math.sin(a)*j*.45;part(g,'box',0x3a3028,.05,.4,.05,ox,.2,oz).rotation.z=rnd(-.2,.2);if(j)rod(g,ox,.3,oz,ox-Math.cos(a)*.45,.3+rnd(-.05,.05),oz-Math.sin(a)*.45,.02,0x3a3028);}}
 for(let i=0;i<3;i++){const p=freeSpot(.8,true);if(p)ruin(p.x,p.z,rnd(0,6),rnd(1,1.3),rnd(.8,1),false);}
@@ -294,6 +304,7 @@ else if(M2.k=='emb'){q.y+=dt*q.sp*.9;q.x+=Math.sin(tt*2+q.ph)*dt*.3;if(q.y>4.5){
 else if(M2.k=='ash'){q.y-=dt*q.sp*.35;q.x+=Math.sin(tt*.7+q.ph)*dt*.25+dt*.15;if(q.y<0){q.y=5;q.x=rnd(-ex,ex);q.z=rnd(-ez,ez);}}
 else{q.x+=dt*q.sp*.9;q.y=.2+Math.abs(Math.sin(tt*.5+q.ph))*.8*q.sp;if(q.x>ex){q.x=-ex;q.z=rnd(-ez,ez);}}
 ps[i*3]=q.x;ps[i*3+1]=q.y;ps[i*3+2]=q.z;cs[i*3]=c.r*b;cs[i*3+1]=c.g*b;cs[i*3+2]=c.b*b;}M2.gm.attributes.position.needsUpdate=true;M2.gm.attributes.color.needsUpdate=true;}
+for(const f of fogs)f.s.position.set(f.x+Math.sin(tt*f.v+f.ph)*.3,f.y+Math.sin(tt*f.v*1.7+f.ph)*.06,f.z+Math.cos(tt*f.v*.8+f.ph)*.2);
 for(const m of mists){m.s.position.x=m.x0+Math.sin(tt*m.v)*2;m.s.material.opacity=.16+.08*Math.sin(tt*m.v*3+m.x0);}for(const r of ripples){r.t+=dt;const p=r.t/r.d;if(r.t<0){r.m.visible=false;continue;}if(p>=1){const q=r.mp();r.m.position.set(q.x,-.092,q.z);r.t=-rnd(.2,2);r.d=rnd(1.5,2.5);continue;}r.m.visible=true;r.m.scale.setScalar(.03+.2*p);r.m.material.opacity=.3*(1-p);}LAVAT.offset.x=tt*.01;LAVAT.offset.y=Math.sin(tt*.2)*.02;}
 // range indicator
 const rng=new THREE.Group(),rd1=L1(new THREE.Mesh(new THREE.CircleGeometry(1,48),new THREE.MeshBasicMaterial({transparent:true,opacity:.22,depthWrite:false}))),rd2=L1(new THREE.Mesh(new THREE.RingGeometry(.96,1,64),new THREE.MeshBasicMaterial({transparent:true,opacity:.9,depthWrite:false})));

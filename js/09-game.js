@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
-function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:Math.round(LV.gold*DF.gold)+pkv('gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[]),...(g.fire||[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
+g={gold:Math.round(LV.gold*DF.gold)+pkv('gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],fire:[],fit:MECH.fire.ig0,scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // Endless mode (INF, set by js/14-menu.js at load for a level already won on this difficulty; the sim's --endless): no victory after MAXW, the waves go on.
 // Past MAXW endWave(w) makes each wave up in the table format, seeded by level and wave so it is the same every time (save/reload, sim): 3–6 groups
 // drawn from the level's own enemies (every non-boss type from wave MAXW+EWV.all on), EWV.n0 + EWV.dn per wave enemies, a boss every 5th wave from the
@@ -59,7 +59,7 @@ const PERKS=[
 {id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Roland gets +10% health and damage'},
 {id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:.06,d:'Spell cooldowns are 6% shorter'}];
 const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'arch',cannon:'siege',ballista:'siege',frost:'arc',storm:'arc',alch:'arc'};
-const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1),r:T[t.k].r+10*(t.l-1)+(b&&b.rg||0),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
+const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
 // the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
 const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 // damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista and Crossbow Nest pierce physical armour);
@@ -72,8 +72,8 @@ const upCost=t=>Math.round(T[t.k].c*.8*t.l*(1-pkv('smith')));
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&(INF||g.wave<MAXW)&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-zones(dt);spells(dt);soldiers(dt);heroUpd(dt);
-for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;if(e.bk&&held(e))m=0;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
+zones(dt);fires(dt);spells(dt);soldiers(dt);heroUpd(dt);
+for(const e of g.en){const bm=bogM(e);let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*bm*dt;if(e.bk&&held(e))m=0;if(bm<1&&m>0&&Math.random()<dt*2.5)burst(e.x,e.y,0x6a7448,2,.5,.05);e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
 if(e.seg>=e.R.length){e.hp=-1;e.leak=1;snd('leak');g.lives-=e.lv||1;}}
@@ -252,9 +252,26 @@ function zones(dt){for(const e of g.en)e.tf=1;if(!g.zn.length)return;
 for(const z of g.zn){z.t-=dt;for(const e of g.en){if(e.hp<=0||e.out||(e.fy&&z.k=='fire')||Math.hypot(e.x-z.x,e.y-z.y)>z.r)continue;
 if(z.k=='fire'){e.hp-=z.d*dmul(e,'cannon',FIRE)*dt;e.lk='cannon';if(z.sl){e.sl=Math.max(e.sl,.3);e.slf=.5;}if(Math.random()<dt*3)burst(e.x,e.y,0xff8a1f,1,.4,.4);}else e.tf=Math.min(e.tf,1-(1-z.f)*(e.bs?.34:1));}}
 for(const z of g.zn)if(z.t<=0)zoneEnd(z);g.zn=g.zn.filter(z=>z.t>0);}
+// ---------- Level mechanics ----------
+// numbers and cell sets in js/01-config.js (MECH, FOG, BOGC); on every other level these all come out as 1 / nothing, so the sim reference runs stay the same
+// Darkwood fog: range multiplier for a tower on cell c,r (stat(); the placing ring in hover())
+const fogM=(c,r)=>FOG.has(c+','+r)?MECH.fog.rg:1;
+// Mirefen bog: speed multiplier for enemy e (update()) – flyers pass over it
+const bogM=e=>!BOGC.size||e.fy?1:BOGC.has(Math.floor(e.x/S)+','+Math.floor(e.y/S))?MECH.bog.sl:1;
+// Emberwood wildfire: g.fire = burning cells {c,r,t: seconds left, sp: wave seconds until it spreads, 0 = done}; free() in js/12-input.js won't build on one.
+// Embers land on EMB cells (by the wall or next to a burning stump); g.fit counts down to the next one and restarts at MECH.fire.ig0 in every break.
+// Looks: burnFx()/burnEnd()/burnAnim() in js/07-enemies.js (stubbed in the sim). Saved with the run (fire in saveRun())
+const burnAt=(c,r)=>g.fire.some(f=>f.c==c&&f.r==r);
+const EMB=[];if(LV.mc=='fire')for(let c=0;c<W;c++)for(let r=0;r<H;r++){const k=c+','+r;if(!road.has(k)&&!blk.has(k)&&(c==0||r==0||c==W-1||r==H-1||[...blk].some(b=>{const[a,d]=b.split(',');return Math.abs(a-c)<=1&&Math.abs(d-r)<=1;})))EMB.push([c,r]);}
+function ignite(c,r,t,sp){const f={c,r,t:t||MECH.fire.bt,sp:sp==null?MECH.fire.sp:sp};f.m=burnFx(f);g.fire.push(f);}
+function fires(dt){if(LV.mc!='fire')return;const M=MECH.fire;
+if(g.run){g.fit-=dt;if(g.fit<=0){g.fit=M.ig;const cs=EMB.filter(([c,r])=>free(c,r));if(cs.length&&g.fire.length<M.mx){const[c,r]=cs[Math.floor(Math.random()*cs.length)];ignite(c,r);}}
+for(const f of g.fire)if(f.sp>0){f.sp-=dt;if(f.sp<=0&&g.fire.length<M.mx){const ns=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>[f.c+a,f.r+b]).filter(([c,r])=>free(c,r));if(ns.length){const[c,r]=ns[Math.floor(Math.random()*ns.length)];ignite(c,r);}}}}
+else g.fit=M.ig0;
+for(const f of g.fire){f.t-=dt;if(f.t<=0)burnEnd(f);}if(g.fire.length)g.fire=g.fire.filter(f=>f.t>0);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
-for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
+for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);burnAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;

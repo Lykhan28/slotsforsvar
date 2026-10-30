@@ -102,7 +102,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level + '&diff=' + (opt.diff || 'easy') }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop, burnFx: noop, burnEnd: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, infRec: noop, ach: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
@@ -255,6 +255,8 @@ function doSteps(inBreak) {
       // same as sellVal() in js/10-ui.js
       const v = !G.run && t.bw === G.wave ? t.inv : Math.round(t.inv * .6); G.gold += v; spent -= v; G.tw = G.tw.filter(x => x !== t); log.push({ wave: G.wave, t: G.wt, s: st.s, cost: -v }); pc++; continue;
     }
+    // Emberwood: a burning cell holds the queue until the fire is out (the main loop lets the break run on meanwhile, as a player would wait)
+    if (run('burnAt')(st.c, st.r)) return 'fire';
     if (!run('free')(st.c, st.r)) { warn.push(`"${st.s}": cell is not buildable (road, blocked, taken or off the board) – skipped`); pc++; continue; }
     if (T[st.k].bar && !run('nearRoad')(st.c, st.r)) { warn.push(`"${st.s}": a Barracks must stand next to the road – skipped`); pc++; continue; }
     const c = T[st.k].c; if (G.gold < c) return;
@@ -286,7 +288,8 @@ for (let w = 1; w <= (opt.endless ? 100 : MAXW); w++) {
   leaked = {};
   const G0 = g(), row = { wave: w, goldStart: G0.gold, lifeStart: lives(), spentBefore: spent, towers: 0, mix: run('waveMix')(w).reduce((o, k) => (o[k] = (o[k] || 0) + 1, o), {}) };
   const earned0 = G0.gold + spent; // gold + everything spent so far only grows by income
-  doSteps(true);
+  // a step waiting for a fire to burn out lets the break run on (up to its BRK s), then the wave starts anyway
+  while (doSteps(true) == 'fire' && g().brk < run('BRK')) { update(dt); time += dt; }
   startWave();
   let wt = 0;
   while (g().run && !g().over) {

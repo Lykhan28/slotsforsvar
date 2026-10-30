@@ -175,7 +175,7 @@ Add a Daily Challenge: a level and set of modifiers seeded from today's date, so
 
 ## Phase 6 – World
 
-- [ ] **31. Level mechanics, part 1**
+- [x] **31. Level mechanics, part 1**
 ```text
 Give levels 2–4 their own gameplay mechanic: Darkwood (fog that shrinks tower range near the trees), Emberwood (burning tiles that spread and temporarily block building), Mirefen (swamp tiles that slow enemies). Show the mechanic in the level picker description.
 ```

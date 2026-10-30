@@ -506,6 +506,19 @@ function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x
 function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}
 function zoneAnim(dt){for(const z of g.zn){const k=clamp(z.t,0,1);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*k*(z.k=='fire'?.85+.15*Math.sin(tt*9+m.id):1);});
 z.fl.forEach((f,i)=>{const b=f.userData.b;if(b)f.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});if(z.sp){z.sp.rotation.y-=dt*.8;z.sp.position.y=Math.sin(tt*2)*.03;}}}
+// Emberwood wildfire (g.fire, fires() in js/09-game.js): a burning cell is a scorch mark with a glow and a cluster of flames; burnAnim() grows it in,
+// flickers it, sends up smoke and lets it die down over its last two seconds. The build pads follow (updPads)
+function burnFx(f){const G=new THREE.Group(),x=f.c*S+S/2,y=f.r*S+S/2;G.position.set(wx(x),.02,wz(y));sc.add(G);f.fl=[];f.a=0;
+const disc=(c,r,o,yy,add)=>{const m=L1(new THREE.Mesh(eg('zd',()=>new THREE.CircleGeometry(1,28)),new THREE.MeshBasicMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:o,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending})));
+m.rotation.x=-PI/2;m.position.y=yy;m.scale.setScalar(r);m.userData.o=o;G.add(m);return m;};
+disc(0x120e0a,.47,.75,.004);disc(0xff5a10,.38,.28,.01,1);disc(0xffb040,.18,.18,.02,1);
+for(let i=0;i<6;i++){const a=i/6*2*PI+rnd(0,1),d=i?rnd(.14,.3):0;flame(G,d*Math.sin(a),0,d*Math.cos(a),i?rnd(1.3,2):2.6,f.fl,.45);}
+burst(x,y,0xff8a1f,8,1,.2);updPads();return G;}
+function burnEnd(f){sc.remove(f.m);f.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});fx(f.c*S+S/2,f.r*S+S/2,0x5a5450,.15,.6,1,.3);updPads();}
+function burnAnim(dt){for(const f of g.fire){f.a+=dt;const k=clamp(f.a/.5,0,1)*clamp(f.t/2,0,1);
+f.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*(m.position.y<.005?Math.max(k,.3):k*(.85+.15*Math.sin(tt*9+m.id)));});
+f.fl.forEach((o,i)=>{const b=o.userData.b;if(b)o.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});
+if(dt>0&&Math.random()<dt*1.5*k)fx(f.c*S+S/2,f.r*S+S/2,0x4a4442,.08,.4,1.4,.5+Math.random()*.4);}}
 // banners: +damage to towers in range; War Drums also add attack speed (t.hs), a Blessed Standard sets t.bls (tbr() in js/09-game.js)
 function buffs(){for(const t of g.tw){t.buff=1;t.hs=1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
 // br = the tower's upgrade branch: Crossbow Nest bolts, Fire Pots (a glowing clay pot), the Boulder (twice the size), Archmage/Time Warden orbs

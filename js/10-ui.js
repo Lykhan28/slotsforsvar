@@ -38,7 +38,8 @@ const COIN='<svg><use href="#i-coin"/></svg>',setH=(el,h)=>{if(el._h!==h){el._h=
 const fmt=v=>v<10?v.toFixed(1).replace(/\.0$/,''):''+Math.round(v),tiles=r=>(r/60).toFixed(1);
 // numbers shown in the inspector: dps counts every target a shot can hit (arrows per level, the whole lightning chain); poison is damage per second on each enemy in the cloud;
 // br = upgrade branch index (BRN) for level 3. The Boulder's dps is on the enemy it lands on; Fire Pots' burn (o.burn) is per second on each enemy standing in the fire
-function tstat(k,l,bf,br){const tp=T[k],b=l>=3&&br!=null&&BRN[k]?BRN[k][br]:null,s=stat({k,l,buff:bf||1,br}),o={d:s.d,r:s.r,rate:1/s.f,n:1,b};
+// c,r = the cell it stands on (Darkwood's fog shortens the range there), left out for the dock and the bar scales
+function tstat(k,l,bf,br,c,r){const tp=T[k],b=l>=3&&br!=null&&BRN[k]?BRN[k][br]:null,s=stat({k,l,buff:bf||1,br,c,r}),o={d:s.d,r:s.r,rate:1/s.f,n:1,b};
 if(k=='arrow'){o.n=l;o.dps=s.d*l/s.f;}else if(k=='storm'){o.n=tp.ch+l-1+(b&&b.ch||0);let a=0,m=s.d;for(let i=0;i<o.n;i++){a+=m;m*=.92;}o.dps=a/s.f;}
 else if(tp.bar){const q={k,l,br};o.n=solN(q);o.dps=s.d*o.n/s.f;o.hp=solHp(q);o.rsp=solRs(q);}
 else o.dps=k=='alch'?s.d:tp.sup||tp.inc?0:s.d*(b&&b.bd||1)/s.f;if(b&&b.fz)o.burn=s.d*b.fz[2];return o;}
@@ -47,14 +48,14 @@ const AT=TK.filter(k=>!T[k].sup&&!T[k].inc),MX={dps:Math.max(...AT.flatMap(k=>ts
 // the level-3 choice: a tower at level 2 with branches (BRN) picks one of two instead of a plain upgrade; a level-3 tower from an old save without one picks for free
 const brPick=t=>!!t&&!!BRN[t.k]&&(t.l==2||t.l==3&&t.br==null);
 // what each branch changes, as a short line on its card
-function brLine(k,i,bf){const o=tstat(k,3,bf,i),b=o.b;return{arrow:['Range '+tiles(o.r)+' tiles','Pierces armour · +'+Math.round((b.dm-1)*100)+'% damage'],cannon:['Burns '+fmt(o.burn)+'/s for '+(b.fz||[])[1]+'s','Crushes for '+fmt(o.d*(b.bd||1))],
+function brLine(k,i,bf,t){const o=tstat(k,3,bf,i,t&&t.c,t&&t.r),b=o.b;return{arrow:['Range '+tiles(o.r)+' tiles','Pierces armour · +'+Math.round((b.dm-1)*100)+'% damage'],cannon:['Burns '+fmt(o.burn)+'/s for '+(b.fz||[])[1]+'s','Crushes for '+fmt(o.d*(b.bd||1))],
 frost:['Banishes all within '+tiles(b.grp||0)+' tiles','Slows to '+Math.round((b.tz||[0,0,0])[2]*100)+'% for '+(b.tz||[])[1]+'s'],storm:['Chains '+o.n+' enemies','Stuns '+b.stn+'s · chains '+o.n],
 barracks:['×'+(b.shp||1)+' health · −'+Math.round((b.arm||0)*100)+'% damage taken',(b.sn||3)+' fighters · back in '+fmt(o.rsp||0)+'s'],
 ballista:['Hits up to '+(1+(b.sk||0))+' in a line',fmt(o.d*(b.gs||1))+' to big enemies'],alch:['No armour for '+b.ac+'s','Spreads '+tiles(b.pl||0)+' tiles'],
 banner:['+'+Math.round((b.hs||0)*100)+'% attack speed','Ignores resistances'],vault:['Up to +'+(b.it||[])[1]+' gold a wave','+'+Math.round((b.bty||0)*100)+'% gold · '+tiles(o.r)+' tiles']}[k][i];}
 const bar=(v,n,mx)=>'<span class="sb">'+(n!=null?'<i class="nx" style="width:'+Math.min(100,n/mx*100)+'%"></i>':'')+'<i style="width:'+Math.min(100,v/mx*100)+'%"></i></span>';
 const row=(lb,val,nxt,b)=>'<div class="st'+(b?'':' nob')+'"><span class="sl">'+lb+'</span>'+(b||'')+'<span class="sv">'+val+(nxt!=null?'<em>→ '+nxt+'</em>':'')+'</span></div>';
-function infoHTML(k,t){const tp=T[k],l=t?t.l:1,bf=t?t.buff||1:1,a=tstat(k,l,bf,t&&t.br),bp=brPick(t),nx=t&&l<3&&!bp?tstat(k,l+1,bf):null,br=a.b,sm=s=>' <small>'+s+'</small>';
+function infoHTML(k,t){const tp=T[k],l=t?t.l:1,bf=t?t.buff||1:1,a=tstat(k,l,bf,t&&t.br,t&&t.c,t&&t.r),bp=brPick(t),nx=t&&l<3&&!bp?tstat(k,l+1,bf,null,t.c,t.r):null,br=a.b,sm=s=>' <small>'+s+'</small>';
 let h='<div class="ih"><div class="iic">'+tp.ic+'</div><div class="ihn"><b>'+tp.n+'</b><span class="tag">'+(br?br.ic+' '+br.n:ROLE[k])+'</span></div>'+
 (t?'<div class="lv" title="Level '+l+' of 3">'+[1,2,3].map(i=>'<i'+(i<=l?' class="on"':'')+'></i>').join('')+'</div>':'<div class="cost'+(g.gold<tp.c?' poor':'')+'">'+COIN+tp.c+'</div>')+'</div>';
 if(!t)h+='<p class="ds">'+DS[k]+'</p>';
@@ -70,7 +71,7 @@ row('Fire rate',(a.rate<1?a.rate.toFixed(2):a.rate.toFixed(1))+sm('/s · '+fmt(1
 row('Range',tiles(a.r)+sm('tiles'),nx&&tiles(nx.r),bar(a.r,nx&&nx.r,MX.r));}
 h+='</div>';
 // level-3 paths: two cards (click to buy; also keys B/N), each with what it does and its key number
-if(bp){const c=l==3?0:upCost(t);h+='<div class="brs"><span class="sl">'+(l==3?'Choose a path – free':'Level 3 · choose a path')+'</span><div class="brc">'+BRN[k].map((b,i)=>'<button data-br="'+i+'"'+(g.gold<c?' class="poor"':'')+' title="'+b.n+': '+b.ds+' ('+'BN'[i]+')"><b><span class="bi">'+b.ic+'</span> '+b.n+'</b><span class="bl">'+brLine(k,i,bf)+'</span>'+(c?'<span class="bc">'+COIN+c+'</span>':'')+'</button>').join('')+'</div></div>';}
+if(bp){const c=l==3?0:upCost(t);h+='<div class="brs"><span class="sl">'+(l==3?'Choose a path – free':'Level 3 · choose a path')+'</span><div class="brc">'+BRN[k].map((b,i)=>'<button data-br="'+i+'"'+(g.gold<c?' class="poor"':'')+' title="'+b.n+': '+b.ds+' ('+'BN'[i]+')"><b><span class="bi">'+b.ic+'</span> '+b.n+'</b><span class="bl">'+brLine(k,i,bf,t)+'</span>'+(c?'<span class="bc">'+COIN+c+'</span>':'')+'</button>').join('')+'</div></div>';}
 // targeting picker for a built attacking tower (T cycles it); before building, the default shows as a chip
 const atk=!tp.sup&&!tp.inc,tm=atk&&tmode(t||{k});if(t&&atk&&!tp.bar)h+='<div class="tgm"><span class="sl">Target</span><div class="seg" title="Targeting (T)">'+TGK.map(m=>'<button data-tm="'+m+'"'+(m==tm?' class="on"':'')+' title="'+TGM[m][1]+'">'+TGM[m][0]+'</button>').join('')+'</div></div>';
 const bz=br&&br.tz,c={arrow:[a.n+(a.n>1?' targets':' target')],cannon:[...(br&&br.bd?['×'+br.bd+' on its target']:[]),'Splash '+tiles(br&&br.sp||tp.sp)+' tiles','Slows '+20*l+'% for 1s',...(br&&br.fz?['🔥 Burning ground '+tiles(br.fz[0])+' tiles · '+br.fz[1]+'s']:[])],
@@ -81,6 +82,7 @@ if(atk&&!t&&!tp.bar)c.unshift('<span class="chip">Targets: '+TGM[tm][0]+'</span>
 if(!t&&BRN[k])c.push('<span class="chip hi" title="Pick one when upgrading to level 3">Level 3: '+BRN[k].map(b=>b.n).join(' or ')+'</span>');
 if(atk)c.push(tp.air?'<span class="chip" title="Can shoot flying enemies">🦇 Hits flyers</span>':'<span class="chip lo" title="Can’t hit flying enemies">Ground only</span>');
 if(atk)c.unshift('<span class="chip dty" title="Damage type">'+DTY[tp.dt][1]+' '+DTY[tp.dt][0]+(tp.pr||br&&br.pr?' · pierces armour':tp.dt=='light'?' · ignores armour':'')+'</span>');
+if(t&&fogM(t.c,t.r)<1&&!tp.inc)c.unshift('<span class="chip lo" title="'+MECH.fog.d+'">'+MECH.fog.ic+' In the fog · −'+Math.round((1-MECH.fog.rg)*100)+'% range</span>');
 if(t&&t.stun>0)c.unshift('<span class="chip lo">💥 Stunned · '+Math.ceil(t.stun)+'s</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');
 return h+'<div class="chips">'+c.join('')+'</div>';}
