@@ -22,6 +22,8 @@ Options:
   --level N        level 1-8 (overrides the layout file)
   --build "..."    add one build step (repeatable, appended after the file's steps)
   --diff D         difficulty easy|normal|hard (default easy, the original game; DIFS in js/01-config.js)
+  --endless        Endless mode: waves go on past 20 (made up by endWave()) until defeat (at most 100);
+                   with --waves N it prints waves 1-40
   --hp X           try another enemy health multiplier for the level (instead of its hp in LEVELS)
   --gold N         try another starting gold for the level
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
@@ -59,6 +61,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a == '--map') opt.map = +next();
   else if (a == '--waves') opt.waves = +next();
   else if (a == '--diff') opt.diff = next();
+  else if (a == '--endless') opt.endless = true;
   else if (a == '--hp') opt.hp = +next();
   else if (a == '--gold') opt.gold = +next();
   else if (a == '--build') opt.build.push(next());
@@ -100,7 +103,7 @@ const ctx = vm.createContext({
   sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
-  ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
+  ui: noop, infRec: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
 });
 vm.runInContext(`Math.random=(()=>{let s=${seed};return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})();`, ctx);
 
@@ -130,6 +133,7 @@ vm.runInContext(['volley', 'zap', 'buffs'].map(n => extractFn(enemies, n, 'js/07
 vm.runInContext(extractLine(input, /^const free=.*$/m, 'const free', 'js/12-input.js'), ctx, { filename: 'js/12-input.js (excerpt)' });
 const run = code => vm.runInContext(code, ctx);
 if (opt.hp) run(`LV.hp=${opt.hp}`);
+if (opt.endless) run('INF=true');
 if (opt.gold) run(`LV.gold=${opt.gold}`);
 const LV = run('LV'), T = run('T'), BRN = run('BRN'), W = run('W'), H = run('H'), MAXW = run('MAXW');
 // one letter per enemy type, as in the wave tables (WC in js/01-config.js)
@@ -159,10 +163,10 @@ if (opt.waves) {
   const E = run('E'), wq = run('waveQ'), wn = run('waveName');
   console.log(`Level ${level}: ${LV.n}   enemy health ×${LV.hp}\nLetters: ${Object.entries(run('WC')).map(([l, k]) => l + ' ' + k).join(', ')}\n`);
   console.log('wave  name                  enemies                         count  units      hp  gold  spawns');
-  for (let w = 1; w <= MAXW; w++) {
+  for (let w = 1; w <= (opt.endless ? 40 : MAXW); w++) {
     let q; try { q = wq(w); } catch (e) { die(e.message); }
     const m = {}; for (const o of q) m[o.type] = (m[o.type] || 0) + 1;
-    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = 30 * Math.pow(1.2, w) * LV.hp * run('DF.hp') * u, gd = q.reduce((a, o) => a + E[o.type].rw, 0);
+    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = run('wHP')(w) * LV.hp * run('DF.hp') * u, gd = q.reduce((a, o) => a + E[o.type].rw, 0);
     console.log(`${String(w).padStart(4)}  ${wn(w).slice(0, 20).padEnd(20)}  ${mixS(m).padEnd(31)} ${String(q.length).padStart(5)} ${u.toFixed(1).padStart(6)} ${String(Math.round(hp)).padStart(7)} ${String(gd).padStart(5)} ${((q.at(-1)?.t || 0).toFixed(1) + 's').padStart(7)}`);
   }
   process.exit(0);
@@ -274,7 +278,7 @@ function heroAI() {
 const waves = [], gold = [];
 let time = 0, failed = null;
 const dt = opt.dt, update = run('update'), startWave = run(opt.early ? 'callEarly' : 'startWave');
-for (let w = 1; w <= MAXW; w++) {
+for (let w = 1; w <= (opt.endless ? 100 : MAXW); w++) {
   // a row covers the break before wave w (building) and the wave itself: goldStart + income - spent = goldEnd
   leaked = {};
   const G0 = g(), row = { wave: w, goldStart: G0.gold, lifeStart: lives(), spentBefore: spent, towers: 0, mix: run('waveMix')(w).reduce((o, k) => (o[k] = (o[k] || 0) + 1, o), {}) };

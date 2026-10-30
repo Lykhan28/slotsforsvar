@@ -2,23 +2,39 @@
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
 g={gold:Math.round(LV.gold*DF.gold),lives:DF.li,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+// Endless mode (INF, set by js/14-menu.js at load for a level already won on this difficulty; the sim's --endless): no victory after MAXW, the waves go on.
+// Past MAXW endWave(w) makes each wave up in the table format, seeded by level and wave so it is the same every time (save/reload, sim): 3–6 groups
+// drawn from the level's own enemies (every non-boss type from wave MAXW+EWV.all on), EWV.n0 + EWV.dn per wave enemies, a boss every 5th wave from the
+// level's own bosses (one more every 10 waves). Health keeps the 1.2^wave curve up to MAXW and grows by EWV.hp per wave after it (wHP).
+let INF=false;
+const EWV={n0:30,dn:3,all:6,hp:1.12},EWN=['Endless horde','Iron tide','Wild charge','Shadow host','Mixed swarm','The long night','No rest'],
+wHP=w=>30*Math.pow(1.2,Math.min(w,MAXW))*Math.pow(EWV.hp,Math.max(0,w-MAXW)),wvS=w=>w>MAXW?(INF?endWave(w):''):LV.wv[w-1]||'';
+function endWave(w){let sd=((LVN+1)*7919+w*104729)%2147483647||1;const rn=()=>(sd=sd*16807%2147483647)/2147483647,pk=a=>a[Math.floor(rn()*a.length)];
+const n=w-MAXW,lt=new Set();for(const x of LV.wv)for(const tk of x.slice(x.indexOf(':')+1).trim().split(/\s+/)){const m=tk.match(/^\d+([a-z]+)/);if(m)for(const ch of m[1])lt.add(ch);}
+const bs=[...lt].filter(ch=>E[WC[ch]].bs),pool=n>=EWV.all?Object.keys(WC).filter(ch=>!E[WC[ch]].bs):[...lt].filter(ch=>!E[WC[ch]].bs);
+const ng=3+Math.min(3,Math.floor(n/5)),N=EWV.n0+EWV.dn*n,out=[];let left=N;
+for(let i=0;i<ng;i++){let k=i==ng-1?left:Math.max(2,Math.round(N/ng*(.6+rn()*.8)));left=Math.max(2,left-k);let ls='';const nl=1+Math.floor(rn()*3);for(let j=0;j<nl;j++){const ch=pk(pool);if(!ls.includes(ch))ls+=ch;}
+if(/^[svpr]$/.test(ls)&&k>6+n/4){left+=k-Math.floor(6+n/4);k=Math.floor(6+n/4);}
+const gap=/[trg]/.test(ls)?1.1:/^[fv]+$/.test(ls)?.35:.5;out.push(k+ls+'/'+gap+(PATHS.length>1&&rn()<.3?'@'+Math.floor(rn()*PATHS.length):''));if(i<ng-1&&rn()<.5)out.push('~'+(1+Math.floor(rn()*3)));
+if(w%5==0&&bs.length&&i==1){out.push('~4');for(let b=0;b<=Math.floor(n/10);b++){if(b)out.push('~3');out.push('1'+pk(bs));}out.push('~2');}}
+return(w%5==0?'Boss wave '+w:pk(EWN)+' '+w)+': '+out.join(' ');}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
-function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
+function waveQ(w){const s=wvS(w),c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
 for(const tk of(c<0?s:s.slice(c+1)).trim().split(/\s+/)){if(!tk)continue;if(tk[0]=='~'){t+=+tk.slice(1);continue;}
 const m=tk.match(/^(\d+)([a-z]+)(?:\/([\d.]+))?(?:@(\d))?$/);if(!m)throw Error(LV.n+' wave '+w+': bad group "'+tk+'"');
 gap=m[3]?+m[3]:.8;if(q.length)t+=gap;for(let j=0;j<+m[1];j++){const k=WC[m[2][j%m[2].length]];if(!k)throw Error(LV.n+' wave '+w+': unknown enemy letter in "'+tk+'"');
 if(j)t+=gap;q.push({t:+t.toFixed(2),type:k,p:(m[4]!=null?+m[4]:i)%PATHS.length});i++;}}return q;}
 // enemy types of wave w in spawn order (the UI previews the next wave with this) and its name ('' if none)
-const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=LV.wv[w-1]||'',c=s.indexOf(':');return c<0?'':s.slice(0,c).trim();};
+const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=wvS(w),c=s.indexOf(':');return c<0?'':s.slice(0,c).trim();};
 // the break between waves lasts BRK s of game time (g.brk counts up; it doesn't run before wave 1). Calling the next wave early pays
 // earlyBonus() gold for the time left; with auto-start on (autoW, a menu setting) the wave starts by itself when the break is over
 const BRK=25;let autoW=false;
-const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&g.wave<MAXW?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
+const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&(INF||g.wave<MAXW)?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);ui();}
 // each breach has its own road (PATHS); the wave alternates between them
-function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
+function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
@@ -40,7 +56,7 @@ const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;if(t=='phys'&&e.ac>0)return 1+ACID
 const shBlk=(e,k,dx,dy)=>{if(!e.shd||(k!='arrow'&&k!='ballista'))return 1;const L=Math.hypot(dx,dy);return L>0&&-(dx*Math.sin(e.dir)+dy*Math.cos(e.dir))/L>.34?1-e.shd:1;};
 const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
-if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
+if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&(INF||g.wave<MAXW)&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
 zones(dt);spells(dt);soldiers(dt);heroUpd(dt);
 for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;if(e.bk&&held(e))m=0;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
@@ -63,7 +79,7 @@ g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trol
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
 if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;g.aim=null;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}
 // Royal Bank: interest on the gold held after the wave's income
-for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.min(b.it[1],Math.floor(g.gold*b.it[0]));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
+for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.min(b.it[1],Math.floor(g.gold*b.it[0]));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(INF)infRec();else if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
 // Sapper: once a tower stands within SAP.r it leaves the road, runs at it (40% faster) and blows up beside it, stunning it for SAP.st s (no gold for that);
 // if the tower is sold first it walks back to where it left the road. Returns true while it is off the road (update() then skips the road walk)
 const SAP={r:90,st:4};
@@ -154,7 +170,7 @@ return true;}
 // spell numbers: damage as a share of a goblin's health this wave (gob()), so they stay useful all game: Rain of Arrows rn volleys of rain each,
 // Boiling Oil oil at once then burn a second; Reinforcements: rn soldiers (Barracks level 1/2/3 from waves 1/8/15) for rt s
 const SPN={rain:.22,vol:4,oil:.9,burn:.25,rn:2,rt:15};
-const gob=()=>30*Math.pow(1.2,g.wave)*LV.hp*DF.hp;
+const gob=()=>wHP(g.wave)*LV.hp*DF.hp;
 // the three on-board road cells nearest the gate (Boiling Oil): the hero's home cell and the next two along the road
 let GTL=null;
 function gateTiles(){if(GTL)return GTL;const h=heroHome(),c0=Math.floor(h.x/S),r0=Math.floor(h.y/S),seen=new Set([c0+','+r0]),q=[[c0,r0]];GTL=[];

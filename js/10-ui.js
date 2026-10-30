@@ -97,14 +97,15 @@ function ui(){bossBar();const w=g.run?waveMix(g.wave).length:0,left=g.en.length+
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;
 // Repair gate: shown while a life is missing, greyed out when you can't afford it
 {const b=$('rep'),c=repCost(),show=g.lives<MAXL&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
-setH($('wave'),'<small>Wave </small>'+g.wave+' / '+MAXW);$('wbar').style.width=((g.wave-(g.run?left/w:0))/MAXW*100)+'%';
+// Endless: the counter shows the highscore instead of "/ 20" and the bar fills towards it (then past it, it stays full)
+{const hb=INF?BEST[DF.k][LVN]||0:0,top=INF?Math.max(MAXW,hb):MAXW;setH($('wave'),'<small>Wave </small>'+g.wave+(INF?'<small> · best '+hb+'</small>':' / '+MAXW));$('wbar').style.width=Math.min(100,(g.wave-(g.run?left/w:0))/top*100)+'%';}
 // in the break: "Call wave N early" with the bonus for the time left (and the auto-start countdown), then plain "Start wave N" once the time is up
 const bl=brkLeft(),eb=earlyBonus(),foes=nm=>{const nb={};for(const t of nm)if(E[t].bs)nb[t]=(nb[t]||0)+1;
 return nm.filter(t=>!E[t].bs).length+' enemies'+Object.keys(nb).map(b=>' and '+(nb[b]>1?(nb[b]==2?'two ':nb[b]+' ')+(b=='boss'?'dragons':BST[b][0]+'s'):b=='boss'?'a dragon':'the '+BST[b][0])).join('');};
 $('start').disabled=g.run||g.over;$('start').classList.toggle('early',eb>0);setH($('start'),g.run?'<span class="t">Under attack</span><span class="s">'+left+' enemies left</span>':
 eb>0?'<span class="t">Call wave '+(g.wave+1)+' early</span><span class="s"><b class="eb">'+COIN+'+'+eb+' bonus</b> · '+(autoW?'starts in ':'')+Math.ceil(bl)+'s'+(autoW?'':' left')+'</span><i class="cdb" style="width:'+(bl/BRK*100).toFixed(1)+'%"></i>':
 '<span class="t">Start wave '+(g.wave+1)+'</span><span class="s">'+foes(waveMix(g.wave+1))+'</span>');
-if(g.wave<MAXW&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
+if((INF||g.wave<MAXW)&&!g.run){const n={};for(const t of waveMix(g.wave+1))n[t]=(n[t]||0)+1;
 // the line under the icons always lists resistances, and an ability only for enemy types that weren't in the previous wave (every icon's tooltip has it all)
 const pv=g.wave?waveMix(g.wave):[],rt=t=>resTxt(t,!pv.includes(t)),rz=Object.keys(n).filter(rt);
 setH($('nw'),'<span>'+(waveName(g.wave+1)?'Next: <b class="wn">'+waveName(g.wave+1)+'</b>':'Next wave')+'</span><span class="mx">'+Object.keys(n).map(t=>'<span'+(E[t].bs?' class="boss"':'')+' title="'+FOE[t][1]+(resTxt(t)?' · '+resTxt(t):'')+'">'+FOE[t][0]+n[t]+'</span>').join('')+'</span>'+
@@ -120,7 +121,8 @@ if(s){const bp=brPick(s);setH($('up'),bp?'Choose a path ↑':s.l>=3?'Max level':
 document.body.classList.toggle('over',!!g.over);document.body.classList.toggle('wave',!!g.run&&!g.over);habUI();
 const sov=g.over&&performance.now()-(g.overT||0)>2200;$('ov').style.display=sov?'flex':'none';
 const last=LVN>=LEVELS.length-1,oh=g.won?'<span class="k" style="--ac:var(--ok)">'+(last?'Victory · the final level':'Victory · level '+(LVN+1)+' of '+LEVELS.length)+' · '+DF.n+'</span><h2>'+(last?'The kingdom is saved!':'The castle is saved!')+'</h2>'+starH(g.stN||1)+'<small class="stt">'+(g.stB&&g.stN>g.stB?'<b>New best!</b> ':'')+starT(DF)+'</small><p>'+(last?'Even the Dread Wastes couldn’t break you. All '+MAXW+' waves held back, with '+g.lives+' lives to spare.':'All '+MAXW+' waves held back, with '+g.lives+' lives to spare.')+'</p>'+
-(last?'<button class="btn go" id="again"><span class="t">Restart level</span></button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="again">Restart level</button>')
+(last?'<button class="btn go" id="again"><span class="t">Restart level</span></button><button class="btn" id="inf">∞ Endless mode</button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="inf">∞ Endless mode</button><button class="btn" id="again">Restart level</button>')
+:INF?'<span class="k" style="--ac:var(--bad)">Endless · '+DF.n+'</span><h2>The castle has fallen</h2><p>You held out for '+(g.wave-1)+' wave'+(g.wave==2?'':'s')+' before wave '+g.wave+' broke through.</p><small class="stt">'+(g.rec?'<b>New record!</b> ':'')+'Best on '+DF.n+': '+(BEST[DF.k][LVN]||0)+' waves</small><button class="btn go" id="again"><span class="t">Try again</span></button>'
 :'<span class="k" style="--ac:var(--bad)">Defeat · '+DF.n+'</span><h2>The castle has fallen</h2><p>Overrun on wave '+g.wave+' of '+MAXW+'.</p><button class="btn go" id="again"><span class="t">Restart level</span></button>';
 if(sov&&g.ovh!==oh){g.ovh=oh;$('ov').innerHTML='<div class="ovbox">'+oh+'</div>';}covUpd();saveRun();}
 const pick=k=>{if(T[k].off){offMsg=performance.now()+3000;offT=['Locked','🔒 Not available yet.'];ui();return;}g.build=k;g.sel=null;selRng();ui();};
@@ -145,7 +147,7 @@ $('info').onclick=e=>{if(!e.target.closest)return;const b=e.target.closest('[dat
 // coverage map: C or the grid button; the legend matches COVC in js/06-scenery.js
 function covTog(){COV.on=!COV.on;$('cv').classList.toggle('on',COV.on);$('covl').classList.toggle('on',COV.on);covUpd();}
 $('covl').querySelector('.sw').innerHTML=COVC.map((c,i)=>'<i style="background:#'+new THREE.Color(c).getHexString()+'">'+(i<5?i:'5+')+'</i>').join('');$('cv').onclick=covTog;
-$('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);};
+$('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);else if(e.target.closest('#inf'))goLevel(LVN,DFN,true);};
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};
 // a tower placed in this break (t.bw) can be undone for everything spent on it, upgrades too, until the wave starts; otherwise selling gives 60% back

@@ -148,7 +148,7 @@ Award 1–3 stars per level based on lives left (show the thresholds), show them
 Add Easy/Normal/Hard difficulty chosen before starting a level (enemy health, gold and lives). Stars and progress are tracked per difficulty.
 ```
 
-- [ ] **26. Endless mode**
+- [x] **26. Endless mode**
 ```text
 Add an Endless mode for any won level: waves keep coming past 20 with rising difficulty and new mixes. Track a local highscore (waves survived) per level and show it in the level picker.
 ```

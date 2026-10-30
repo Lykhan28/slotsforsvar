@@ -16,24 +16,32 @@ const STAR=d=>[Math.ceil(d.li*.9),Math.ceil(d.li*.5)],stars=l=>{const s=STAR(DF)
 const PROG={};for(const d of DIFS)PROG[d.k]={n:0,st:[]};
 try{let d=JSON.parse(localStorage.getItem('sfprog'));if(typeof d=='number')d={easy:{n:d}};else if(d&&'n' in d)d={easy:d};if(d)for(const k in PROG)if(d[k]){PROG[k].n=d[k].n|0;if(Array.isArray(d[k].st))PROG[k].st=d[k].st.map(x=>Math.min(3,Math.max(0,x|0)));}}catch(e){}
 function lvWon(){g.stB=PROG[DF.k].st[LVN]||0;g.stN=stars(g.lives);for(let i=0;i<=DFN;i++){const p=PROG[DIFS[i].k];p.n=Math.max(p.n,LVN+1);p.st[LVN]=Math.max(p.st[LVN]||0,g.stN);}try{localStorage.setItem('sfprog',JSON.stringify(PROG));}catch(e){}}
-function goLevel(i,di=DFN){if(i===LVN&&di===DFN){if(g.over)reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);localStorage.setItem('sfdif',DIFS[di].k);sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1)+'&diff='+DIFS[di].k);}
-// level picker: difficulty tabs (MENU.df, applied when a level is clicked) above the list for that difficulty
+// Endless mode (INF in js/09-game.js) is picked at load like the level and difficulty (?endless=1, else localStorage sfmode), and only for a level already won on this difficulty.
+// Its highscore BEST[difficulty key][level] = most waves survived, saved in localStorage sfbest by infRec() at the end of every endless wave (g.rec = this run set a new one)
+try{INF=(new URLSearchParams(location.search).get('endless')=='1'||localStorage.getItem('sfmode')=='endless')&&PROG[DF.k].n>LVN;}catch(e){}
+const BEST={};for(const d of DIFS)BEST[d.k]=[];try{const d=JSON.parse(localStorage.getItem('sfbest'));if(d)for(const k in BEST)if(Array.isArray(d[k]))BEST[k]=d[k].map(x=>Math.max(0,x|0));}catch(e){}
+function infRec(){const b=BEST[DF.k];if(g.wave<=(b[LVN]||0))return;b[LVN]=g.wave;g.rec=true;try{localStorage.setItem('sfbest',JSON.stringify(BEST));}catch(e){}}
+function goLevel(i,di=DFN,inf=false){if(i===LVN&&di===DFN&&inf===INF){if(g.over)reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);localStorage.setItem('sfdif',DIFS[di].k);localStorage.setItem('sfmode',inf?'endless':'');sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1)+'&diff='+DIFS[di].k+(inf?'&endless=1':''));}
+// level picker: difficulty tabs (MENU.df, applied when a level is clicked) above the list for that difficulty; a won level gets an Endless button (.lve) with its highscore
 const dTxt=d=>d.li+' lives'+(d.hp>1?', enemies have '+Math.round((d.hp-1)*100)+'% more health':'')+(d.gold<1?', '+Math.round((1-d.gold)*100)+'% less starting gold':'')+(d.hp==1?' – the relaxed way to play':'')+'.';
 function mLevels(){const di=MENU.df,D=DIFS[di],p=PROG[D.k],here=di===DFN,el=$('m_lvls');el.innerHTML='';
 $('m_df').innerHTML=DIFS.map((d,j)=>'<button class="dfb'+(j==di?' on':'')+'" data-d="'+j+'">'+d.n+'</button>').join('');$('m_dd').textContent=dTxt(D);
-LEVELS.forEach((L,i)=>{const b=document.createElement('button'),cur=here&&i==LVN,lock=i>p.n&&!cur,done=i<p.n,st=p.st[i]||0;b.className='lvb'+(cur?' cur':'')+(lock?' lock':'');b.disabled=lock;
-const sv=lock||cur?null:savedRun(i,di),sw=cur?(inGame()?g.wave:null):sv?sv.wave:null;
-b.innerHTML='<span class="ln">'+(i+1)+'</span><span class="lt"><b>'+L.n+'</b><small>'+(lock?'Win '+LEVELS[i-1].n+' on '+D.n+' to unlock':sw!=null?'Run in progress · '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):L.d)+'</small></span><span class="lx">'+(done?(st?starH(st):'✓'):lock?'🔒':'')+'<small>'+L.w+'×'+L.h+'</small></span>';if(done)b.title=st?'Best on '+D.n+': '+st+' of 3 stars':'Won before stars were counted – win it again to earn them';b.onclick=()=>goLevel(i,di);el.appendChild(b);});
+LEVELS.forEach((L,i)=>{const rw=document.createElement('div'),b=document.createElement('button'),cur=here&&i==LVN&&!INF,lock=i>p.n&&!(here&&i==LVN),done=i<p.n,st=p.st[i]||0;rw.className='lvr';b.className='lvb'+(cur?' cur':'')+(lock?' lock':'');b.disabled=lock;
+const sv=lock||cur?null:savedRun(i,di,false),sw=cur?(inGame()?g.wave:null):sv?sv.wave:null;
+b.innerHTML='<span class="ln">'+(i+1)+'</span><span class="lt"><b>'+L.n+'</b><small>'+(lock?'Win '+LEVELS[i-1].n+' on '+D.n+' to unlock':sw!=null?'Run in progress · '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):L.d)+'</small></span><span class="lx">'+(done?(st?starH(st):'✓'):lock?'🔒':'')+'<small>'+L.w+'×'+L.h+'</small></span>';if(done)b.title=st?'Best on '+D.n+': '+st+' of 3 stars':'Won before stars were counted – win it again to earn them';b.onclick=()=>goLevel(i,di);rw.appendChild(b);
+if(done){const e=document.createElement('button'),ec=here&&i==LVN&&INF,es=ec?(inGame()?g.wave:null):(()=>{const v=savedRun(i,di,true);return v?v.wave:null;})(),hb=BEST[D.k][i]||0;e.className='lve'+(ec?' cur':'');
+e.innerHTML='<b>∞</b><small>'+(hb?'best '+hb:'Endless')+'</small>';e.title='Endless mode on '+D.n+': the waves never stop – how long can you hold?'+(hb?' Best: '+hb+' waves survived.':'')+(es!=null?' Run in progress, '+(es?'wave '+es+' cleared':'not started')+'.':'');e.onclick=()=>goLevel(i,di,true);rw.appendChild(e);}
+el.appendChild(rw);});
 $('m_st').textContent=starT(D);const c=el.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}
 $('m_df').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b&&+b.dataset.d!==MENU.df){MENU.df=+b.dataset.d;snd('click');mLevels();}};
 // a level picked in the menu starts right after the reload
 function menuStart(){let go=false;try{go=sessionStorage.getItem('sfgo')=='1';sessionStorage.removeItem('sfgo');}catch(e){}if(go){MENU.open=false;$('menu').style.display='none';}else menuOpen();}
-$('lvl').textContent='Level '+(LVN+1)+' · '+LV.n+' · '+DF.n;
+$('lvl').textContent='Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'');
 const inGame=()=>!g.over&&(g.wave>0||g.tw.length>0);
-// saved run: during each break between waves (never mid-wave) the run is kept in localStorage sfrun<level index><difficulty letter: none for Easy, n, h> (runK), so a refresh or Quit resumes it
+// saved run: during each break between waves (never mid-wave) the run is kept in localStorage sfrun<level index><difficulty letter: none for Easy, n, h><e for Endless> (runK), so a refresh or Quit resumes it
 // from the start of the next wave. Win and defeat delete it; so does Restart level. Picking a level with a saved run (level list, Next level) resumes it.
-const runK=(i,di)=>'sfrun'+i+(di?DIFS[di].k[0]:''),RUNK=runK(LVN,DFN);let runS='';
-function savedRun(i,di=DFN){try{const d=JSON.parse(localStorage.getItem(runK(i,di)));return d&&d.v===1&&d.wave>=0&&d.wave<MAXW&&d.lives>0&&Array.isArray(d.tw)?d:null;}catch(e){return null;}}
+const runK=(i,di,inf)=>'sfrun'+i+(di?DIFS[di].k[0]:'')+(inf?'e':''),RUNK=runK(LVN,DFN,INF);let runS='';
+function savedRun(i,di=DFN,inf=INF){try{const d=JSON.parse(localStorage.getItem(runK(i,di,inf)));return d&&d.v===1&&d.wave>=0&&(inf||d.wave<MAXW)&&d.lives>0&&Array.isArray(d.tw)?d:null;}catch(e){return null;}}
 function saveRun(){if(g.over){if(runS!==null){runS=null;try{localStorage.removeItem(RUNK);}catch(e){}}return;}
 if(g.run||!(g.wave>0||g.tw.length))return;const s=JSON.stringify({v:1,gold:g.gold,lives:g.lives,rep:g.rep,wave:g.wave,spd:g.spd,tw:g.tw.map(t=>[t.k,t.c,t.r,t.l,t.inv,t.tm||null,t.bw===g.wave?1:0,t.br!=null?t.br:null,t.rp?[t.rp.x,t.rp.y]:null]),hero:g.hero?[g.hero.lv,g.hero.xp,g.hero.tx,g.hero.ty]:null});
 if(s===runS)return;runS=s;try{localStorage.setItem(RUNK,s);}catch(e){}}
@@ -43,7 +51,7 @@ for(const[k,c,r,l,inv,tm,nu,br,rp]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,
 if(Array.isArray(d.hero)&&g.hero){const h=g.hero,[lv,xp,x,y]=d.hero;h.lv=clamp(lv|0,1,HERO.mx);h.xp=Math.max(0,+xp||0);if(onB(Math.floor(x/S),Math.floor(y/S))){h.x=h.tx=+x;h.y=h.ty=+y;}h.hp=h.max=hst(h).hp;}ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
 function mPage(p){MENU.pg=p;for(const k of['main','levels','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
-$('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(inGame()?' · '+(g.run?'paused on wave '+g.wave+' of '+MAXW:g.wave?'wave '+g.wave+' of '+MAXW+' cleared':'getting ready'):'');
+$('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');
 const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');}
 function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}
 function menuClose(){MENU.open=false;$('menu').style.display='none';}
