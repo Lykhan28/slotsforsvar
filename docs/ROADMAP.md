@@ -195,7 +195,7 @@ Add weather events that can happen during a wave: rain (Storm stronger, Alchemis
 Add a day/night cycle across waves: lighting, sky and fog shift towards dusk and night (respect EXPO/SUN0 and the GRADE shader), and torches on towers and walls light up at night. Keep the board readable.
 ```
 
-- [ ] **35. New levels**
+- [x] **35. New levels** (done as eight: levels 9–16)
 ```text
 Add three new levels with new themes: a snowy mountain fortress, a coastal cliff with pirates, and a mountain pass with a narrow road. Follow the level and theme notes in CLAUDE.md.
 ```

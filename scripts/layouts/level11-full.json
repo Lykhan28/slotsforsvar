@@ -1,0 +1,5 @@
+{
+ "level": 11,
+ "note": "Sunscorch Dunes: a sensible all-round build that keeps spending its gold (more towers and upgrades to the end) – the reference run for the hand-designed waves. Made from the board by picking the cells that cover the most road (the same steps as the other full builds).",
+ "build": [ "arrow 9,5", "arrow 9,4", "cannon 5,3", "up 9,5", "alch 11,5", "up 9,4", "storm 3,6", "ballista 7,5", "up 5,3", "banner 9,3", "up 11,5", "up 3,6", "arrow 4,1", "up 7,5", "storm 11,7", "up 9,5 crossbow", "up 9,4 crossbow", "up 3,6 tempest", "up 11,7", "frost 8,3", "up 7,5 giant", "up 4,1", "up 5,3 fire", "up 11,5 acid", "up 4,1 crossbow", "arrow 2,6", "up 2,6", "up 2,6 crossbow", "cannon 3,1", "up 3,1", "up 3,1 fire", "up 11,7 tempest", "storm 7,3", "up 7,3", "up 7,3 tempest", "ballista 11,4", "up 11,4", "up 11,4 giant", "up 9,3", "up 9,3 war", "up 8,3", "up 8,3 archmage"]
+}

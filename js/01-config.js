@@ -11,7 +11,15 @@ const LEVELS=[
 {n:'Ashfall',d:'The ruins of a town, still smouldering',th:'ruins',w:11,h:7,hp:1.1,gold:160,mc:'ruin',ru:{w:7,t:8,c:[[4,3],[5,3],[6,3]],p:[[11,5],[7,5],[7,3],[3,3],[3,4],[-1,4]]},p:[[[11,5],[7,5],[7,1],[3,1],[3,4],[-1,4]]],bk:[[5,2],[9,3],[1,1],[9,0],[5,6],[0,6]]},
 {n:'Barrow Moor',d:'Mist, graves and things that should stay buried',th:'moor',w:15,h:9,hp:0.8,gold:170,mc:'grave',gv:[[2,3],[5,6],[9,6]],p:[[[2,-1],[2,6],[12,6],[12,2],[15,2]]],bk:[[4,3],[5,3],[6,3],[8,4],[9,4],[10,3],[4,7],[7,8],[1,2],[14,5],[8,1],[0,8]]},
 {n:'Scorched Badlands',d:'Cracked earth and rivers of fire. The enemy comes from two sides',th:'badlands',w:12,h:9,hp:0.9,gold:190,mc:'lava',p:[[[-1,2],[4,2],[4,6],[9,6],[9,9]],[[7,-1],[7,6],[9,6],[9,9]]],bk:[[1,5],[2,5],[5,4],[6,1],[10,1],[11,7],[2,8],[6,8],[10,4]]},
-{n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:0.88,gold:220,mc:'dark',p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]}];
+{n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:0.88,gold:220,mc:'dark',p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]},
+{n:'Harvest Vale',d:'Golden fields and orchards – the harvest must not burn',th:'autumn',w:13,h:8,hp:1.45,gold:230,p:[[[-1,6],[3,6],[3,1],[8,1],[8,5],[13,5]]],bk:[[5,3],[6,4],[1,2],[10,3],[11,7],[0,0]]},
+{n:'Saltcliff Cove',d:'Sea cliffs where pirate ships wait in the bay',th:'coast',w:14,h:8,hp:1.45,gold:240,p:[[[-1,1],[5,1],[5,6],[10,6],[10,3],[14,3]]],bk:[[2,3],[3,4],[7,3],[8,2],[12,6],[13,0],[1,6]]},
+{n:'Sunscorch Dunes',d:'Endless sand and old pillars. Two columns march out of the heat haze',th:'desert',w:13,h:9,hp:1.1,gold:250,p:[[[-1,7],[4,7],[4,4],[8,4],[8,6],[13,6]],[[2,-1],[2,2],[10,2],[10,6],[13,6]]],bk:[[6,3],[6,5],[1,4],[12,1],[0,0],[11,8],[2,5]]},
+{n:'Frostpeak Hold',d:'A mountain fortress deep in the snow',th:'snow',w:14,h:9,hp:1.75,gold:260,p:[[[-1,7],[3,7],[3,4],[11,4],[11,1],[6,1],[6,-1]]],bk:[[5,2],[8,2],[7,6],[1,5],[13,7],[12,0],[0,1],[9,8],[5,5]]},
+{n:'Crystal Hollow',d:'A glade of singing crystals under a violet sky. Two roads meet at the gate',th:'crystal',w:15,h:9,hp:1.15,gold:270,p:[[[-1,1],[5,1],[5,6],[7,6],[7,9]],[[15,3],[10,3],[10,6],[7,6],[7,9]]],bk:[[2,3],[3,4],[8,2],[12,1],[13,6],[1,7],[7,3],[11,8],[4,8]]},
+{n:'Wolfjaw Pass',d:'One narrow road winds between the rocks of the pass',th:'pass',w:16,h:9,hp:1.5,gold:280,p:[[[-1,4],[2,4],[2,1],[6,1],[6,7],[10,7],[10,2],[13,2],[13,6],[16,6]]],bk:[[0,2],[1,6],[4,3],[4,5],[3,7],[8,0],[8,3],[8,5],[11,5],[12,8],[15,1],[14,4],[0,8],[5,8],[15,8]]},
+{n:'Stormwatch Heights',d:'Wind, rain and lightning on the old standing stones. Two roads, one storm',th:'storm',w:15,h:10,hp:1.3,gold:300,p:[[[-1,8],[3,8],[3,5],[8,5],[8,8],[12,8],[12,4],[15,4]],[[5,-1],[5,2],[10,2],[10,4],[15,4]]],bk:[[1,3],[2,4],[6,7],[7,3],[10,6],[13,1],[14,7],[0,0],[11,9],[4,0]]},
+{n:'The Sundered Realm',d:'The world breaks apart at the edge of the kingdom. The last stand',th:'void',w:16,h:10,hp:1,gold:320,p:[[[-1,8],[3,8],[3,2],[6,2],[6,5],[8,5],[8,-1]],[[16,7],[12,7],[12,2],[10,2],[10,5],[8,5],[8,-1]]],bk:[[1,5],[5,4],[6,8],[9,7],[11,4],[14,3],[15,0],[0,1],[1,9],[13,9],[7,1],[9,2],[4,0],[14,9],[2,3],[15,5]]}];
 // ---------- waves ----------
 // WAVES[level] = its 20 waves, hand-designed (LEVELS[i].wv; read by waveQ() in js/09-game.js). A wave is "Name: group group ...", the name shows in the next-wave preview.
 // A group is <count><letters>[/<gap>][@<road>]: count enemies, cycling through the letters (WC), gap seconds apart (default .8, also the wait after the
@@ -60,7 +68,47 @@ const WAVES=[
 ['Two armies: 10n/.9','Wolf riders: 8n 8f/.45','Fire and shadow: 8n 4i/.7 4h/.9','Pincer: 12f/.35@0 8n/.8@1 3t/1.3@1','The Necromancer: 10n 4t/1.3 ~2 1x 10nh/.6',
  'Imp swarm: 8n 16i/.4 4p/.8','Knight push: 10n 7t/1.2@1 8nf/.5@0','Bats: 12n 8v/.6 4g/1 4s/1','Mixed swarm: 35nfighp/.4','Siege Ram: 12n 6t/1.2 ~2 1m 10ni/.5 4r/1.3',
  'Breather: 20n/.7 12f/.5','Pincer: 20f/.3@0 ~1 8t/1.1@1 12ni/.5 4s/1','Bone horde: 36z/.3 8t/1.1 6h/.8','Troll march: 12n 7r/1.3 5s/.9 10np/.5 4v/.8','The Dragon: 16n 7t/1.2 6h/.8 ~2 1b@0 12ni/.5 3v/.9',
- 'Breather: 24n/.6 12i/.5 4v/.8','Shield wall: 10g/.8@1 16f/.3@0 6t/1.2 4s/1','Mixed swarm: 40nfighpnt/.4','Last stand: 18f/.3 ~2 8t/1.2 ~2 4r/1.3 16nnh/.45','Twin dragons: 12n 6t/1.3 4h/.9 ~8 1b@0 ~10 1b@1 ~4 3s/1 10nfi/.5']];
+ 'Breather: 24n/.6 12i/.5 4v/.8','Shield wall: 10g/.8@1 16f/.3@0 6t/1.2 4s/1','Mixed swarm: 40nfighpnt/.4','Last stand: 18f/.3 ~2 8t/1.2 ~2 4r/1.3 16nnh/.45','Twin dragons: 12n 6t/1.3 4h/.9 ~8 1b@0 ~10 1b@1 ~4 3s/1 10nfi/.5'],
+// 9 Harvest Vale: Sappers after the barns, Trolls in the corn, bats over the fields
+['Raiders at the edge: 10n/.9','Wolf riders: 8n 8f/.45','Barn burners: 8n 5p/.8 4nf/.6','Shield wall: 6n 6g/.9 6nf/.6','The Goblin King: 10n 4t/1.3 ~2 1k 8nf/.6',
+ 'Wolf rush: 8n ~2 20f/.3 3t/1.3','Trolls in the corn: 8n 4r/1.5 8nf/.6','Bats over the barns: 10n 10v/.5 4g/1 4t/1.2','Mixed swarm: 34nfgpt/.45','Siege Ram: 12n 6t/1.2 ~2 1m 10np/.6 4g/1',
+ 'Breather: 18n/.7 10f/.5','Knight push: 10n 8t/1.1 10ng/.6','Barn burners: 12n 12p/.6 6t/1.2 4s/1','Wolf rush: 10n ~1 20f/.3 ~3 20f/.3 4t/1.2','The King returns: 14n 6t/1.2 4g/1 4s/1 ~2 1k 12nf/.5 4v/.8',
+ 'Breather: 22n/.6 12f/.5 6v/.7','Troll march: 12n 7r/1.3 4s/1 10np/.5 6g/.9','Mixed swarm: 42nfgpvtn/.4','Last stand: 20f/.3 ~2 10t/1.1 4r/1.3 ~2 18nng/.45','The Dragon: 14n 7t/1.2 6v/.7 ~8 1b ~4 12nf/.5 3r/1.4'],
+// 10 Saltcliff Cove: a pirate landing – Sappers with powder kegs, Shamans as sea witches, Trolls from the hold, a drowned captain (Necromancer)
+['Landing party: 10n/.9','Shore raiders: 8n 8f/.45','Powder kegs: 8n 5p/.8 6nf/.6','Sea witches: 8n 4s/1.1 6nf/.6','The Pirate King: 10n 4t/1.3 3s/1 ~2 1k 8nf/.6',
+ 'Bats from the caves: 8n 12v/.45 6nf/.6','Boarding party: 10n 6t/1.2 8np/.6','Wolf rush: 8n ~2 20f/.3 4t/1.2','Mixed swarm: 34nfspgt/.45','The Drowned Captain: 12n 6t/1.2 4h/.9 ~2 1x 10nz/.5',
+ 'Breather: 18n/.7 10f/.5','Ogres from the hold: 10n 6r/1.4 4s/1 8nf/.6','Shield wall: 10g/.8 10n 6t/1.2 6v/.6','Powder kegs: 12n 14p/.5 8t/1.1 6f/.4','Siege Ram: 14n 7t/1.2 4s/1 ~2 1m 12np/.5 4v/.8',
+ 'Breather: 22n/.6 12f/.5 6v/.7','Boarding party: 12n 9t/1.1 12ng/.5 4r/1.3','Mixed swarm: 42nfspvgtn/.4','Last stand: 20f/.3 ~2 10t/1.1 4s/1 ~2 20nnp/.45','The Pirate King and the Dragon: 14n 7t/1.2 4s/1 ~6 1k ~8 1b ~4 12nf/.5'],
+// 11 Sunscorch Dunes (two roads, @0 west, @1 north): Fire Imps out of the heat, desert riders, Sappers
+['Out of the haze: 10n/.9','Desert riders: 8n 10f/.45','Sand imps: 8n 6i/.7 4nf/.6','Pincer: 12f/.35@0 8n/.8@1 3t/1.3@1','Siege Ram: 10n 5t/1.2 ~2 1m@0 8ni/.6',
+ 'Imp swarm: 8n 16i/.4 4p/.8','Sappers: 10n 8p/.6 4t/1.2 6nf/.5','Bats: 10n 12v/.45 4g/1 4i/.6','Mixed swarm: 34nfipgt/.45','The Dragon: 12n 6t/1.2 4i/.6 ~2 1b@1 10nf/.5 4s/1',
+ 'Breather: 20n/.7 10i/.5','Pincer: 20f/.3@0 ~1 8t/1.1@1 12ni/.5','Troll march: 12n 6r/1.3 4s/1 10np/.5','Wolf rush: 10n ~1 20f/.3 ~3 20f/.3 5t/1.2','The Goblin King: 14n 7t/1.2 6i/.6 ~2 1k@0 12nf/.5 4s/1',
+ 'Breather: 24n/.6 12i/.5 4v/.8','Sandstorm: 10n 20i/.35 8t/1.1 6v/.6','Mixed swarm: 44nfipgvtn/.4','Pincer: 22f/.3@0 10t/1.1@1 ~2 14ng/.5@0 6p/.7@1','Sun and fire: 14n 7t/1.2 6i/.6 ~6 1m@1 ~8 1b@0 ~4 12nf/.5'],
+// 12 Frostpeak Hold: knights in the snow, frost Trolls, Ghosts in the blizzard, wolf packs
+['Through the snow: 10n/.9','Wolf pack: 8n 10f/.45','Iron column: 8n 4t/1.3 4g/1','Frost trolls: 8n 3r/1.5 6nf/.6','The Goblin King: 10n 5t/1.2 3g/1 ~2 1k 8nf/.6',
+ 'Wolf rush: 8n ~2 22f/.3 3t/1.3','Ghosts in the blizzard: 10n 8h/.8 4t/1.2','Shield wall: 8g/.9 10n 6t/1.2 4s/1','Mixed swarm: 36nfghtr/.45','Siege Ram: 12n 6t/1.2 4g/1 ~2 1m 10nh/.6',
+ 'Breather: 20n/.7 10f/.5','Troll march: 10n 7r/1.3 4s/1 10nf/.5','Bats over the peaks: 12n 14v/.45 6t/1.2 4g/1','Wolf rush: 10n ~1 22f/.3 ~3 22f/.3 6t/1.1','The Necromancer: 14n 8t/1.1 6h/.8 ~2 1x 14nz/.45',
+ 'Breather: 24n/.6 14f/.45 6h/.8','Iron column: 12n 12t/1 10ng/.5 4s/1','Mixed swarm: 45nfghtsvn/.4','Last stand: 22f/.3 ~2 10t/1.1 5r/1.3 ~2 20nnh/.45','The Ice Dragon: 16n 8t/1.2 4r/1.3 ~8 1b ~4 1k 14nf/.5'],
+// 13 Crystal Hollow (two roads, @0 west, @1 east): Ghosts, Shamans, bat clouds and skeletons drawn to the crystals
+['Strange lights: 10n/.9','Wolf riders: 8n 10f/.45','Ghosts: 8n 6h/.9 4nf/.6','Pincer: 12f/.35@0 8n/.8@1 3t/1.3@1','The Necromancer: 10n 5t/1.2 4h/.9 ~2 1x@1 10nz/.5',
+ 'Bat cloud: 8n 14v/.45 6nf/.6','Shamans: 10n 6s/1 6t/1.2 6nf/.5','Bone horde: 30z/.35 6t/1.2 4h/.9','Mixed swarm: 36nfhsvgt/.45','The Goblin King: 14n 6t/1.2 4s/1 ~2 1k@0 12nf/.5 4h/.9',
+ 'Breather: 20n/.7 12f/.5','Pincer: 20f/.3@0 ~1 9t/1.1@1 12nh/.5','Troll march: 12n 7r/1.3 5s/.9 10nv/.5','Wolf rush: 10n ~1 22f/.3 ~3 22f/.3 6t/1.1','The Necromancer returns: 16n 8t/1.1 6h/.8 ~2 1x@0 16nz/.45 4s/1',
+ 'Breather: 24n/.6 14f/.45 8v/.6','Crystal ghosts: 14h/.7 12n 8t/1.1 6s/.9','Mixed swarm: 46nfhsvgtzn/.4','Pincer: 24f/.3@0 12t/1.1@1 ~2 16ng/.5@0 8h/.7@1','The Dragon and the Necromancer: 14n 8t/1.2 6h/.8 ~6 1x@1 ~8 1b@0 ~4 14nf/.5 4s/1'],
+// 14 Wolfjaw Pass: one long road – wolf packs above all, Trolls, Sappers who loosen the rocks, Siege Rams
+['Into the pass: 10n/.9','Wolf pack: 8n 12f/.4','Rockfall crews: 8n 6p/.7 4nf/.6','Knight patrol: 10n 5t/1.2 6nf/.6','Siege Ram: 10n 5t/1.2 4g/1 ~2 1m 10nf/.5',
+ 'Wolf rush: 8n ~2 24f/.28 4t/1.2','Trolls: 10n 5r/1.4 4s/1 6nf/.6','Bats in the gorge: 10n 14v/.45 4g/1 4t/1.2','Mixed swarm: 38nfgptr/.45','The Goblin King: 14n 7t/1.2 4g/1 ~2 1k 12nf/.5 4p/.7',
+ 'Breather: 20n/.7 14f/.45','The great pack: 12n ~1 26f/.28 ~3 12f/.3 6t/1.1','Rockfall crews: 12n 14p/.5 8t/1.1 6g/.9','Troll march: 12n 8r/1.3 5s/.9 12nf/.5','Siege Ram: 16n 8t/1.1 6g/.9 ~2 1m 14np/.5 4v/.8',
+ 'Breather: 24n/.6 16f/.4 6p/.7','Knight push: 12n 13t/1 12ng/.5 5s/.9','Mixed swarm: 48nfgptrvn/.4','Last stand: 26f/.28 ~2 12t/1.1 5r/1.3 ~2 22nnp/.45','Jaws of the pass: 16n 8t/1.2 5r/1.3 ~6 1k ~8 1b ~4 16nf/.45'],
+// 15 Stormwatch Heights (two roads, @0 west – the long one, @1 north): bats in the rain, Fire Imps, pincers
+['The storm breaks: 10n/.9','Wolf riders: 8n 10f/.45','Bats in the rain: 8n 10v/.5 4nf/.6','Pincer: 14f/.35@0 8n/.8@1 4t/1.3@1','The Dragon: 12n 5t/1.2 4v/.7 ~2 1b@0 10nf/.5',
+ 'Imp swarm: 8n 16i/.4 4p/.8','Knight push: 10n 7t/1.2@1 10nf/.5@0','Ghosts in the storm: 10n 8h/.8 4g/1 4s/1','Mixed swarm: 38nfighpt/.45','Siege Ram: 14n 7t/1.2 4s/1 ~2 1m@1 12ni/.5 4r/1.3',
+ 'Breather: 22n/.7 12f/.5','Pincer: 22f/.3@0 ~1 10t/1.1@1 12ni/.5 4s/1','Bone horde: 40z/.3 8t/1.1 6h/.8','Troll march: 14n 8r/1.3 5s/.9 12np/.5 6v/.7','The King and the Necromancer: 16n 8t/1.1 6h/.8 ~4 1k@0 ~6 1x@1 14nf/.45',
+ 'Breather: 26n/.6 14i/.45 6v/.7','Shield wall: 12g/.8@1 20f/.3@0 8t/1.1 5s/.9','Mixed swarm: 50nfighpntv/.38','Last stand: 24f/.28 ~2 12t/1.1 5r/1.3 ~2 22nnh/.42','Thunder dragons: 16n 8t/1.2 6v/.7 ~8 1b@0 ~10 1b@1 ~4 4s/1 14nfi/.45'],
+// 16 The Sundered Realm (two roads, @0 west, @1 east): the last stand – everything, and every boss at once to finish
+['The edge of the world: 12n/.85','Wolf riders: 10n 10f/.42','Fire and shadow: 8n 6i/.7 6h/.8','Pincer: 14f/.33@0 10n/.75@1 4t/1.2@1','The Necromancer: 12n 6t/1.2 4h/.8 ~2 1x 12nz/.45',
+ 'Imp swarm: 10n 18i/.38 6p/.7','Knight push: 12n 9t/1.1@1 10nf/.45@0','Bats from the void: 12n 14v/.42 6g/.9 4s/1','Mixed swarm: 40nfighpzt/.42','The Dragon: 16n 8t/1.1 6h/.8 ~2 1b@1 14ni/.45 4r/1.3',
+ 'Breather: 24n/.65 14f/.45','Pincer: 24f/.28@0 ~1 11t/1.05@1 14ni/.45 5s/.9','Bone horde: 44z/.28 10t/1 8h/.75','Troll march: 14n 9r/1.2 6s/.9 14np/.45 8v/.6','The King and the Ram: 18n 9t/1.05 6g/.9 ~4 1k@0 ~6 1m@1 16nf/.42',
+ 'Breather: 28n/.55 16i/.42 8v/.6','Shield wall: 14g/.75@1 22f/.28@0 10t/1 6s/.9','Mixed swarm: 54nfighpntvz/.36','Last stand: 26f/.26 ~2 14t/1 6r/1.2 ~2 24nnh/.4','The Last Host: 16n 8t/1.2 6h/.8 ~4 1x@1 ~6 1k@0 ~6 1m@1 ~8 1b@0 ~4 16nfi/.42']];
 LEVELS.forEach((l,i)=>l.wv=WAVES[i]);
 // environments: sky gradient, fog, lights, ground colours [light, mid, dark, rock, dirt], vegetation and ambient particles (mo)
 const THEMES={
@@ -86,7 +134,31 @@ badlands:{wc:0x4a3c2c,gt:'dirt',rc:0xa06a4c,sky:['#341a12','#924424','#dc9c5c'],
  mo:[{k:'emb',n:70,c:0xff8a3a,s:.06},{k:'dust',n:90,c:0xd09a70,s:.07}]},
 hell:{wc:0x2a1a18,gt:'dirt',rc:0x342e2e,sky:['#080303','#300a07','#7e1e0e'],fog:0x260b07,fn:4,ff:30,hemi:[0x9a5a52,0x200808,.8],sun:[0xff7050,1.2],ex:1.1,orb:0xff6040,gr:[0x3e3434,0x2c2424,0x181414,0x4a4040,0x0e0a0a],bd:0x948480,rd:0x928888,
  gs:[0,10,20,22,30,'#1a1010'],gn:[0,0],gc:[0xffffff],fl:[],tr:26,tk:[5,4,4],bu:0,rk:40,fly:0,cl:[8,0x160806],smk:0x3a3030,peb:220,hl:1.7,sat:.95,tint:[1.06,.94,.92],
- mo:[{k:'emb',n:160,c:0xff6a2a,s:.07},{k:'ash',n:90,c:0x4a4040,s:.06}]}};
+ mo:[{k:'emb',n:160,c:0xff6a2a,s:.07},{k:'ash',n:90,c:0x4a4040,s:.06}]},
+// levels 9–16. New keys: gt 'snow'/'sand' (ground textures made in js/06-scenery.js), sea = the far side drops into the sea (coast), storm = rain and lightning;
+// leaves and snowflakes reuse the falling 'ash' particles
+autumn:{wc:0x2e5a5a,rc:0x8a8070,sky:['#5a6a8a','#c8b49a','#f0c890'],fog:0xc8b8a0,fn:8,ff:40,hemi:[0xe0d0c0,0x8a6a4a,.9],sun:[0xffd8a0,1.55],ex:1.05,orb:0xffe0b0,gr:[0xa8a050,0x7a7a3a,0x55562c,0x8a8070,0x7a5a3a],bd:0xe8dcb0,rd:0xf4ece0,
+ gs:[35,55,55,45,58,'#5a5a24'],gn:[600,1000],gc:[0xffffff,0xf0e0b0,0xe0c890],fl:['#ffffff','#ffb347','#d8443a'],tr:80,tk:[2,10,2,3,1,10,0],bu:40,rk:22,fly:6,cl:[6,0xffffff],hl:.9,sat:.98,tint:[1.03,1,.94],
+ mo:[{k:'ash',n:70,c:0xd8782a,s:.08},{k:'ash',n:40,c:0xb84a26,s:.08}]},
+coast:{wc:0x2a6a8a,rc:0x9a9488,sea:1,sky:['#3a6a9a','#9cc4dc','#e8e4d0'],fog:0xa8c0cc,fn:9,ff:44,hemi:[0xc8dcec,0x6a7a5a,.95],sun:[0xfff0d8,1.6],ex:1.05,orb:0xfff4dc,gr:[0x8aa458,0x6a8a44,0x4a6638,0x9a9488,0x8a7a5a],bd:0xd8e0c0,rd:0xf0ece0,
+ gs:[60,90,50,48,62,'#3a5a24'],gn:[500,900],gc:[0xffffff,0xe8f0c8,0xd0e0a8],fl:['#ffffff','#f4d0e8'],tr:30,tk:[1,0,1,4],bu:30,rk:40,fly:0,cl:[7,0xffffff],hl:1.1,sat:1,tint:[.98,1,1.03]},
+desert:{wc:0x3a8aa0,gt:'sand',rc:0xc8a070,sky:['#4a7ab0','#b8d0e0','#f4e0b0'],fog:0xe0d0a8,fn:7,ff:40,hemi:[0xf0e4d0,0xa08060,.9],sun:[0xfff0c8,1.5],ex:.92,orb:0xfff8e0,gr:[0xd4b880,0xbc9c64,0x9c7a50,0xc89a6a,0x9a7a52],bd:0xe8d0a0,rd:0xd8c8a8,
+ gs:[40,52,45,55,68,'#8a7444'],gn:[80,160],gc:[0xffffff,0xf0e0b0],fl:[],tr:24,tk:[9,9,9,4],bu:0,rk:30,fly:0,cl:[3,0xffffff],peb:120,hl:1.3,sat:.95,tint:[1.04,1,.94],
+ mo:[{k:'dust',n:90,c:0xe8c890,s:.06}]},
+snow:{wc:0x9ac8e0,gt:'snow',rc:0x8a8e96,sky:['#4a6a90','#a8bcd0','#e8ecf0'],fog:0xc8d4e0,fn:6,ff:36,hemi:[0xdce8f4,0x8a94a0,1],sun:[0xfff4e8,1.35],ex:1,orb:0xffffff,gr:[0xf4f6f8,0xdce2ea,0xb4bcc8,0x8a8e96,0x9a9690],bd:0xf2f4f6,rd:0xc8c4c0,
+ gs:[40,60,20,60,75,'#6a6a5a'],gn:[100,250],gc:[0xffffff,0xe8e4d0],fl:[],tr:90,tk:[6,6,6,4,6],pine:[0x24402e,0xeef2f6,0x34583e],bu:0,rk:34,fly:0,cl:[8,0xe8eef4],hl:2.4,sat:.9,tint:[.97,1,1.05],
+ mo:[{k:'ash',n:240,c:0xffffff,s:.07}]},
+crystal:{wc:0x3a5a8a,rc:0x7a7890,sky:['#140f2a','#3a2a5a','#7a5a8a'],fog:0x3a3050,fn:4,ff:30,hemi:[0x9a8ac8,0x2a2438,.85],sun:[0xc8b8ff,1],ex:1.1,orb:0xd8c8ff,gr:[0x4a6a5a,0x34503e,0x22362c,0x6a6880,0x3a3244],bd:0x9ab8a8,rd:0xb8b0c8,
+ gs:[150,175,30,45,60,'#2a4a44'],gn:[500,900],gc:[0xd0e8ff,0xb8d8f0,0xa0c8e0],fl:['#9adcff','#e0a8ff'],tr:60,tk:[11,11,3,11,6],leaf:[0x4ac0b0,0x6ad8c8,0x8a7ad8],pine:[0x1e3a3a,0x2a5a5a,0x245050],bu:30,rk:30,fly:0,cl:[0],hl:1.1,sat:1,tint:[.98,.98,1.06],
+ mo:[{k:'ff',n:90,c:0x9ae8ff,s:.1},{k:'ff',n:40,c:0xe0a0ff,s:.09}]},
+pass:{wc:0x3a6a7a,rc:0x8a8680,sky:['#4a5a70','#98a8b8','#d8d4c8'],fog:0x9aa4b0,fn:6,ff:34,hemi:[0xc8d0dc,0x6a6458,.9],sun:[0xf8ecd8,1.45],ex:1.05,orb:0xfff4e0,gr:[0x7a8a5a,0x5a6a44,0x3e4a34,0x8a8680,0x6a5e4e],bd:0xc0c8a8,rd:0xd0c8b8,
+ gs:[55,85,35,42,55,'#3a4a28'],gn:[300,500],gc:[0xffffff,0xd8e0c0,0xb8c4a0],fl:['#ffffff','#9ab8ff'],tr:60,tk:[0,6,0,4,6],pine:[0x1e3a2a,0x2a5a3a,0x244a32],bu:20,rk:60,fly:0,cl:[6,0xe0e4e8],peb:140,hl:3.2,sat:.9,tint:[.98,1,1.02],
+ mo:[{k:'dust',n:50,c:0xd8d8d0,s:.05}]},
+storm:{wc:0x22323e,rc:0x6a6a6a,storm:1,sky:['#0e1218','#2a3440','#4a5460'],fog:0x2e3640,fn:3,ff:28,hemi:[0x8a98a8,0x2a2c2a,.75],sun:[0xb8c4d0,.85],ex:1.15,orb:0x9aa8b8,gr:[0x5a6a4a,0x42503a,0x2c3628,0x6a6a6a,0x3a3428],bd:0x8a9a80,rd:0xa4a29c,
+ gs:[70,95,25,40,52,'#34402a'],gn:[500,900],gc:[0xc8d0c0,0xb0b8a8],fl:['#b48aff'],tr:40,tk:[4,4,8,4],leaf:[0x3a4a30,0x4a5a3a,0x34402a],bu:30,rk:40,fly:0,cl:[10,0x1e2228],hl:1.6,sat:.8,tint:[.96,.98,1.04]},
+void:{wc:0x1a0e2e,gt:'dirt',rc:0x3a3448,sky:['#05030c','#1c0e34','#4a1e6a'],fog:0x140a24,fn:4,ff:30,hemi:[0x8a6ab8,0x140a1c,.8],sun:[0xb890ff,1.1],ex:1.1,orb:0xc8a0ff,gr:[0x3a3444,0x2a2432,0x18141e,0x4a4058,0x0e0a12],bd:0x8a8098,rd:0x908aa0,
+ gs:[0,10,20,22,30,'#1a1020'],gn:[0,0],gc:[0xffffff],fl:[],tr:24,tk:[4,4,5],bu:0,rk:40,fly:0,cl:[6,0x0e0818],smk:0x3a3048,peb:200,hl:1.6,sat:.95,tint:[1.02,.94,1.08],
+ mo:[{k:'emb',n:140,c:0xb06aff,s:.07},{k:'ff',n:50,c:0x5ae0ff,s:.09}]}};
 // the level is picked before anything is built (the whole scene is built once at load): ?level=N in the URL, else the last level chosen in the menu
 const LVN=(()=>{let n=0;try{n=+new URLSearchParams(location.search).get('level')||+localStorage.getItem('sflv')||1;}catch(e){n=1;}return clamp(Math.round(n)||1,1,LEVELS.length)-1;})();
 const LV=LEVELS[LVN],TH=THEMES[LV.th],W=LV.w,H=LV.h;

@@ -1,0 +1,5 @@
+{
+ "level": 15,
+ "note": "Stormwatch Heights: a sensible all-round build that keeps spending its gold (more towers and upgrades to the end) – the reference run for the hand-designed waves. Made from the board by picking the cells that cover the most road (the same steps as the other full builds).",
+ "build": [ "arrow 12,3", "arrow 10,7", "cannon 13,5", "up 12,3", "alch 2,7", "up 10,7", "storm 7,6", "ballista 11,5", "up 13,5", "banner 9,6", "up 2,7", "up 7,6", "arrow 7,1", "up 11,5", "storm 4,6", "up 12,3 crossbow", "up 10,7 crossbow", "up 7,6 tempest", "up 4,6", "frost 11,3", "up 11,5 giant", "up 7,1", "up 13,5 fire", "up 2,7 acid", "up 7,1 crossbow", "arrow 2,6", "up 2,6", "up 2,6 crossbow", "cannon 6,1", "up 6,1", "up 6,1 fire", "up 4,6 tempest", "storm 13,3", "up 13,3", "up 13,3 tempest", "ballista 9,5", "up 9,5", "up 9,5 giant", "up 9,6", "up 9,6 war", "up 11,3", "up 11,3 archmage"]
+}

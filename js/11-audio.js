@@ -44,7 +44,7 @@ h_ballista(){const t=T0();nzs(t,.12,'lowpass',700,150,.4,DS2(),.05);voice('sine'
 banish(){const t=T0(),o=voice('sine',1200*rr(),t,.005,.45,.12,6000,DS2(),.5);o.frequency.exponentialRampToValueAtTime(180,t+.4);nzs(t,.4,'bandpass',2400,500,.1,DS2(),.4,2);voice('triangle',mf(81),t+.32,.005,.35,.07,5000,DS2(),.5);},
 h_frost(){const t=T0();voice('sine',1400*rr(),t,.002,.18,.08,7000,DS2(),.4);voice('sine',2100*rr(),t+.02,.002,.12,.05,8000,DS2(),.4);},
 // level mechanics: the Ashfall ruins collapsing, a lava vent rumbling and erupting, darkness falling
-crumble(){const t=T0();for(let i=0;i<5;i++)nzs(t+i*.13,.5,'lowpass',900-i*120,90,.32,DS2(),.3);voice('sine',70,t,.01,1,.4,300,DS2(),.1).frequency.exponentialRampToValueAtTime(30,t+1);},
+thunder(){const t=T0();nzs(t,2.6,'lowpass',260,45,.3,DS2(),.5);nzs(t,.35,'lowpass',1400,200,.18,DS2(),.4);voice('sine',38,t,.05,2.2,.18,150,DS2(),.3);},crumble(){const t=T0();for(let i=0;i<5;i++)nzs(t+i*.13,.5,'lowpass',900-i*120,90,.32,DS2(),.3);voice('sine',70,t,.01,1,.4,300,DS2(),.1).frequency.exponentialRampToValueAtTime(30,t+1);},
 rumble(){const t=T0();nzs(t,1.8,'lowpass',220,90,.3,DS2(),.25);voice('sine',45,t,.4,1.6,.22,200,DS2(),.1);},
 erupt(){const t=T0();nzs(t,.9,'lowpass',900,60,.55,DS2(),.35);nzs(t+.05,1.4,'highpass',1800,4200,.14,DS2(),.2);voice('sine',80,t,.004,.6,.5,300,DS2(),.1).frequency.exponentialRampToValueAtTime(28,t+.6);},
 dark(){const t=T0(),o=voice('sine',220,t,.3,2.2,.16,600,DS2(),.6);o.frequency.exponentialRampToValueAtTime(70,t+2);nzs(t,2,'bandpass',400,120,.09,DS2(),.6,1.5);},

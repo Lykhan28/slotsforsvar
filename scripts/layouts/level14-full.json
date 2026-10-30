@@ -1,0 +1,5 @@
+{
+ "level": 14,
+ "note": "Wolfjaw Pass: a sensible all-round build that keeps spending its gold (more towers and upgrades to the end) – the reference run for the hand-designed waves. Made from the board by picking the cells that cover the most road (the same steps as the other full builds).",
+ "build": [ "arrow 8,6", "arrow 12,4", "cannon 1,3", "up 8,6", "alch 4,2", "up 12,4", "storm 14,5", "ballista 8,4", "up 1,3", "banner 4,4", "up 4,2", "up 14,5", "arrow 11,4", "up 8,4", "storm 1,5", "up 8,6 crossbow", "up 12,4 crossbow", "up 14,5 tempest", "up 1,5", "frost 3,3", "up 8,4 giant", "up 11,4", "up 1,3 fire", "up 4,2 acid", "up 11,4 crossbow", "arrow 5,3", "up 5,3", "up 5,3 crossbow", "cannon 12,3", "up 12,3", "up 12,3 fire", "up 1,5 tempest", "storm 7,6", "up 7,6", "up 7,6 tempest", "ballista 12,5", "up 12,5", "up 12,5 giant", "up 4,4", "up 4,4 war", "up 3,3", "up 3,3 archmage"]
+}
