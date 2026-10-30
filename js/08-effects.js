@@ -19,4 +19,4 @@ for(let i=0;i<n&&JU.co<30;i++){const c=document.createElement('div');c.className
 const a=rnd(0,2*PI),r=rnd(14,34)+n*3,mx=x0+Math.cos(a)*r,my=y0+Math.sin(a)*r*.6-rnd(20,40),d=rnd(560,760)+i*35;
 const an=c.animate([{transform:`translate(${x0}px,${y0}px) scale(.5)`,opacity:0},{transform:`translate(${mx}px,${my}px) scale(1.1)`,opacity:1,offset:.28},{transform:`translate(${x1}px,${y1}px) scale(.7)`,opacity:1}],{duration:d,easing:'cubic-bezier(.45,0,.75,.4)',fill:'forwards'});
 // a hidden tab never fires onfinish, hence the timer as well
-const done=()=>{if(!c.parentNode)return;c.remove();JU.co--;const p=$('gold').parentNode;p.classList.remove('gp');void p.offsetWidth;p.classList.add('gp');};an.onfinish=done;setTimeout(done,d+300);}}
+const done=()=>{if(!c.parentNode)return;c.remove();JU.co--;snd('clink');const p=$('gold').parentNode;p.classList.remove('gp');void p.offsetWidth;p.classList.add('gp');};an.onfinish=done;setTimeout(done,d+300);}}

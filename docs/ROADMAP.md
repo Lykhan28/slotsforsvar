@@ -239,7 +239,7 @@ Show gate damage as lives drop (cracks, then a splintered gate, then fires). Add
 Give each level theme its own music variation using the existing WebAudio generator (different scale, tempo, instruments) for both calm and battle music.
 ```
 
-- [ ] **43. Sound design**
+- [x] **43. Sound design**
 ```text
 Add positional audio (sounds fade with distance from the camera target) and more sound variety: enemy-specific death sounds, a boss roar, gold clinks, a wave-start horn and a victory fanfare.
 ```

@@ -304,28 +304,28 @@ part(a,'box',P.wd2,.016*k,.016*k,L,0,0,-L/2);part(a,'box',P.rd,.05*k,.012,.06,0,
 a.position.set(-lx*R0+rnd(-.03,.03),yy,-lz*R0+rnd(-.03,.03));a.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(lx,rnd(-.15,.15),lz).normalize());
 e.body.add(a);e.stuck.push({a,t:0,sc:e.type=='boss'?1.8:1});if(e.stuck.length>7){const o=e.stuck.shift();e.body.remove(o.a);}}
 // hit feedback; damage numbers are grey when the enemy resisted part of the hit (or a Shieldbearer's shield blocked it: sparks and a clang), pale gold when the Ballista pierced its armour
-function hf(o,h,d,kind,dx,dy,br){const bl=shBlk(o,kind,dx||0,dy||0)<1;snd(bl?'block':'h_'+kind);if(bl){o.sbk=1;burst(o.x,o.y,0xffe6a0,5,1,.45);}o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
+function hf(o,h,d,kind,dx,dy,br){const bl=shBlk(o,kind,dx||0,dy||0)<1;snd(bl?'block':'h_'+kind,o.x,o.y);if(o.bs&&!o.rh&&o.hp>0&&o.hp<o.max*.5){o.rh=1;snd('roar_'+o.type,o.x,o.y,.5);}if(bl){o.sbk=1;burst(o.x,o.y,0xffe6a0,5,1,.45);}o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
 if(d>0&&txts.length<40){const rs=o.rs[T[kind].dt]||0;popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),dmul(o,kind,br)<1||bl?'#a9a9a9':rs>0?'#ffe08a':'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[o.type];}
 burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x8a6a44,necro:0x3a2a44,skel:0xd8d0bc,pirate:0x8fd957}[o.type],o.type=='tank'?5:3,.8,.5);
 if((kind=='arrow'||kind=='ballista')&&!o.phz)stick(o,dx||0,dy||1,kind=='ballista');else if(kind=='cannon')o.stn=1;else if(kind=='storm')o.shk=2.8;}
 const TXY={norm:1,fast:1.15,tank:1.4,boss:2.3,guard:1.1,shaman:1.15,bat:1.55,sapper:1.15,troll:1.9,ghost:1.25,imp:.95,king:1.6,ram:1.4,necro:2.1,skel:1,pirate:1.2};
 // Shaman heal (heal() in js/09-game.js): without a it's the pulse – a green ring on the ground as wide as its reach, and the staff flares (e.cst); with a, enemy e was healed by a
-function healFx(e,a){if(a===undefined){e.cst=1;snd('heal');fx(e.x,e.y,0xb8ff9a,.2,HEAL.r/60,.7,.22,true);fx(e.x,e.y,0x7dff6a,.15,HEAL.r/60*.9,.6,.3);burst(e.x,e.y,0x9cff6a,8,.9,.9);return;}
+function healFx(e,a){if(a===undefined){e.cst=1;snd('heal',e.x,e.y);fx(e.x,e.y,0xb8ff9a,.2,HEAL.r/60,.7,.22,true);fx(e.x,e.y,0x7dff6a,.15,HEAL.r/60*.9,.6,.3);burst(e.x,e.y,0x9cff6a,8,.9,.9);return;}
 fx(e.x,e.y,0x9cff6a,.1,.45,.4,.05,true);burst(e.x,e.y,0x9cff6a,4,.6,.5);if(a>=1&&txts.length<40){popText(e.x+rnd(-8,8),e.y+rnd(-8,8),'+'+Math.round(a),'#8dff7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[e.type];}}
 // Sapper: the bomb goes off beside tower t (the stars and smoke while it is stunned are drawn in sync())
-function sapFx(e,t){snd('boom');const y=t.head.position.y*.6;fx(t.x,t.y,0xffb060,.2,1.1,.4,y);fx(e.x,e.y,0xffffff,.1,1.3,.45,.08,true);burst(t.x,t.y,0xff8a3a,18,1.8,y);burst(t.x,t.y,0x3a3a3a,12,1.2,y+.2);
+function sapFx(e,t){snd('boom',t.x,t.y);const y=t.head.position.y*.6;fx(t.x,t.y,0xffb060,.2,1.1,.4,y);fx(e.x,e.y,0xffffff,.1,1.3,.45,.08,true);burst(t.x,t.y,0xff8a3a,18,1.8,y);burst(t.x,t.y,0x3a3a3a,12,1.2,y+.2);
 for(let i=0;i<4;i++)fx(t.x+rnd(-15,15),t.y+rnd(-15,15),0x4a4a4a,.15,.6,1.1,y+rnd(0,.5));}
 // Ghost: a puff of mist and a whoosh as it fades out of reach (e.out) or back in; the fading itself is in animEnemy()
-function phzFx(e){snd('phase');burst(e.x,e.y,0xcfe6ee,e.out?10:6,.8,.6);fx(e.x,e.y,0xcfe6ee,.1,.7,.5,.6);}
+function phzFx(e){snd('phase',e.x,e.y);burst(e.x,e.y,0xcfe6ee,e.out?10:6,.8,.6);fx(e.x,e.y,0xcfe6ee,.1,.7,.5,.6);}
 // Goblin King summons (summon() in js/09-game.js): a fanfare, a gold flash and he lifts his sceptre (e.cst)
-function kingFx(e){e.cst=1;snd('summon');fx(e.x,e.y,0xffd24a,.2,1.3,.5,.06,true);burst(e.x,e.y,0xffd24a,14,1.2,1.2);}
+function kingFx(e){e.cst=1;snd('summon',e.x,e.y,.3);fx(e.x,e.y,0xffd24a,.2,1.3,.5,.06,true);burst(e.x,e.y,0xffd24a,14,1.2,1.2);}
 // Necromancer raises skeleton o (raise()): a green flash where it climbs out and a green spark trail back to the Necromancer, who lifts its arm (e.cst)
-function raiseFx(e,o){e.cst=1;snd('raise');fx(o.x,o.y,0x7dff6a,.1,.8,.6,.05,true);burst(o.x,o.y,0x3a2a44,10,1,.2);burst(o.x,o.y,0x9cff6a,8,1.2,.4);
+function raiseFx(e,o){e.cst=1;snd('raise',o.x,o.y,.3);fx(o.x,o.y,0x7dff6a,.1,.8,.6,.05,true);burst(o.x,o.y,0x3a2a44,10,1,.2);burst(o.x,o.y,0x9cff6a,8,1.2,.4);
 for(let i=1;i<6;i++){const k=i/6;burst(e.x+(o.x-e.x)*k,e.y+(o.y-e.y)*k,0x9cff6a,1,.3,1.2-.8*k);}}
 // Troll: its basket breaks open as the goblins jump out
-function trollFx(e){snd('h_cannon');burst(e.x,e.y,0x8a6a3a,12,1.3,1.1);burst(e.x,e.y,0x71903c,6,1.6,1.1);}
-function tfx(t){snd('f_'+t.k);const c={arrow:0xdcc9a0,cannon:0xcfc2a0,frost:0x9ff7ff,ballista:0xe8e0c8,storm:0x7fd8ff,alch:0x7cff4a}[t.k];if(!c)return;burst(t.x,t.y,c,t.k=='cannon'?7:t.k=='arrow'?2:5,t.k=='storm'?1.2:.8,t.head.position.y+.1);if(t.k=='cannon')fx(t.x,t.y,0xcfc2a0,.2,.7,.35,.3);}
-function killFx(e){snd('die_'+e.type);crewCheer(e);coins(e,Math.min(7,1+Math.floor(e.rw/8)));if(e.bs){shake(1);hitStop(.32);}else if(E[e.type].h>=1.8)hitStop(.07);e.dt=0;e.dk=e.lk;e.fd=Math.random()<.5?-1:1;e.bx=e.m.position.x;e.bz=e.m.position.z;e.ice.visible=false;e.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});
+function trollFx(e){snd('h_cannon',e.x,e.y);burst(e.x,e.y,0x8a6a3a,12,1.3,1.1);burst(e.x,e.y,0x71903c,6,1.6,1.1);}
+function tfx(t){snd('f_'+t.k,t.x,t.y);const c={arrow:0xdcc9a0,cannon:0xcfc2a0,frost:0x9ff7ff,ballista:0xe8e0c8,storm:0x7fd8ff,alch:0x7cff4a}[t.k];if(!c)return;burst(t.x,t.y,c,t.k=='cannon'?7:t.k=='arrow'?2:5,t.k=='storm'?1.2:.8,t.head.position.y+.1);if(t.k=='cannon')fx(t.x,t.y,0xcfc2a0,.2,.7,.35,.3);}
+function killFx(e){snd('die_'+e.type,e.x,e.y,e.bs?.5:0);if(e.lk=='frost'||e.lk=='alch'||e.lk=='storm')snd('k_'+e.lk,e.x,e.y);crewCheer(e);coins(e,Math.min(7,1+Math.floor(e.rw/8)));if(e.bs){shake(1);hitStop(.32);}else if(E[e.type].h>=1.8)hitStop(.07);e.dt=0;e.dk=e.lk;e.fd=Math.random()<.5?-1:1;e.bx=e.m.position.x;e.bz=e.m.position.z;e.ice.visible=false;e.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});
 if(e.shG)e.shG.visible=false;if(e.stG)e.stG.visible=false;if(e.fzG&&e.dk!='frost')e.fzG.visible=false;g.dying.push(e);const dk=e.dk;
 if(dk=='frost')burst(e.x,e.y,0x9ff7ff,22,1.8,.5);else if(dk=='storm')burst(e.x,e.y,0x7fd8ff,16,1.6,.5);else if(dk=='alch')burst(e.x,e.y,0x7cff4a,18,1.2,.4);else if(dk=='cannon')burst(e.x,e.y,0xcfc2a0,16,1.8,.3);
 if(e.bs){burst(e.x,e.y,0xff8c3a,26,2,.6);fx(e.x,e.y,0xffc060,.3,2.2,.6,.4);}
@@ -521,7 +521,7 @@ if(g.sel===t){if(!RFL){RFL=new THREE.Group();flag(RFL,0,0,0,0xffe6a0,.9);ring(RF
 // hide the rally flag when no Barracks is selected (called once a frame from sync())
 function rallyHide(){if(RFL&&!(g.sel&&g.sel.sol))RFL.visible=false;}
 // a soldier falls: a puff of dust and a clank (it respawns at the tower)
-function solDie(t,d){snd('die_sol');burst(d.x,d.y,0x9aa3b0,8,1,.4);burst(d.x,d.y,0xd8cbb0,6,.8,.2);}
+function solDie(t,d){snd('die_sol',d.x,d.y);burst(d.x,d.y,0x9aa3b0,8,1,.4);burst(d.x,d.y,0xd8cbb0,6,.8,.2);}
 // ---------- the hero's looks (logic: heroUpd()/heroCast() in js/09-game.js) ----------
 // Sir Kirkevang: a bay horse in a blue caparison with gold trim (legs on pivots L0..L3, tail TL, the whole body on BD so it can bob), and a knight in silver
 // plate with a gold circlet, a red plume and cape, a blue kite shield and a sword on its pivot SW (the chibi soldier from js/05-towers.js, scaled up)
@@ -565,7 +565,7 @@ const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;i
 // ---------- spell looks (logic: heroCast()/spells() in js/09-game.js) ----------
 // falling arrows and oil streams are short-lived meshes in SPA, moved by spellAnim(); i: 0 a Rain of Arrows volley (p = the spell), 1 Boiling Oil (p.tiles), 2 Reinforcements arrive (p = the squad)
 const SPA=[];
-function spellFx(i,p){if(i==0){if(p.v==1){fx(p.x,p.y,0xd8cbb0,.2,HAB[0].r/60,.5,.04,true);snd('horn');}snd('rain');setTimeout(()=>snd('h_arrow'),280);
+function spellFx(i,p){if(i==0){if(p.v==1){fx(p.x,p.y,0xd8cbb0,.2,HAB[0].r/60,.5,.04,true);snd('horn');}snd('rain',p.x,p.y,.4);setTimeout(()=>snd('h_arrow',p.x,p.y,.4),280);
 for(let k=0;k<22;k++){const a=rnd(0,2*PI),d=Math.sqrt(Math.random())*HAB[0].r,x=p.x+Math.cos(a)*d,y=p.y+Math.sin(a)*d,m=mkBullet('arrow'),t0=rnd(0,.15);m.scale.setScalar(1.4);
 m.visible=false;SPA.push({k:'arw',m,x,y,t:-t0,d:.35,dx:-.9,dz:-.5});}}
 if(i==1){snd('oil');snd('boom');for(const q of p.tiles){const m=L1(new THREE.Mesh(geo('cyl'),new THREE.MeshBasicMaterial({color:new THREE.Color(0xc86414).convertSRGBToLinear(),transparent:true,opacity:.95})));m.position.set(wx(q.x),1.4,wz(q.y));m.scale.set(.12,2.8,.12);sc.add(m);
@@ -582,8 +582,8 @@ function repFx(c){snd('build');setTimeout(()=>snd('h_barracks'),140);setTimeout(
 function heroHit(h,e){const y=.55;burst(e.x,e.y,0xfff2c0,7,1.3,y);fx(e.x,e.y,0xffffff,.08,.45,.18,y);}
 function heroLvl(h){snd('upgrade');popText(h.x,h.y,'Level '+h.lv+'!','#ffe08a');burst(h.x,h.y,P.gd,16,1.5,.6);fx(h.x,h.y,0xffd24a,.2,1.2,.6,.1,true);}
 // hero looks: -1 he falls, 3 Divine Smite (near = the enemies it hit)
-function heroFx(i,h,near){if(i<0){snd('die_sol');burst(h.x,h.y,0xc8ccd4,12,1.2,.5);burst(h.x,h.y,0x7a4a2a,8,1,.3);return;}
-if(i==3){snd('f_storm');snd('boom');fx(h.x,h.y,0xfff2c0,.3,HAB[3].r/60,.6,.08,true);fx(h.x,h.y,0xffffff,.2,1.6,.35,.6);for(const e of near){const y=e.fy||.45;bolt(e.x,e.y,4.5,e.x,e.y,y,true);burst(e.x,e.y,0xfff2c0,8,1.2,y);}}}
+function heroFx(i,h,near){if(i<0){snd('die_sol',h.x,h.y,.3);burst(h.x,h.y,0xc8ccd4,12,1.2,.5);burst(h.x,h.y,0x7a4a2a,8,1,.3);return;}
+if(i==3){snd('f_storm',h.x,h.y);snd('boom',h.x,h.y);fx(h.x,h.y,0xfff2c0,.3,HAB[3].r/60,.6,.08,true);fx(h.x,h.y,0xffffff,.2,1.6,.35,.6);for(const e of near){const y=e.fy||.45;bolt(e.x,e.y,4.5,e.x,e.y,y,true);burst(e.x,e.y,0xfff2c0,8,1.2,y);}}}
 // Plague spreading from a dying enemy: a purple ring as wide as its reach
 function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x8a4ab0,10,1,.3);}
 function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}
@@ -610,19 +610,19 @@ function ruinFx(on,now){if(!RUC.size)return;RUB.visible=on;if(!on||now){RUF=-1;R
 RUF=0;RUW.visible=true;snd('crumble');for(const k of RUC){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2;fx(x,y,0x9a948a,.2,1.1,1.6,.3);burst(x,y,0x8a847a,12,1.2,.3);}
 evMsg(MECH.ruin.ic,'The ruins collapse!','A shortcut has opened through the town – every other enemy on foot will take it.');}
 // Barrow Moor: stage 0 = a grave starts to glow (graveAnim pulses GVG while g.gw is set), 1 = skeletons sk climb out in a burst of earth
-function graveFx(q,st,sk){if(!st)return;snd('raise');fx(q.x,q.y,0x7dff6a,.1,.9,.6,.05,true);burst(q.x,q.y,0x3a3028,14,1.2,.2);burst(q.x,q.y,0x9cff6a,8,1.2,.4);for(const o of sk)o.age=.08;
+function graveFx(q,st,sk){if(!st)return;snd('raise',q.x,q.y,.3);fx(q.x,q.y,0x7dff6a,.1,.9,.6,.05,true);burst(q.x,q.y,0x3a3028,14,1.2,.2);burst(q.x,q.y,0x9cff6a,8,1.2,.4);for(const o of sk)o.age=.08;
 if(!MSEEN.grave){MSEEN.grave=1;evMsg(MECH.grave.ic,'The dead are rising','Skeletons climb out of the graves beside the road.');}}
 // Scorched Badlands: stage 0 = a vent rumbles (a ring spreads to the blast radius; mechAnim spits embers and glows while g.ew is set), 1 = it erupts
 let LVG=null;
-function eruptFx(v,st){const M=MECH.lava;if(!st){snd('rumble');fx(v.x,v.y,0xff5a10,.2,M.r/60,M.wt,.05,true);return;}
-snd('erupt');fx(v.x,v.y,0xff9a3a,.3,1.5,.6,.35);fx(v.x,v.y,0xff5a10,.3,M.r/60*1.1,.7,.06,true);burst(v.x,v.y,0xff7a1a,22,2.2,.3);burst(v.x,v.y,0x2a1a14,12,1.6,.3);burst(v.x,v.y,0xffd27a,10,2.8,.4);
+function eruptFx(v,st){const M=MECH.lava;if(!st){snd('rumble',v.x,v.y,.2);fx(v.x,v.y,0xff5a10,.2,M.r/60,M.wt,.05,true);return;}
+snd('erupt',v.x,v.y,.3);fx(v.x,v.y,0xff9a3a,.3,1.5,.6,.35);fx(v.x,v.y,0xff5a10,.3,M.r/60*1.1,.7,.06,true);burst(v.x,v.y,0xff7a1a,22,2.2,.3);burst(v.x,v.y,0x2a1a14,12,1.6,.3);burst(v.x,v.y,0xffd27a,10,2.8,.4);
 if(!MSEEN.lava){MSEEN.lava=1;evMsg(M.ic,'Eruption!','The lava pools blow from time to time – burning enemies nearby and stunning towers right next to them.');}}
 // Dread Wastes: darkness falls (banner, sound); darkAnim() fades the light down/up over 1.5 s (DKK), lights the lava circles and puts a warm glow over every lit tower.
 // It leaves the lights alone once the game is over (the ending scenes own them)
 let DKK=0;
 function darkFx(){snd('dark');evMsg(MECH.dark.ic,'Darkness falls','Towers lose 40% range unless a lava pool or a Banner Tower lights them.');}
 // Pirate (js/09-game.js): below half health it swigs its rum and charges (rumFx, once); one that reaches the gate also steals v gold (plunderFx)
-function rumFx(e){snd('rum');popText(e.x,e.y,'Rum!','#ffb04a');const q=txts[txts.length-1];if(q)q.s.position.y=TXY.pirate;burst(e.x,e.y,0xc8862a,6,.7,.7);}
+function rumFx(e){snd('rum',e.x,e.y);popText(e.x,e.y,'Rum!','#ffb04a');const q=txts[txts.length-1];if(q)q.s.position.y=TXY.pirate;burst(e.x,e.y,0xc8862a,6,.7,.7);}
 function plunderFx(e,v){if(!v)return;snd('coin');popText(e.x,e.y,'−'+v+' gold','#ff8a7a');burst(e.x,e.y,0xffd24a,10,1.2,.4);}
 // first time a mechanic shows itself since the page loaded: its banner
 function mFirst(k,t,d){if(MSEEN[k])return;MSEEN[k]=1;evMsg(MECH[k].ic,t,d);}
@@ -630,23 +630,23 @@ function mFirst(k,t,d){if(MSEEN[k])return;MSEEN[k]=1;evMsg(MECH[k].ic,t,d);}
 function harvestFx(n){if(!n)return;for(const[c,r]of FLD)if(!g.tw.some(t=>t.c==c&&t.r==r)){popText(c*S+S/2,r*S+S/2,'+'+MECH.harvest.g,'#ffe08a');burst(c*S+S/2,r*S+S/2,0xe8c860,4,.8,.3);}
 mFirst('harvest','Harvest home!','Your unbuilt fields brought in '+n*MECH.harvest.g+' gold. Towers built on a field cell stop its harvest.');}
 // Saltcliff Cove: a boatload of pirates comes ashore at the landing (LDP)
-function landFx(o){snd('splash');burst(o.x,o.y,0xd8ecf4,10,1.2,.1);burst(o.x,o.y,0x7aa8c0,6,.9,.1);fx(o.x,o.y,0xcfe8f4,.1,.8,.5,.05,true);
+function landFx(o){snd('splash',o.x,o.y);burst(o.x,o.y,0xd8ecf4,10,1.2,.1);burst(o.x,o.y,0x7aa8c0,6,.9,.1);fx(o.x,o.y,0xcfe8f4,.1,.8,.5,.05,true);
 mFirst('land','Pirates ashore!','A boat has landed at the creek – every third enemy on foot comes ashore there instead of at the breach.');}
 // Sunscorch Dunes: a mirage gets its own see-through, sun-tinted copies of its materials (o.mg; mechAnim shimmers them), and vanishes in a puff of sand
 function mirFx(o){o.mg=[];o.body.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;m.material.opacity=.4;m.material.depthWrite=false;m.material.color.multiply(new THREE.Color(1.25,1.1,.8));m.castShadow=false;o.mg.push(m.material);}});
 mFirst('mirage','Heat mirages','Shimmering copies march among the enemy. They vanish at the first hit and cost no lives – but every shot at one is wasted.');}
-function mirEnd(o){snd('h_frost');burst(o.x,o.y,0xf0d8a0,8,.9,.4);fx(o.x,o.y,0xffe8b0,.1,.6,.4,.3);if(o.mg)o.mg.forEach(m=>m.dispose());}
+function mirEnd(o){snd('h_frost',o.x,o.y);burst(o.x,o.y,0xf0d8a0,8,.9,.4);fx(o.x,o.y,0xffe8b0,.1,.6,.4,.3);if(o.mg)o.mg.forEach(m=>m.dispose());}
 // Frostpeak Hold: a blizzard starts (mechAnim fades the whiteout in over 1.5 s, BZK, and marks frozen and warm towers)
 let BZK=0;
 function coldFx(){snd('wind');evMsg(MECH.cold.ic,'Blizzard!','Frozen towers attack 35% slower – unless a brazier or an Alchemist keeps them warm.');}
 // Wolfjaw Pass: stage 0 = the boulder's shadow grows over the road, 1 = it crashes down (returns the boulder, which mechAnim drops in); rockEnd = it crumbles away
-function rockFx(q,st){const M=MECH.rock;if(!st){snd('rumble');fx(q.x,q.y,0x140f0a,.15,M.r/60*1.2,M.wt,.03,true);burst(q.x,q.y,0x6a6058,6,.6,2.5);return;}
-snd('boom');snd('crumble');burst(q.x,q.y,0x8a8078,16,1.6,.2);burst(q.x,q.y,0x4a4440,10,1.2,.3);fx(q.x,q.y,0xb0a898,.3,1.4,.6,.3);
+function rockFx(q,st){const M=MECH.rock;if(!st){snd('rumble',q.x,q.y,.2);fx(q.x,q.y,0x140f0a,.15,M.r/60*1.2,M.wt,.03,true);burst(q.x,q.y,0x6a6058,6,.6,2.5);return;}
+snd('boom',q.x,q.y,.3);snd('crumble',q.x,q.y,.3);burst(q.x,q.y,0x8a8078,16,1.6,.2);burst(q.x,q.y,0x4a4440,10,1.2,.3);fx(q.x,q.y,0xb0a898,.3,1.4,.6,.3);
 const G=new THREE.Group();G.position.set(wx(q.x),4,wz(q.y));for(let i=0;i<3;i++){const s2=[.4,.26,.2][i],m=part(G,'oct',RKM,s2,s2*.85,s2,[0,.28,-.26][i],s2*.4,[0,.18,-.14][i]);m.rotation.set(rnd(0,1),rnd(0,6),rnd(0,1));}sc.add(G);G.userData.a=0;
 mFirst('rock','Rockfall!','Boulders block the pass for a few seconds and crush whatever is beneath. Bosses smash straight through.');return G;}
-function rockEnd(k,sm){if(k.m)sc.remove(k.m);burst(k.x,k.y,0x8a8078,sm?18:10,sm?1.8:1,.3);fx(k.x,k.y,0x9a9088,.2,1.1,.8,.3);if(sm)snd('crumble');}
+function rockEnd(k,sm){if(k.m)sc.remove(k.m);burst(k.x,k.y,0x8a8078,sm?18:10,sm?1.8:1,.3);fx(k.x,k.y,0x9a9088,.2,1.1,.8,.3);if(sm)snd('crumble',k.x,k.y);}
 // Stormwatch Heights: lightning strikes tower t (mechAnim then gives it a crackling blue glow while t.oc lasts)
-function strikeFx(t){snd('thunder');snd('f_storm');const y=t.head.position.y+.2;bolt(t.x+rnd(-20,20),t.y+rnd(-20,20),14,t.x,t.y,y,true);fx(t.x,t.y,0xd8e8ff,.2,1.6,.35,y);burst(t.x,t.y,0x9ad0ff,12,1.4,y);
+function strikeFx(t){snd('thunder');snd('f_storm',t.x,t.y);const y=t.head.position.y+.2;bolt(t.x+rnd(-20,20),t.y+rnd(-20,20),14,t.x,t.y,y,true);fx(t.x,t.y,0xd8e8ff,.2,1.6,.35,y);burst(t.x,t.y,0x9ad0ff,12,1.4,y);
 mFirst('bolt','Lightning strike!','A struck tower is overcharged and fires 50% faster for 8 seconds.');}
 // The Sundered Realm: a rift (v.q) opens (returns its swirl: a dark core under two spinning violet rings) or closes; riftTp = an enemy goes through a to b
 function riftFx(v,open){const q=v.q;if(!open){if(v.m)sc.remove(v.m);burst(q.x,q.y,0x9a4aff,8,1,.2);return;}snd('warp');
@@ -655,7 +655,7 @@ m.rotation.x=-PI/2;m.position.y=y;m.scale.setScalar(r);G.add(m);return m;};disc(
 for(let i=0;i<2;i++){const m=L1(new THREE.Mesh(RG,new THREE.MeshBasicMaterial({color:new THREE.Color(i?0xd8a0ff:0x8a3aff).convertSRGBToLinear(),transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending})));m.rotation.x=-PI/2;m.position.y=.02+i*.01;m.scale.setScalar(i?.3:.45);m.userData.sp=i?-3:2;G.add(m);}
 glow(G,0,.3,0,1.3,0x9a4aff);G.scale.setScalar(.01);sc.add(G);fx(q.x,q.y,0xb07aff,.1,1,.5,.05,true);
 mFirst('rift','The void tears open','Enemies stepping into one rift come out of the other – sometimes closer to the castle, sometimes farther away.');return G;}
-function riftTp(e,a,b){snd('banish');burst(a.q.x,a.q.y,0xb07aff,8,1,.3);burst(b.q.x,b.q.y,0xb07aff,10,1.2,.3);fx(b.q.x,b.q.y,0xd8a0ff,.1,.8,.4,.3);e.age=.1;}
+function riftTp(e,a,b){snd('banish',b.q.x,b.q.y);burst(a.q.x,a.q.y,0xb07aff,8,1,.3);burst(b.q.x,b.q.y,0xb07aff,10,1.2,.3);fx(b.q.x,b.q.y,0xd8a0ff,.1,.8,.4,.3);e.age=.1;}
 // a glow sprite on tower t under the name k, made again if the tower's model was rebuilt
 function tGlow(t,k,col,y){let s=t[k];if(!s||s.parent!==t.m){s=t[k]=glow(t.m,0,y,0,1,col);}return s;}
 function mechAnim(dt){ruinAnim(dt);

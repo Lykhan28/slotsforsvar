@@ -32,9 +32,9 @@ const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=wvS(w),c=s.indexOf
 const BRK=25;let autoW=false;
 const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&(INF||g.wave<MAXW)?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
-function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);ui();}
+function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
 // each breach has its own road (PATHS); the wave alternates between them
-function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
+function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36,pirate:2*PI/38}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
@@ -83,7 +83,7 @@ for(const e of g.en){if(e.hp<=0||e.out||(t.k=='frost'&&(br&&br.tz?e.tf<1:e.bn>0)
 if(best){t.aim=Math.atan2(best.x-t.x,best.y-t.y);if(t.cd<=0){t.cd=s.f;t.rec=1;tfx(t);(t.k=='storm'?zap(t,best,s):t.k=='arrow'?volley(t,s):g.bu.push({x:t.x,y:t.y,l:t.l,tg:best,k:t.k,br,d:s.d,y0:t.head.position.y+(t.k=='cannon'?.4:.15),d0:Math.hypot(best.x-t.x,best.y-t.y)||1,m:mkBullet(t.k,brn(t))}));}}}
 for(const b of g.bu){const e=b.tg;if(b.w>0){b.w-=dt;b.m.visible=false;continue;}b.m.visible=true;if(e.hp<=0||e.out){b.dead=1;continue;}
 const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
-if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');const br=b.br||{},c=br.ac?0xd8f03a:br.pl?0xa06ad0:0x7cff4a;for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch',br)>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch',br));o.hit=.15;if(br.ac)o.ac=br.ac;if(br.pl)o.pg=br.pl;}fx(e.x,e.y,c,.1,.75,.5,.1,true);burst(e.x,e.y,c,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');const br=b.br||{};shake(br.bd?.5:.38);for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon',br)*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
+if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash',e.x,e.y);const br=b.br||{},c=br.ac?0xd8f03a:br.pl?0xa06ad0:0x7cff4a;for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch',br)>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch',br));o.hit=.15;if(br.ac)o.ac=br.ac;if(br.pl)o.pg=br.pl;}fx(e.x,e.y,c,.1,.75,.5,.1,true);burst(e.x,e.y,c,10,1.2,.2);}else if(b.k=='cannon'){snd('boom',e.x,e.y);const br=b.br||{};shake(br.bd?.5:.38);for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon',br)*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
 else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y)*big(e,b.br);e.hp-=dd;if(b.br&&b.br.sk)skewer(e,b);hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
 const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else if(e.mir){sc.remove(e.m);mirEnd(e);}else{const rw=e.rw+bounty(e);g.gold+=rw;ach('kill',e);heroXp(e);snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
@@ -121,7 +121,7 @@ const HEAL={r:75,cd:4};
 function heal(e){if(e.hp<=0)return;healFx(e);
 for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)>HEAL.r)continue;const a=Math.min(o.max-o.hp,o.max*e.hl*(o.bs?.34:1));o.hp+=a;healFx(o,a);}}
 // Wizard: teleport an enemy back along the road (bosses resist), then it is immune for 4 s
-function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
+function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish',e.x,e.y);fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 pushBack(e,m);ach('banish',e);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
 // Repair gate: buy back one life (up to maxL(), the difficulty's lives plus the Stonemasons perk); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
