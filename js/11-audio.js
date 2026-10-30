@@ -43,10 +43,12 @@ h_arrow(){const t=T0();nzs(t,.07,'lowpass',900,300,.22,DS2(),0);voice('sine',170
 h_ballista(){const t=T0();nzs(t,.12,'lowpass',700,150,.4,DS2(),.05);voice('sine',110,t,.003,.15,.35,500,DS2(),0).frequency.exponentialRampToValueAtTime(50,t+.15);},
 banish(){const t=T0(),o=voice('sine',1200*rr(),t,.005,.45,.12,6000,DS2(),.5);o.frequency.exponentialRampToValueAtTime(180,t+.4);nzs(t,.4,'bandpass',2400,500,.1,DS2(),.4,2);voice('triangle',mf(81),t+.32,.005,.35,.07,5000,DS2(),.5);},
 h_frost(){const t=T0();voice('sine',1400*rr(),t,.002,.18,.08,7000,DS2(),.4);voice('sine',2100*rr(),t+.02,.002,.12,.05,8000,DS2(),.4);},
-// level mechanics: the Ashfall ruins collapsing, a lava vent rumbling and erupting, darkness falling
+// level mechanics: the Ashfall ruins collapsing, a lava vent rumbling and erupting, darkness falling, a blizzard rising (wind), a void rift opening (warp)
 thunder(){const t=T0();nzs(t,2.6,'lowpass',260,45,.3,DS2(),.5);nzs(t,.35,'lowpass',1400,200,.18,DS2(),.4);voice('sine',38,t,.05,2.2,.18,150,DS2(),.3);},crumble(){const t=T0();for(let i=0;i<5;i++)nzs(t+i*.13,.5,'lowpass',900-i*120,90,.32,DS2(),.3);voice('sine',70,t,.01,1,.4,300,DS2(),.1).frequency.exponentialRampToValueAtTime(30,t+1);},
 rumble(){const t=T0();nzs(t,1.8,'lowpass',220,90,.3,DS2(),.25);voice('sine',45,t,.4,1.6,.22,200,DS2(),.1);},
 erupt(){const t=T0();nzs(t,.9,'lowpass',900,60,.55,DS2(),.35);nzs(t+.05,1.4,'highpass',1800,4200,.14,DS2(),.2);voice('sine',80,t,.004,.6,.5,300,DS2(),.1).frequency.exponentialRampToValueAtTime(28,t+.6);},
+wind(){const t=T0();nzs(t,3.2,'bandpass',300,1400,.2,DS2(),.5,1.2);nzs(t+.6,2.4,'bandpass',1800,500,.1,DS2(),.6,2);nzs(t,3,'lowpass',240,120,.12,DS2(),.3);},
+warp(){const t=T0(),o=voice('sine',90,t,.2,1.1,.16,900,DS2(),.6);o.frequency.exponentialRampToValueAtTime(420,t+1);nzs(t,1.1,'bandpass',300,2400,.1,DS2(),.6,3);voice('triangle',mf(57),t+.1,.3,.9,.06,2000,DS2(),.7);},
 dark(){const t=T0(),o=voice('sine',220,t,.3,2.2,.16,600,DS2(),.6);o.frequency.exponentialRampToValueAtTime(70,t+2);nzs(t,2,'bandpass',400,120,.09,DS2(),.6,1.5);},
 boom(){const t=T0();nzs(t,.6,'lowpass',600,80,.5,DS2(),.3);voice('sine',90,t,.004,.45,.5,300,DS2(),.1).frequency.exponentialRampToValueAtTime(30,t+.45);},
 splash(){const t=T0();nzs(t,.3,'bandpass',1500,500,.15,DS2(),.2,1.5);for(let i=0;i<6;i++)voice('sine',350+i*90+rnd(0,120),t+i*.04,.002,.09,.07,2500,DS2(),.15);},

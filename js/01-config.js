@@ -2,7 +2,8 @@
 const $=id=>document.getElementById(id),S=60,MAXW=20,PI=Math.PI,rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // ---------- levels ----------
 // w×h board cells; p = one road per breach, as cell waypoints (first point outside the wall = breach, last = castle gate; all roads share the gate); bk = cells nobody can build on
-// th = environment (THEMES below); hp = enemy health multiplier; gold = starting gold; mc = the level's own mechanic (MECH below), bg = Mirefen's bog road cells, ru = Ashfall's shortcut, gv = Barrow Moor's graves
+// th = environment (THEMES below); hp = enemy health multiplier; gold = starting gold; mc = the level's own mechanic (MECH below), bg = Mirefen's bog road cells, ru = Ashfall's shortcut, gv = Barrow Moor's graves,
+// hv = Harvest Vale's wheat fields (free cells), ld = Saltcliff Cove's landing (a road cell)
 const LEVELS=[
 {n:'Greenmeadow',d:'Peaceful fields on the edge of the kingdom',th:'meadow',w:12,h:8,hp:1,gold:120,p:[[[-1,1],[9,1],[9,3],[2,3],[2,6],[12,6]]],bk:[]},
 {n:'Darkwood',d:'An old forest where little light gets through',th:'darkwood',w:10,h:7,hp:0.95,gold:130,mc:'fog',p:[[[2,-1],[2,4],[6,4],[6,1],[10,1]]],bk:[[4,2],[0,5],[8,3],[4,6]]},
@@ -12,14 +13,14 @@ const LEVELS=[
 {n:'Barrow Moor',d:'Mist, graves and things that should stay buried',th:'moor',w:15,h:9,hp:0.8,gold:170,mc:'grave',gv:[[2,3],[5,6],[9,6]],p:[[[2,-1],[2,6],[12,6],[12,2],[15,2]]],bk:[[4,3],[5,3],[6,3],[8,4],[9,4],[10,3],[4,7],[7,8],[1,2],[14,5],[8,1],[0,8]]},
 {n:'Scorched Badlands',d:'Cracked earth and rivers of fire. The enemy comes from two sides',th:'badlands',w:12,h:9,hp:0.9,gold:190,mc:'lava',p:[[[-1,2],[4,2],[4,6],[9,6],[9,9]],[[7,-1],[7,6],[9,6],[9,9]]],bk:[[1,5],[2,5],[5,4],[6,1],[10,1],[11,7],[2,8],[6,8],[10,4]]},
 {n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:0.88,gold:220,mc:'dark',p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]},
-{n:'Harvest Vale',d:'Golden fields and orchards – the harvest must not burn',th:'autumn',w:13,h:8,hp:1.45,gold:230,p:[[[-1,6],[3,6],[3,1],[8,1],[8,5],[13,5]]],bk:[[5,3],[6,4],[1,2],[10,3],[11,7],[0,0]]},
-{n:'Saltcliff Cove',d:'Sea cliffs where pirate ships wait in the bay',th:'coast',w:14,h:8,hp:1.45,gold:240,p:[[[-1,1],[5,1],[5,6],[10,6],[10,3],[14,3]]],bk:[[2,3],[3,4],[7,3],[8,2],[12,6],[13,0],[1,6]]},
-{n:'Sunscorch Dunes',d:'Endless sand and old pillars. Two columns march out of the heat haze',th:'desert',w:13,h:9,hp:1.1,gold:250,p:[[[-1,7],[4,7],[4,4],[8,4],[8,6],[13,6]],[[2,-1],[2,2],[10,2],[10,6],[13,6]]],bk:[[6,3],[6,5],[1,4],[12,1],[0,0],[11,8],[2,5]]},
-{n:'Frostpeak Hold',d:'A mountain fortress deep in the snow',th:'snow',w:14,h:9,hp:1.75,gold:260,p:[[[-1,7],[3,7],[3,4],[11,4],[11,1],[6,1],[6,-1]]],bk:[[5,2],[8,2],[7,6],[1,5],[13,7],[12,0],[0,1],[9,8],[5,5]]},
-{n:'Crystal Hollow',d:'A glade of singing crystals under a violet sky. Two roads meet at the gate',th:'crystal',w:15,h:9,hp:1.15,gold:270,p:[[[-1,1],[5,1],[5,6],[7,6],[7,9]],[[15,3],[10,3],[10,6],[7,6],[7,9]]],bk:[[2,3],[3,4],[8,2],[12,1],[13,6],[1,7],[7,3],[11,8],[4,8]]},
-{n:'Wolfjaw Pass',d:'One narrow road winds between the rocks of the pass',th:'pass',w:16,h:9,hp:1.5,gold:280,p:[[[-1,4],[2,4],[2,1],[6,1],[6,7],[10,7],[10,2],[13,2],[13,6],[16,6]]],bk:[[0,2],[1,6],[4,3],[4,5],[3,7],[8,0],[8,3],[8,5],[11,5],[12,8],[15,1],[14,4],[0,8],[5,8],[15,8]]},
-{n:'Stormwatch Heights',d:'Wind, rain and lightning on the old standing stones. Two roads, one storm',th:'storm',w:15,h:10,hp:1.3,gold:300,p:[[[-1,8],[3,8],[3,5],[8,5],[8,8],[12,8],[12,4],[15,4]],[[5,-1],[5,2],[10,2],[10,4],[15,4]]],bk:[[1,3],[2,4],[6,7],[7,3],[10,6],[13,1],[14,7],[0,0],[11,9],[4,0]]},
-{n:'The Sundered Realm',d:'The world breaks apart at the edge of the kingdom. The last stand',th:'void',w:16,h:10,hp:1,gold:320,p:[[[-1,8],[3,8],[3,2],[6,2],[6,5],[8,5],[8,-1]],[[16,7],[12,7],[12,2],[10,2],[10,5],[8,5],[8,-1]]],bk:[[1,5],[5,4],[6,8],[9,7],[11,4],[14,3],[15,0],[0,1],[1,9],[13,9],[7,1],[9,2],[4,0],[14,9],[2,3],[15,5]]}];
+{n:'Harvest Vale',d:'Golden fields and orchards – the harvest must not burn',th:'autumn',w:13,h:8,hp:1.45,gold:230,mc:'harvest',hv:[[5,5],[6,5],[5,6],[6,6],[10,1],[11,1],[10,2],[11,2]],p:[[[-1,6],[3,6],[3,1],[8,1],[8,5],[13,5]]],bk:[[5,3],[6,4],[1,2],[10,3],[11,7],[0,0]]},
+{n:'Saltcliff Cove',d:'Sea cliffs where pirate ships wait in the bay',th:'coast',w:14,h:8,hp:1.45,gold:240,mc:'land',ld:[5,4],p:[[[-1,1],[5,1],[5,6],[10,6],[10,3],[14,3]]],bk:[[2,3],[3,4],[7,3],[8,2],[12,6],[13,0],[1,6]]},
+{n:'Sunscorch Dunes',d:'Endless sand and old pillars. Two columns march out of the heat haze',th:'desert',w:13,h:9,hp:1.1,gold:250,mc:'mirage',p:[[[-1,7],[4,7],[4,4],[8,4],[8,6],[13,6]],[[2,-1],[2,2],[10,2],[10,6],[13,6]]],bk:[[6,3],[6,5],[1,4],[12,1],[0,0],[11,8],[2,5]]},
+{n:'Frostpeak Hold',d:'A mountain fortress deep in the snow',th:'snow',w:14,h:9,hp:1.75,gold:260,mc:'cold',p:[[[-1,7],[3,7],[3,4],[11,4],[11,1],[6,1],[6,-1]]],bk:[[5,2],[8,2],[7,6],[1,5],[13,7],[12,0],[0,1],[9,8],[5,5]]},
+{n:'Crystal Hollow',d:'A glade of singing crystals under a violet sky. Two roads meet at the gate',th:'crystal',w:15,h:9,hp:1.15,gold:270,mc:'crystal',p:[[[-1,1],[5,1],[5,6],[7,6],[7,9]],[[15,3],[10,3],[10,6],[7,6],[7,9]]],bk:[[2,3],[3,4],[8,2],[12,1],[13,6],[1,7],[7,3],[11,8],[4,8]]},
+{n:'Wolfjaw Pass',d:'One narrow road winds between the rocks of the pass',th:'pass',w:16,h:9,hp:1.5,gold:280,mc:'rock',p:[[[-1,4],[2,4],[2,1],[6,1],[6,7],[10,7],[10,2],[13,2],[13,6],[16,6]]],bk:[[0,2],[1,6],[4,3],[4,5],[3,7],[8,0],[8,3],[8,5],[11,5],[12,8],[15,1],[14,4],[0,8],[5,8],[15,8]]},
+{n:'Stormwatch Heights',d:'Wind, rain and lightning on the old standing stones. Two roads, one storm',th:'storm',w:15,h:10,hp:1.3,gold:300,mc:'bolt',p:[[[-1,8],[3,8],[3,5],[8,5],[8,8],[12,8],[12,4],[15,4]],[[5,-1],[5,2],[10,2],[10,4],[15,4]]],bk:[[1,3],[2,4],[6,7],[7,3],[10,6],[13,1],[14,7],[0,0],[11,9],[4,0]]},
+{n:'The Sundered Realm',d:'The world breaks apart at the edge of the kingdom. The last stand',th:'void',w:16,h:10,hp:1,gold:320,mc:'rift',p:[[[-1,8],[3,8],[3,2],[6,2],[6,5],[8,5],[8,-1]],[[16,7],[12,7],[12,2],[10,2],[10,5],[8,5],[8,-1]]],bk:[[1,5],[5,4],[6,8],[9,7],[11,4],[14,3],[15,0],[0,1],[1,9],[13,9],[7,1],[9,2],[4,0],[14,9],[2,3],[15,5]]}];
 // ---------- waves ----------
 // WAVES[level] = its 20 waves, hand-designed (LEVELS[i].wv; read by waveQ() in js/09-game.js). A wave is "Name: group group ...", the name shows in the next-wave preview.
 // A group is <count><letters>[/<gap>][@<road>]: count enemies, cycling through the letters (WC), gap seconds apart (default .8, also the wait after the
@@ -186,18 +187,38 @@ for(let c=Math.min(f(a[0]),f(b[0]));c<=Math.max(f(a[0]),f(b[0]));c++)for(let r=M
 // lava = every cd s of a wave (the first t0 s in) a lava vent (every blocked cell) rumbles for wt s, then erupts: dm × a goblin's health (gob()) as fire damage to enemies within r (flyers too),
 //   and towers within r are stunned st s;
 // dark = t0 s into a wave and every cd s after it, darkness falls for du s: towers get rg of their range unless lit – within lr of a lava pool (LAMP) or in a Banner Tower's range (banners carry torches)
+// harvest = at the end of each wave every field cell (LV.hv) without a tower on it pays g gold;
+// land = every ev-th enemy on foot (not bosses) taken off the wave queue starts at the landing cell LV.ld instead of the breach;
+// mirage = every ev-th enemy of a plain type (MIRT) is followed dl s later by a mirage of itself: 1 health, no gold, no life lost when it gets through;
+// cold = like dark (t0/cd/du): in a blizzard towers reload f times slower unless warm – within wr of a brazier (BRZ) or in an Alchemist's range (Alchemists never freeze);
+// crystal = towers on a cell next to a crystal (any blocked cell, diagonals too) deal dm × damage;
+// rock = every cd s of a wave (the first t0 s in) a boulder rumbles over a random road cell for wt s, then lands: dm × gob() physical damage within r, and for bt s
+//   no enemy on foot can walk past it (held within r of it while heading towards it); a boss walking into it smashes it;
+// bolt = every cd s of a wave (the first t0 s in) lightning strikes a random attacking tower: it reloads f times faster for oc s;
+// rift = every cd s of a wave (the first t0 s in) a rift opens on each of the two roads (on a cell only that road uses) for du s; an enemy on foot (not a boss) within r
+//   of one comes out of the other and carries on along that road
 const MECH={fog:{n:'Forest fog',ic:'☁️',d:'Mist creeps in from the trees: towers on the foggy cells along the wall lose a quarter of their range.',rg:.75},
 fire:{n:'Wildfire',ic:'🔥',d:'Embers land on the board during waves and the fire spreads. Nothing can be built on burning ground until it dies down.',ig0:6,ig:9,mx:6,bt:20,sp:5},
 bog:{n:'Sucking bog',ic:'🐸',d:'Stretches of the road are flooded bog: enemies on foot wade through at 60% speed.',sl:.6},
 ruin:{n:'Crumbling ruins',ic:'🏚️',d:'In wave 7 the ruined houses in the middle of town collapse and open a shortcut. From then on every other enemy on foot takes it.'},
 grave:{n:'Restless graves',ic:'💀',d:'While a wave marches in, the open graves beside the road glow – and skeletons climb out onto the road.',t0:8,cd:11,wt:1.5,dn:7},
 lava:{n:'Lava vents',ic:'🌋',d:'The lava pools erupt during waves, burning nearby enemies – and stunning towers built right next to them for a few seconds.',t0:6,cd:9,wt:2,r:95,dm:.5,st:3},
-dark:{n:'Falling darkness',ic:'🌑',d:'Darkness falls again and again during waves. Towers lose 40% range in the dark unless they stand by a lava pool or in reach of a Banner Tower.',t0:15,cd:30,du:10,rg:.6,lr:95}};
+dark:{n:'Falling darkness',ic:'🌑',d:'Darkness falls again and again during waves. Towers lose 40% range in the dark unless they stand by a lava pool or in reach of a Banner Tower.',t0:15,cd:30,du:10,rg:.6,lr:95},
+harvest:{n:'Harvest fields',ic:'🌾',d:'Wheat grows on the fields inside the walls. Every field cell you leave unbuilt brings in 3 gold at the end of each wave.',g:3},
+land:{n:'Pirate landings',ic:'⚓',d:'Pirates row up the creek: every third enemy on foot comes ashore halfway along the road instead of at the breach.',ev:3},
+mirage:{n:'Heat mirages',ic:'☀️',d:'The heat haze conjures shimmering copies of the enemy. They vanish at the first hit and cost no lives, but your towers waste shots on them.',ev:2,dl:.45},
+cold:{n:'Blizzards',ic:'❄️',d:'Blizzards sweep over the hold during waves. Frozen towers attack 35% slower unless a brazier or an Alchemist keeps them warm.',t0:12,cd:30,du:10,f:1.35,wr:100},
+crystal:{n:'Singing crystals',ic:'💎',d:'The crystals hum with power: towers built right next to one deal 25% more damage.',dm:1.25},
+rock:{n:'Rockfalls',ic:'⛰️',d:'Boulders crash onto the road during waves, crushing the enemies below and blocking the pass for a few seconds. Bosses smash straight through.',t0:8,cd:13,wt:1.6,r:40,dm:.6,bt:5},
+bolt:{n:'Lightning strikes',ic:'🌩️',d:'Lightning strikes your towers during waves. A struck tower is overcharged and fires 50% faster for 8 seconds.',t0:6,cd:9,oc:8,f:1.5},
+rift:{n:'Void rifts',ic:'🌀',d:'Twin rifts tear open on the two roads. An enemy on foot that steps into one comes out of the other – maybe closer to the castle, maybe farther away.',t0:8,cd:16,du:7,r:22}};
 const FOG=new Set(),BOGC=new Set((LV.bg||[]).map(b=>b[0]+','+b[1]));
 // Ashfall: the shortcut's ruin cells (blocked until they collapse, then road) and its road SC (with rem like PATHS); Dread Wastes: the lava pools that light towers (the blocked cells drawn as lava, js/06-scenery.js)
 const RUC=new Set((LV.ru?LV.ru.c:[]).map(b=>b[0]+','+b[1]));for(const k of RUC)blk.add(k);
 const SC=LV.ru?LV.ru.p.map(p=>[p[0]*S+S/2,p[1]*S+S/2]):null;if(SC){SC.rem=[0];for(let i=SC.length-2;i>=0;i--)SC.rem.unshift(SC.rem[0]+Math.hypot(SC[i+1][0]-SC[i][0],SC[i+1][1]-SC[i][1]));}
 const LAMP=LV.mc=='dark'?LV.bk.filter(([c,r])=>(c+r)%2):[];
+// Harvest Vale's fields, Frostpeak Hold's braziers (the blocked cells drawn as rocks, js/06-scenery.js), Crystal Hollow's crystals (every blocked cell)
+const FLD=LV.hv||[],BRZ=LV.mc=='cold'?LV.bk.filter(([c,r])=>!((c+r)%2)):[],CRY=new Set(LV.mc=='crystal'?LV.bk.map(b=>b[0]+','+b[1]):[]);
 if(LV.mc=='fog')for(let c=0;c<W;c++)for(let r=0;r<H;r++)if((c==0||r==0||c==W-1||r==H-1)&&!road.has(c+','+r)&&!blk.has(c+','+r))FOG.add(c+','+r);
 const T={arrow:{n:'Archers',ic:'🏹',c:50,r:130,d:10,f:.5,dt:'phys',air:1},cannon:{n:'Catapult',ic:'🪨',c:100,r:110,d:30,f:1.4,dt:'phys',sp:55,bs:260,arc:1},frost:{n:'Wizard',ic:'🔮',c:110,r:115,d:8,f:3,dt:'magic',air:1},
 ballista:{n:'Ballista',ic:'🎯',c:125,r:190,d:66,f:2.2,dt:'phys',pr:1,air:1,bs:520,tm:'strong'},storm:{n:'Storm Tower',ic:'⚡',c:150,r:105,d:16,f:1,dt:'light',air:1,ch:5},alch:{n:'Alchemist',ic:'🧪',c:90,r:115,d:7.8,f:1.1,dt:'fire',bs:240,arc:1},

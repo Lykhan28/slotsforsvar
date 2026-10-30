@@ -84,6 +84,10 @@ if(atk)c.push(tp.air?'<span class="chip" title="Can shoot flying enemies">🦇 H
 if(atk)c.unshift('<span class="chip dty" title="Damage type">'+DTY[tp.dt][1]+' '+DTY[tp.dt][0]+(tp.pr||br&&br.pr?' · pierces armour':tp.dt=='light'?' · ignores armour':'')+'</span>');
 if(t&&LV.mc=='dark'&&!tp.sup&&!tp.inc)c.unshift(litAt(t.c,t.r)?'<span class="chip" title="'+MECH.dark.d+'">🔥 Lit · keeps its range in the dark</span>':'<span class="chip lo" title="'+MECH.dark.d+'">🌑 Unlit · −'+Math.round((1-MECH.dark.rg)*100)+'% range in the dark</span>');
 if(t&&VENT.some(v=>Math.hypot(v.x-t.x,v.y-t.y)<=MECH.lava.r))c.unshift('<span class="chip lo" title="'+MECH.lava.d+'">🌋 Next to a lava pool · eruptions stun it</span>');
+if(t&&LV.mc=='cold'&&atk)c.unshift(t.k=='alch'?'<span class="chip" title="'+MECH.cold.d+'">🔥 Its fire keeps it and towers in range warm</span>':warmAt(t.c,t.r)?'<span class="chip" title="'+MECH.cold.d+'">🔥 Warm · never freezes in a blizzard</span>':'<span class="chip lo" title="'+MECH.cold.d+'">❄️ Exposed · '+Math.round((MECH.cold.f-1)*100)+'% slower attacks in a blizzard</span>');
+if(t&&crysM(t.c,t.r)>1&&atk)c.unshift('<span class="chip" title="'+MECH.crystal.d+'">'+MECH.crystal.ic+' By a crystal · +'+Math.round((MECH.crystal.dm-1)*100)+'% damage</span>');
+if(t&&FLD.some(([a,b])=>a==t.c&&b==t.r))c.unshift('<span class="chip lo" title="'+MECH.harvest.d+'">'+MECH.harvest.ic+' On a field · no harvest here</span>');
+if(t&&t.oc>0)c.unshift('<span class="chip" title="'+MECH.bolt.d+'">'+MECH.bolt.ic+' Overcharged · fires faster for '+Math.ceil(t.oc)+'s</span>');
 if(t&&fogM(t.c,t.r)<1&&!tp.inc)c.unshift('<span class="chip lo" title="'+MECH.fog.d+'">'+MECH.fog.ic+' In the fog · −'+Math.round((1-MECH.fog.rg)*100)+'% range</span>');
 if(t&&t.stun>0)c.unshift('<span class="chip lo">💥 Stunned · '+Math.ceil(t.stun)+'s</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');

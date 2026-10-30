@@ -377,6 +377,8 @@ else if(t=='coast'&&alt){for(let i=0;i<3;i++)part(g,'cyl',P.wd,.13,.32,.13,-.2+i
 else if(t=='desert'){if(alt)pillar(g,0,0,1.6);else{pillar(g,-.1,-.05,1.4,true);for(let i=0;i<6;i++){const s2=rnd(.06,.14);part(g,'oct',SANDM,s2,s2*.6,s2,rnd(-.35,.35),s2*.2,rnd(-.35,.35));}}}
 else if(t=='snow'&&alt){for(let i=0;i<5;i++){const h=rnd(.35,.75),m=part(g,'cone',0xbfe0f0,.09,h,.09,rnd(-.25,.25),h/2,rnd(-.25,.25),0x1a3a4a);m.rotation.set(rnd(-.3,.3),0,rnd(-.3,.3));}part(g,'sph',0xf4f6f8,.42,.07,.42,0,0,0);}
 else if(t=='crystal')crys(g,0,0,1.5,alt?0xc8a0ff:0x7af0e0,alt?0x6a3ab0:0x1a8a80);
+else if(t=='snow'){for(let i=0;i<3;i++){const s2=[.22,.16,.13][i],m=part(g,'oct',RKM,s2,s2*.7,s2,[.25,-.28,.2][i],s2*.3,[-.22,.1,.28][i]);m.rotation.set(rnd(0,.5),rnd(0,6),0);part(g,'sph',0xf4f6f8,s2*.8,s2*.25,s2*.8,[.25,-.28,.2][i],s2*.62,[-.22,.1,.28][i]);}
+part(g,'cyl',P.st2,.16,.12,.16,0,.06,0);part(g,'cyl',P.st,.08,.42,.08,0,.3,0);part(g,'cyl',0x2a2522,.24,.12,.24,0,.56,0);part(g,'cyl',0x1a1412,.2,.02,.2,0,.62,0);fire(g,0,.6,0,1.2);glow(g,0,.8,0,1.4,0xff8a2a);}
 else if(t=='pass'){if(alt)spire(g,0,0,1.15,RKM);else for(let i=0;i<3;i++){const s2=[.48,.36,.26][i],m=part(g,'oct',RKM,s2,s2*.8,s2,rnd(-.18,.18),s2*.38,rnd(-.18,.18));m.rotation.set(rnd(0,.5),rnd(0,6),0);}}
 else if(t=='storm'){if(alt){part(g,'box',GRV,.36,1.1,.2,0,.5,0).rotation.set(.08,.3,-.06);part(g,'box',GRV,.22,.4,.16,.28,.18,.2).rotation.y=1;}else{for(const d of[-.24,.24])part(g,'box',GRV,.2,.8,.2,d,.38,0);part(g,'box',GRV,.72,.16,.24,0,.84,0);}}
 else if(t=='void'){if(alt){part(g,'oct',OBS,.24,.5,.24,0,.75,0).rotation.y=.6;glow(g,0,.75,0,1.1,0x9a4aff);for(let i=0;i<4;i++){const s2=rnd(.06,.12);part(g,'oct',OBS,s2,s2,s2,rnd(-.3,.3),s2*.4,rnd(-.3,.3));}}else{pool(x,z,.42,VOIDM,.03);spikes(g,.15,.15,.8);glow(g,0,.2,0,1,0x9a4aff);}}
@@ -394,6 +396,16 @@ for(const[c,r]of LV.gv||[]){const x=cx(c),z=cz(r),h=road.has((c-1)+','+r)||road.
 const q=groupAt(x+ox,z+oz,0);grave(q,0,0,Math.atan2(-ox,-oz),1.25);part(q,'sph',0x2a2018,.32,.07,.2,-ox*.3,0,-oz*.3).castShadow=false;
 const sl=part(ST,'box',0x1e1814,h?.34:.5,.015,h?.5:.34,x+ox*.2,.008,z+oz*.2);sl.castShadow=false;const gl=glow(sc,x,.35,z,1.3,0x7dff6a);gl.visible=false;GVG.push(gl);}
 for(const[c,r]of LAMP){const m=L1(new THREE.Mesh(eg('lmp',()=>new THREE.CircleGeometry(1,40).rotateX(-PI/2)),LMPM));m.position.set(cx(c),.03,cz(r));m.scale.setScalar(MECH.dark.lr/S+.3);sc.add(m);}
+// Harvest Vale: a patch of wheat on each field cell (FLDG, its own baked group – mechAnim hides it while a tower stands there). Frostpeak Hold: a brazier on each BRZ cell
+// (drawn in the blocked-cell loop above) with a warm circle (WRMM, brighter in a blizzard). Saltcliff Cove: a beached rowboat beside the landing cell
+const FLDG=FLD.map(([c,r])=>{const q=new THREE.Group(),x=cx(c),z=cz(r);q.position.set(x,0,z);sc.add(q);part(q,'box',0x8a6a2a,.96,.02,.96,0,.01,0).castShadow=false;
+for(let i=0;i<34;i++){const a=rnd(-.42,.42),b=rnd(-.42,.42),h=rnd(.22,.34),m=part(q,'cyl',[0xd8b04a,0xc89a3a,0xe4c060][i%3],.012,h,.012,a,h/2,b);m.rotation.set(rnd(-.15,.15),0,rnd(-.15,.15));part(q,'sph',0xe8c45a,.035,.07,.035,a+m.rotation.z*-h*.5,h,b+m.rotation.x*h*.5);}
+bake(q);return{c,r,g:q};});
+const WRMM=new THREE.MeshBasicMaterial({color:new THREE.Color(0xe87a30).convertSRGBToLinear(),transparent:true,opacity:.06,depthWrite:false});
+for(const[c,r]of BRZ){const m=L1(new THREE.Mesh(eg('lmp',()=>new THREE.CircleGeometry(1,40).rotateX(-PI/2)),WRMM));m.position.set(cx(c),.03,cz(r));m.scale.setScalar(MECH.cold.wr/S+.3);sc.add(m);}
+if(LV.ld){const[c,r]=LV.ld,v=road.has(c+','+(r-1))||road.has(c+','+(r+1)),q=groupAt(cx(c)+(v?-.56:0),cz(r)+(v?0:.56),0);q.rotation.y=v?0:PI/2;
+part(q,'box',P.wd,.24,.1,.6,0,.07,0);for(const d of[-.13,.13])part(q,'box',P.wd2,.03,.14,.62,d,.12,0);part(q,'cone',P.wd,.12,.16,.06,0,.09,.36).rotation.x=PI/2;
+part(q,'box',P.wd2,.24,.03,.07,0,.15,-.12);part(q,'box',P.wd2,.24,.03,.07,0,.15,.12);const o=part(q,'cyl',P.wd2,.015,.6,.015,.18,.12,.05);o.rotation.set(PI/2,0,.3);}
 for(let i=0;i<TH.cl[0];i++){const c=new THREE.Group();c.position.set(rnd(-30,30),rnd(7,10),ZF*rnd(-26,-12));c.userData.v=rnd(.15,.4);for(let j=0;j<4;j++)part(c,'sph',0xffffff,rnd(.9,1.6),rnd(.6,1),rnd(.8,1.3),j*1.1-1.6,rnd(0,.4),rnd(-.3,.3));c.traverse(o=>{if(o.isMesh){o.castShadow=false;L1(o);o.material=new THREE.MeshBasicMaterial({color:TH.cl[1]});}});sc.add(c);clouds.push(c);}
 const SMKM=TH.smk||0xffffff;for(const e of emit)for(let i=0;i<5;i++){const m=new THREE.Mesh(geo('sph'),new THREE.MeshBasicMaterial({color:SMKM,transparent:true,opacity:.5,depthWrite:false}));L1(m);sc.add(m);smoke.push({m,e,ph:i/5});}
 bake(ST);bake(KEEP);KEEP0={x:KEEP.position.x,y:KEEP.position.y,z:KEEP.position.z};

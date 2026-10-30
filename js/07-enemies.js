@@ -538,7 +538,50 @@ if(!MSEEN.lava){MSEEN.lava=1;evMsg(M.ic,'Eruption!','The lava pools blow from ti
 // It leaves the lights alone once the game is over (the ending scenes own them)
 let DKK=0;
 function darkFx(){snd('dark');evMsg(MECH.dark.ic,'Darkness falls','Towers lose 40% range unless a lava pool or a Banner Tower lights them.');}
+// first time a mechanic shows itself since the page loaded: its banner
+function mFirst(k,t,d){if(MSEEN[k])return;MSEEN[k]=1;evMsg(MECH[k].ic,t,d);}
+// Harvest Vale: the fields pay out (n = unbuilt field cells)
+function harvestFx(n){if(!n)return;for(const[c,r]of FLD)if(!g.tw.some(t=>t.c==c&&t.r==r)){popText(c*S+S/2,r*S+S/2,'+'+MECH.harvest.g,'#ffe08a');burst(c*S+S/2,r*S+S/2,0xe8c860,4,.8,.3);}
+mFirst('harvest','Harvest home!','Your unbuilt fields brought in '+n*MECH.harvest.g+' gold. Towers built on a field cell stop its harvest.');}
+// Saltcliff Cove: a boatload of pirates comes ashore at the landing (LDP)
+function landFx(o){snd('splash');burst(o.x,o.y,0xd8ecf4,10,1.2,.1);burst(o.x,o.y,0x7aa8c0,6,.9,.1);fx(o.x,o.y,0xcfe8f4,.1,.8,.5,.05,true);
+mFirst('land','Pirates ashore!','A boat has landed at the creek – every third enemy on foot comes ashore there instead of at the breach.');}
+// Sunscorch Dunes: a mirage gets its own see-through, sun-tinted copies of its materials (o.mg; mechAnim shimmers them), and vanishes in a puff of sand
+function mirFx(o){o.mg=[];o.body.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;m.material.opacity=.4;m.material.depthWrite=false;m.material.color.multiply(new THREE.Color(1.25,1.1,.8));m.castShadow=false;o.mg.push(m.material);}});
+mFirst('mirage','Heat mirages','Shimmering copies march among the enemy. They vanish at the first hit and cost no lives – but every shot at one is wasted.');}
+function mirEnd(o){snd('h_frost');burst(o.x,o.y,0xf0d8a0,8,.9,.4);fx(o.x,o.y,0xffe8b0,.1,.6,.4,.3);if(o.mg)o.mg.forEach(m=>m.dispose());}
+// Frostpeak Hold: a blizzard starts (mechAnim fades the whiteout in over 1.5 s, BZK, and marks frozen and warm towers)
+let BZK=0;
+function coldFx(){snd('wind');evMsg(MECH.cold.ic,'Blizzard!','Frozen towers attack 35% slower – unless a brazier or an Alchemist keeps them warm.');}
+// Wolfjaw Pass: stage 0 = the boulder's shadow grows over the road, 1 = it crashes down (returns the boulder, which mechAnim drops in); rockEnd = it crumbles away
+function rockFx(q,st){const M=MECH.rock;if(!st){snd('rumble');fx(q.x,q.y,0x140f0a,.15,M.r/60*1.2,M.wt,.03,true);burst(q.x,q.y,0x6a6058,6,.6,2.5);return;}
+snd('boom');snd('crumble');burst(q.x,q.y,0x8a8078,16,1.6,.2);burst(q.x,q.y,0x4a4440,10,1.2,.3);fx(q.x,q.y,0xb0a898,.3,1.4,.6,.3);
+const G=new THREE.Group();G.position.set(wx(q.x),4,wz(q.y));for(let i=0;i<3;i++){const s2=[.4,.26,.2][i],m=part(G,'oct',RKM,s2,s2*.85,s2,[0,.28,-.26][i],s2*.4,[0,.18,-.14][i]);m.rotation.set(rnd(0,1),rnd(0,6),rnd(0,1));}sc.add(G);G.userData.a=0;
+mFirst('rock','Rockfall!','Boulders block the pass for a few seconds and crush whatever is beneath. Bosses smash straight through.');return G;}
+function rockEnd(k,sm){if(k.m)sc.remove(k.m);burst(k.x,k.y,0x8a8078,sm?18:10,sm?1.8:1,.3);fx(k.x,k.y,0x9a9088,.2,1.1,.8,.3);if(sm)snd('crumble');}
+// Stormwatch Heights: lightning strikes tower t (mechAnim then gives it a crackling blue glow while t.oc lasts)
+function strikeFx(t){snd('thunder');snd('f_storm');const y=t.head.position.y+.2;bolt(t.x+rnd(-20,20),t.y+rnd(-20,20),14,t.x,t.y,y,true);fx(t.x,t.y,0xd8e8ff,.2,1.6,.35,y);burst(t.x,t.y,0x9ad0ff,12,1.4,y);
+mFirst('bolt','Lightning strike!','A struck tower is overcharged and fires 50% faster for 8 seconds.');}
+// The Sundered Realm: a rift (v.q) opens (returns its swirl: a dark core under two spinning violet rings) or closes; riftTp = an enemy goes through a to b
+function riftFx(v,open){const q=v.q;if(!open){if(v.m)sc.remove(v.m);burst(q.x,q.y,0x9a4aff,8,1,.2);return;}snd('warp');
+const G=new THREE.Group();G.position.set(wx(q.x),.04,wz(q.y));const disc=(c,r,o,y,add)=>{const m=L1(new THREE.Mesh(eg('zd',()=>new THREE.CircleGeometry(1,28)),new THREE.MeshBasicMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:o,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending})));
+m.rotation.x=-PI/2;m.position.y=y;m.scale.setScalar(r);G.add(m);return m;};disc(0x05020a,.42,.9,0);
+for(let i=0;i<2;i++){const m=L1(new THREE.Mesh(RG,new THREE.MeshBasicMaterial({color:new THREE.Color(i?0xd8a0ff:0x8a3aff).convertSRGBToLinear(),transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending})));m.rotation.x=-PI/2;m.position.y=.02+i*.01;m.scale.setScalar(i?.3:.45);m.userData.sp=i?-3:2;G.add(m);}
+glow(G,0,.3,0,1.3,0x9a4aff);G.scale.setScalar(.01);sc.add(G);fx(q.x,q.y,0xb07aff,.1,1,.5,.05,true);
+mFirst('rift','The void tears open','Enemies stepping into one rift come out of the other – sometimes closer to the castle, sometimes farther away.');return G;}
+function riftTp(e,a,b){snd('banish');burst(a.q.x,a.q.y,0xb07aff,8,1,.3);burst(b.q.x,b.q.y,0xb07aff,10,1.2,.3);fx(b.q.x,b.q.y,0xd8a0ff,.1,.8,.4,.3);e.age=.1;}
+// a glow sprite on tower t under the name k, made again if the tower's model was rebuilt
+function tGlow(t,k,col,y){let s=t[k];if(!s||s.parent!==t.m){s=t[k]=glow(t.m,0,y,0,1,col);}return s;}
 function mechAnim(dt){ruinAnim(dt);
+if(FLDG.length)for(const f of FLDG)f.g.visible=!g.tw.some(t=>t.c==f.c&&t.r==f.r);
+if(LV.mc=='mirage')for(const e of g.en)if(e.mg){const o=.3+.14*Math.sin(tt*7+e.ph);for(const m of e.mg)m.opacity=o;}
+if(LV.mc=='cold'){BZK=clamp(BZK+(g.bz>0&&!g.over?1:-1)*dt/1.5,0,1);WRMM.opacity=.06+.12*BZK;sc.fog.near=dist+TH.fn-12*BZK;sc.fog.far=dist+TH.ff-20*BZK;
+if(BZK>0&&dt>0&&Math.random()<dt*30*BZK)burst(rnd(0,W*S),rnd(0,H*S),0xffffff,1,.2,rnd(1,3));
+for(const t of g.tw){const on=BZK>0&&!T[t.k].sup&&!T[t.k].inc&&t.k!='alch',w=on&&warmAt(t.c,t.r);if(on||t.wg){const a=tGlow(t,'wg',0xffa040,t.head.position.y+.4),b=tGlow(t,'fg',0xa8dcff,t.head.position.y+.2);a.visible=on&&w;b.visible=on&&!w;a.scale.setScalar(1.3*BZK*(1+.08*Math.sin(tt*9+t.c)));b.scale.setScalar(1.1*BZK);}}}
+if(LV.mc=='crystal')for(const t of g.tw)if(crysM(t.c,t.r)>1&&!T[t.k].inc)tGlow(t,'cg',0xb08aff,.25).scale.setScalar(1.4+.25*Math.sin(tt*2.5+t.c+t.r));
+if(LV.mc=='bolt')for(const t of g.tw){const on=t.oc>0;if(on||t.og){const s2=tGlow(t,'og',0x8fd6ff,t.head.position.y+.2);s2.visible=on;if(on){s2.scale.setScalar((.9+.5*Math.random())*Math.min(1,t.oc));if(dt>0&&Math.random()<dt*6)burst(t.x,t.y,0xbfe4ff,1,.6,t.head.position.y+.2);}}}
+if(g.rk&&g.rk.m){const G=g.rk.m;G.userData.a+=dt;const a=G.userData.a;G.position.y=Math.max(0,4-a*a*90);const k=clamp(g.rk.t/.6,0,1);G.scale.setScalar(.4+.6*k);G.position.y-=(1-k)*.3;}
+if(g.vr)for(const v of g.vr)if(v.m){const G=v.m,k=clamp(Math.min(MECH.rift.du-v.t,v.t)/.5,0,1);G.scale.setScalar(Math.max(.01,k));G.children.forEach(m=>{if(m.userData.sp)m.rotation.z+=dt*m.userData.sp;});if(dt>0&&Math.random()<dt*8)burst(v.q.x,v.q.y,0x9a4aff,1,.5,.1);}
 if(GVG.length)GVG.forEach((s,i)=>{const on=!!g.gw&&g.gw.i==i;s.visible=on;if(on)s.scale.setScalar(1+.5*Math.abs(Math.sin(tt*7)));});
 if(VENT.length){const w=g.ew;if(w&&!LVG)LVG=glow(sc,0,.3,0,1.6,0xff6a20);if(LVG){LVG.visible=!!w;if(w){LVG.position.set(wx(w.v.x),.3,wz(w.v.y));LVG.scale.setScalar(1.2+.8*(1-w.t/MECH.lava.wt)+.2*Math.sin(tt*20));if(dt>0&&Math.random()<dt*10)burst(w.v.x,w.v.y,0xff8a2a,1,1,.2);}}}
 if(LV.mc=='dark'){DKK=clamp(DKK+(g.dk>0&&!g.over?1:-1)*dt/1.5,0,1);LMPM.opacity=.04+.14*DKK;if(!g.over){R.toneMappingExposure=EXPO*(1-.45*DKK);sun.intensity=SUN0*(1-.75*DKK);}
