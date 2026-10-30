@@ -217,7 +217,7 @@ Add a level editor: paint roads, blocked cells, breach/gate positions and pick a
 Do a juice pass on combat: camera shake on catapult hits and boss deaths (with a setting to turn it off), a brief hit-stop on big kills, gold coins flying to the gold pill, and a big "Wave 10" / "Boss incoming" banner.
 ```
 
-- [ ] **39. Death variety**
+- [x] **39. Death variety**
 ```text
 Give each enemy type more varied deaths: knights drop their shield and topple, wolves throw their rider who keeps running, goblins tumble, the dragon crashes down. Follow the rig name rules in CLAUDE.md.
 ```

@@ -60,7 +60,7 @@ rod(TO,-.07,.29,.12,0,.08,.4,.004,rg2);rod(TO,.03,.29,.12,0,.08,.4,.004,rg2);
 const SP=piv(RD,'SP',.07,.12,.04);eM(SP,capG(.008,.008,.56,6),P.wd2,0,0,-.11,-PI/2);eM(SP,shpG('spear',[[-.022,0],[0,.1],[.022,0],[0,-.02]],.008,.002),0xdfe6ee,0,0,.47,PI/2);
 eM(SP,memG('pen',[[0,0],[.1,-.015],[0,-.06]]),matDS(cl),.0,.0,.38,0,PI/2,0);eTor(SP,gd,.01,.01,.012,0,0,.44);}
 else if(type=='tank'){hy=1.4;sh=.32;b.scale.setScalar(1.15);const st=0x4b586e,st2=0x6f7f96,dk=0x2b3342,rd=0x8e2a2a,rd2=0x5a1a1a,lt=0x45301d,bl=0xdde5f0;
-// black knight: full plate with a ridged breastplate, layered spiked pauldrons, a horned great helm with plume (PL), a cape (CP), tabard and kite shield, and a greatsword
+// black knight: full plate with a ridged breastplate, layered spiked pauldrons, a horned great helm with plume (PL), a cape (CP), tabard and kite shield (KS, dropped when he dies), and a greatsword
 const TO=piv(b,'TO',0,.46,0);
 eM(TO,lathG([[.17,-.15],[.16,-.08],[.14,0]],14),dk,0,0,0);for(let i=0;i<3;i++)eM(TO,lathG([[.15+i*.009,-.045*(i+1)],[.14+i*.009,-.045*i]],16),i%2?st2:st,0,0,0).scale.z=.85;
 eM(TO,lathG([[.13,0],[.155,.05],[.17,.14],[.16,.22],[.12,.28],[.07,.31]],18),st,0,0,0).scale.z=.8;eM(TO,rboxG(.016,.22,.02,.006),st2,0,.15,.134);
@@ -81,7 +81,7 @@ eM(k,rboxG(.06,.065,.07,.016),st,0,-l-.03,0);eM(k,lathG([[.032,-.06],[.045,-.03]
 const G=new THREE.Group();G.position.set(0,-l-.035,0);k.add(G);eCy(G,lt,.012,.1,0,0,0,PI/2);eM(G,rboxG(.14,.022,.024,.006),gd,0,0,.055);eSp(G,gd,.02,.02,.02,0,0,-.06);
 eM(G,shpG('sword',[[-.022,0],[.022,0],[.02,.42],[0,.48],[-.02,.42]],.008,.002),bl,0,0,.065,PI/2);eM(G,rboxG(.006,.004,.36,.002),0x4a4a5a,0,.006,.25);});
 limb(TO,'S','E',1,-.2,.26,0,.13,.12,.036,.032,dk,dk,(k,l,r,u)=>{eM(u,capG(.042,.046,.09,12),st,0,-.02,0);eSp(k,st2,.045,.045,.045,0,0,0);eM(k,capG(.04,.038,.08,12),st,0,-.02,0);eM(k,rboxG(.06,.065,.07,.016),st,0,-l-.03,0);
-const G=new THREE.Group();G.position.set(-.07,-l,.05);G.rotation.y=-PI/2;k.add(G);const kite=[[-.11,.12],[.11,.12],[.1,-.02],[0,-.22],[-.1,-.02]];
+const G=piv(k,'KS',-.07,-l,.05);G.rotation.y=-PI/2;const kite=[[-.11,.12],[.11,.12],[.1,-.02],[0,-.22],[-.1,-.02]];
 eM(G,shpG('kite',kite,.022,.006),rd,0,0,0);eM(G,shpG('kite2',kite.map(p=>[p[0]*1.1,p[1]*1.08-.004]),.014,.004),st,0,0,-.012);
 eM(G,rboxG(.026,.24,.01,.004),gd,0,-.02,.017);eM(G,rboxG(.17,.026,.01,.004),gd,0,.05,.017);eSp(G,gd,.02,.02,.012,0,.05,.02);});
 for(const[n,x]of[[0,-.07],[1,.07]])limb(b,'H','K',n,x,.44,0,.22,.22,.05,.04,dk,dk,(k,l,r,u)=>{eM(u,capG(.052,.06,.16,12),st,0,-.02,0);eM(k,domG(.05,.55),st2,0,0,.02,PI/2);eM(k,capG(.042,.05,.16,12),st,0,-.03,0);
@@ -400,7 +400,67 @@ fxStatus(e,dt);
 e.ice.visible=e.fz>0;const hr=Math.max(0,e.hp/e.max),hc=hr>.5?0x2ecc71:hr>.25?0xf1c40f:0xe74c3c;e.bar.scale.x=.52*Math.max(hr,.001);e.bar.center.set(.5/Math.max(hr,.001),.5);
 if(hr<.5&&Math.random()<dt*(hr<.25?9:4))burst(e.x,e.y,hr<.25?{norm:0x8fd957,fast:0xb03a2e,tank:0x888888,boss:0xff6a1a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x5a3d22,necro:0x3a2a44,skel:0xd8d0bc,pirate:0x8fd957}[e.type]:0x444444,1,.35,.4+(e.type=='boss'?1:0));
 if(hr<.25)e.body.rotation.z+=Math.sin(tt*9+e.ph)*.07;if(e.bc!==hc){e.bc=hc;e.bar.material.color.setHex(hc);}}
-function animDying(dt){for(let i=g.dying.length-1;i>=0;i--){const e=g.dying[i],boss=e.type=='boss',dk=e.dk,D=boss?1.2:dk=='frost'?.45:dk=='cannon'?.9:.7;e.dt+=dt;
+// ---------- per-type deaths (run by animDying) ----------
+// goblins tumble head over heels onto their backs; a wolf rider's wolf ploughs into the ground and throws its rider, who lands on his feet and keeps running;
+// the Black Knight and the Shieldbearer drop their shield and topple forward; the dragon rears up and crashes down. Frost and Alchemist kills keep their shatter/melt.
+// They pose e.body (pitched in its own frame, Euler order YXZ) and keep e.m upright; loose parts (the shield KS/SH, the rider RD) move onto e.m with attach(),
+// so sc.remove(e.m) and reset() still take them away.
+const DEK={norm:'gob',sapper:'gob',shaman:'gob',pirate:'gob',fast:'wolf',tank:'knight',guard:'knight',boss:'dragon'},DED={gob:1.05,wolf:1.9,knight:1.5,dragon:2.4},
+DEQ=new THREE.Quaternion(),DEV=new THREE.Vector3(),DEX=new THREE.Vector3(1,0,0);
+const deo=x=>1-Math.pow(1-clamp(x,0,1),3),dei=x=>Math.pow(clamp(x,0,1),2);
+// body pitched (+ = forward) and rolled around a point h above the feet, then moved fw along the facing and y up
+function dPose(e,pitch,roll,h,fw,y){const b=e.body;b.rotation.order='YXZ';b.rotation.set(pitch,e.vis,roll);DEV.set(0,h,0).applyEuler(b.rotation);
+b.position.set(Math.sin(e.vis)*fw-DEV.x,h-DEV.y+y,Math.cos(e.vis)*fw-DEV.z);}
+// eases a joint towards a pose (k = blend this frame); undefined leaves an axis alone
+function dRl(e,n,k,x,y,z){const o=e.rig[n];if(!o)return;if(x!==undefined)o.rotation.x+=(x-o.rotation.x)*k;if(y!==undefined)o.rotation.y+=(y-o.rotation.y)*k;if(z!==undefined)o.rotation.z+=(z-o.rotation.z)*k;}
+function dGob(e,p,k){const dk=e.dk,cn=dk=='cannon',a=Math.min(1,p/.5),f=deo(a),w=e.dt*24,v=clamp((p-.5)/.14,0,1);
+// knocked back in a somersault (two for a catapult hit), landing on its back with a little bounce
+dPose(e,-((cn?4:2)*PI+PI/2)*f,e.fd*.35*f,.3,-(cn?.9:dk=='ballista'?1.1:.45)*f,-.17*f+(cn?.9:.35)*Math.sin(PI*a)+(p>.5?Math.sin(v*PI)*.06:0));
+if(p<.5){dRl(e,'S0',k,-2+Math.sin(w)*.9);dRl(e,'S1',k,-2+Math.sin(w+2)*.9);dRl(e,'H0',k,Math.sin(w+1)*.8);dRl(e,'H1',k,Math.sin(w+3)*.8);dRl(e,'HD',k,-.4);}
+else{dRl(e,'S0',k,-2.6,0,.4);dRl(e,'S1',k,-2.4,0,-.4);dRl(e,'E0',k,-.2);dRl(e,'E1',k,-.2);dRl(e,'H0',k,-.5);dRl(e,'H1',k,.2);dRl(e,'K0',k,.6);dRl(e,'K1',k,.2);dRl(e,'HD',k,.2);}
+dRl(e,'TO',k,0);dRl(e,'R0',k,0,0,.6);dRl(e,'R1',k,0,0,-.6);}
+function dWolf(e,p,k){const R=e.rig.RD;
+if(R&&!e.drd){e.m.attach(R);e.drd={q:R.quaternion.clone(),p:R.position.clone(),s:R.scale.x};}
+// the wolf: front legs buckle, it ploughs in nose-first and rolls onto its side
+const a=deo((p-.15)/.25);dPose(e,.45*Math.sin(PI*Math.min(1,p/.4)),e.fd*1.35*a,.38,.6*deo(p/.35),-.21*a);
+dRl(e,'H0',k,-1.3);dRl(e,'H1',k,-1.3);dRl(e,'K0',k,1.7);dRl(e,'K1',k,1.7);dRl(e,'H2',k,.5);dRl(e,'H3',k,.3);dRl(e,'K2',k,.3);dRl(e,'K3',k,.3);
+dRl(e,'TO',k,0);dRl(e,'HD',k,.3);dRl(e,'JW',k,.55);dRl(e,'T0',k,-.2,0);dRl(e,'T1',k,-.1,0);
+if(!R)return;
+// the rider: flung forward in a flip, lands on his feet and runs on (bobbing, spear waving) until he vanishes in a puff of dust
+const u=clamp(p/.25,0,1),q=e.drd;let d,y,pit;
+if(p<.25){d=.75*u;y=q.p.y+(.2-q.p.y)*deo(u)+.5*Math.sin(PI*u);pit=2*PI*deo(u);}
+else{d=.75+1.2*(p-.25)*DED.wolf;y=.2+Math.abs(Math.sin(e.dt*20))*.05;pit=.3+Math.sin(e.dt*20)*.06;}
+R.position.set(q.p.x+Math.sin(e.vis)*d,y,q.p.z+Math.cos(e.vis)*d);R.quaternion.copy(q.q).multiply(DEQ.setFromAxisAngle(DEX,pit));
+dRl(e,'SP',k,p<.25?-1:.3+Math.sin(e.dt*20)*.3);
+const g2=clamp((p-.7)/.06,0,1);R.scale.setScalar(Math.max(.01,1-g2)*q.s);R.visible=g2<1;
+if(g2>0&&!q.pf){q.pf=1;burst(e.x+R.position.x*S,e.y+R.position.z*S,0xc8b898,10,1,.2);}}
+// a shield (KS / SH) slips off at p0 and falls flat on the ground beside its owner, with a small rattle
+function dShield(e,p,p0){const o=e.rig.KS||e.rig.SH;if(!o||p<p0)return;
+if(!e.dsh){e.m.attach(o);const sd=e.fd*.18,yw=e.vis+e.fd*rnd(.3,1.2);e.dsh={p:o.position.clone(),q:o.quaternion.clone(),t:new THREE.Vector3(o.position.x+Math.cos(e.vis)*sd+Math.sin(e.vis)*.12,.035,o.position.z-Math.sin(e.vis)*sd+Math.cos(e.vis)*.12),
+qt:new THREE.Quaternion().setFromEuler(new THREE.Euler(-PI/2,yw,0,'YXZ'))};}
+const q=e.dsh,u=clamp((p-p0)/.2,0,1),v=clamp((p-p0-.2)/.15,0,1);
+o.position.lerpVectors(q.p,q.t,u);o.position.y=q.p.y+(q.t.y-q.p.y)*dei(u)+(v>0&&v<1?Math.abs(Math.sin(v*PI*2))*.03*(1-v):0);o.quaternion.copy(q.q).slerp(q.qt,deo(u));
+if(u>=1&&!q.c){q.c=1;burst(e.x+o.position.x*S,e.y+o.position.z*S,0xd8ccb0,5,.8,.05);}}
+function dKnight(e,p,k){const kn=e.type=='tank',st=deo(p/.2),kl=deo((p-.15)/.25),tp=dei((p-.4)/.35);
+// staggers back, drops the shield, sinks to the knees, then topples forward with a crash
+dShield(e,p,.1);
+dPose(e,-.18*st*(1-tp)+1.45*tp,e.fd*.15*tp,.15,.12*tp,-.18*kl+.14*tp);
+dRl(e,'S0',k,.2-tp*2.7,0,1.2*tp*(kn?1:0));dRl(e,'E0',k,-.2-tp*1.3);dRl(e,'S1',k,.15-tp*(kn?.4:2.7));dRl(e,'E1',k,-.3);dRl(e,'TO',k,.15,0,0);dRl(e,'HD',k,.35);
+dRl(e,'H0',k,-1.1*kl*(1-tp));dRl(e,'H1',k,-1*kl*(1-tp));dRl(e,'K0',k,1.5*kl*(1-tp));dRl(e,'K1',k,1.4*kl*(1-tp));dRl(e,'CP',k,.25*(1-tp));dRl(e,'PL',k,-.2);
+if(p>=.75&&!e.dth){e.dth=1;burst(e.x,e.y,0x9a8a70,kn?14:9,1.4,.08);if(kn){snd('h_cannon');shake(.18);}}}
+function dDragon(e,p,k,dt){const a=deo(p/.25),u=clamp((p-.25)/.25,0,1),v=deo((p-.5)/.25),fl=Math.sin(e.dt*15),fw=.9*u+.7*v,cx=e.x+Math.sin(e.vis)*fw*S,cy=e.y+Math.cos(e.vis)*fw*S;
+// rears up, wings thrashing, plunges nose-first, hits the ground hard and skids to a stop on its side, wings sprawled
+dPose(e,p<.25?-.45*a:p<.5?-.45+.8*dei(u):.35-.2*v,e.fd*.5*v,.9,fw,.3+.8*a-1.2*dei(u));
+if(p<.25){dRl(e,'W0',k,0,0,fl*.9+.2);dRl(e,'W1',k,0,0,-fl*.9-.2);dRl(e,'WE0',k,0,0,fl*.5);dRl(e,'WE1',k,0,0,-fl*.5);dRl(e,'NK',k,-.5);dRl(e,'JW',k,.9);}
+else if(p<.5){dRl(e,'W0',k,0,0,.9);dRl(e,'W1',k,0,0,-.9);dRl(e,'NK',k,.2);dRl(e,'JW',k,.6);}
+else{dRl(e,'W0',k,0,0,-.45);dRl(e,'W1',k,0,0,.45);dRl(e,'WE0',k,0,0,-.2);dRl(e,'WE1',k,0,0,.2);dRl(e,'WH0',k,0,0,0);dRl(e,'WH1',k,0,0,0);dRl(e,'NK',k,.55);dRl(e,'HD',k,.35);dRl(e,'JW',k,.35);
+for(const n of['T0','T1','T2'])dRl(e,n,k,-.05,0);if(dt>0&&v<.9&&Math.random()<dt*25)burst(cx,cy,0x8a7a5a,2,1,.05);}
+dRl(e,'TO',k,0);
+if(p>=.5&&!e.dth){e.dth=1;snd('boom');shake(.85);fx(cx,cy,0xc8b48a,.2,2.6,.6,.05,true);burst(cx,cy,0x8a7a5a,30,2.4,.1);}}
+const DEF={gob:dGob,wolf:dWolf,knight:dKnight,dragon:dDragon};
+function animDying(dt){for(let i=g.dying.length-1;i>=0;i--){const e=g.dying[i],boss=e.type=='boss',dk=e.dk,kd=DEK[e.type],sp=kd&&(boss||(dk!='frost'&&dk!='alch')),D=sp?DED[kd]:boss?1.2:dk=='frost'?.45:dk=='cannon'?.9:.7;e.dt+=dt;
+if(sp){const p=Math.min(1,e.dt/D),sink=Math.max(0,(p-.8)/.2);DEF[kd](e,p,1-Math.exp(-dt*14),dt);e.m.position.set(e.bx,-sink*.3,e.bz);e.m.rotation.z=0;e.m.scale.setScalar(Math.max(.01,1-sink*sink*.95));
+if(p>=1){sc.remove(e.m);if(boss)burst(e.x,e.y,0xe8483c,20,1.8,.2);g.dying.splice(i,1);}continue;}
 const p=Math.min(1,e.dt/D),f=1-Math.pow(1-Math.min(1,p/.5),3),sink=Math.max(0,(p-.6)/.4);let rz=e.fd*f*(boss?.5:1.5),py=(boss?.3*(1-f):0)-sink*.25,ox=0,oz=0,sx=1,sy=1,s2=Math.max(.01,1-sink*sink*.95);
 if(!boss){if(dk=='frost'){rz=0;py=0;s2=1;sx=sy=Math.max(.01,1-Math.max(0,p-.55)/.45);if(p>.55&&!e.sh){e.sh=1;burst(e.x,e.y,0xbfeaff,10,2,.5);}}
 else if(dk=='storm'){ox=rnd(-.04,.04)*(1-p);oz=rnd(-.04,.04)*(1-p);if(Math.random()<.5)burst(e.x,e.y,0x7fd8ff,1,.6,.4);}
