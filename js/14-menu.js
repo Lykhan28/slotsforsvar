@@ -15,12 +15,12 @@ function gfxSet(k){GFX[k]=!GFX[k];try{localStorage.setItem('sfgfx',JSON.stringif
 const STAR=d=>{const l=d.li+pkv('wall');return[Math.ceil(l*.9),Math.ceil(l*.5)];},stars=l=>{const s=STAR(DF);return l>=s[0]?3:l>=s[1]?2:1;},starH=n=>'<span class="stars">'+[0,1,2].map(i=>'<i'+(i<n?' class="on"':'')+'>★</i>').join('')+'</span>',starT=d=>{const s=STAR(d);return'★★★ '+s[0]+'+ lives left · ★★ '+s[1]+'+ · ★ any win';};
 const PROG={};for(const d of DIFS)PROG[d.k]={n:0,st:[]};
 try{let d=JSON.parse(localStorage.getItem('sfprog'));if(typeof d=='number')d={easy:{n:d}};else if(d&&'n' in d)d={easy:d};if(d)for(const k in PROG)if(d[k]){PROG[k].n=d[k].n|0;if(Array.isArray(d[k].st))PROG[k].st=d[k].st.map(x=>Math.min(3,Math.max(0,x|0)));}}catch(e){}
-function lvWon(){g.stB=PROG[DF.k].st[LVN]||0;g.stN=stars(g.lives);for(let i=0;i<=DFN;i++){const p=PROG[DIFS[i].k];p.n=Math.max(p.n,LVN+1);p.st[LVN]=Math.max(p.st[LVN]||0,g.stN);}try{localStorage.setItem('sfprog',JSON.stringify(PROG));}catch(e){}}
+function lvWon(){g.stB=PROG[DF.k].st[LVN]||0;g.stN=stars(g.lives);for(let i=0;i<=DFN;i++){const p=PROG[DIFS[i].k];p.n=Math.max(p.n,LVN+1);p.st[LVN]=Math.max(p.st[LVN]||0,g.stN);}try{localStorage.setItem('sfprog',JSON.stringify(PROG));}catch(e){}ach('win');}
 // Endless mode (INF in js/09-game.js) is picked at load like the level and difficulty (?endless=1, else localStorage sfmode), and only for a level already won on this difficulty.
 // Its highscore BEST[difficulty key][level] = most waves survived, saved in localStorage sfbest by infRec() at the end of every endless wave (g.rec = this run set a new one)
 try{INF=(new URLSearchParams(location.search).get('endless')=='1'||localStorage.getItem('sfmode')=='endless')&&PROG[DF.k].n>LVN;}catch(e){}
 const BEST={};for(const d of DIFS)BEST[d.k]=[];try{const d=JSON.parse(localStorage.getItem('sfbest'));if(d)for(const k in BEST)if(Array.isArray(d[k]))BEST[k]=d[k].map(x=>Math.max(0,x|0));}catch(e){}
-function infRec(){const b=BEST[DF.k];if(g.wave<=(b[LVN]||0))return;b[LVN]=g.wave;g.rec=true;try{localStorage.setItem('sfbest',JSON.stringify(BEST));}catch(e){}}
+function infRec(){const b=BEST[DF.k];if(g.wave<=(b[LVN]||0))return;b[LVN]=g.wave;g.rec=true;try{localStorage.setItem('sfbest',JSON.stringify(BEST));}catch(e){}ach('endless');}
 function goLevel(i,di=DFN,inf=false){if(i===LVN&&di===DFN&&inf===INF){if(g.over)reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);localStorage.setItem('sfdif',DIFS[di].k);localStorage.setItem('sfmode',inf?'endless':'');sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1)+'&diff='+DIFS[di].k+(inf?'&endless=1':''));}
 // level picker: difficulty tabs (MENU.df, applied when a level is clicked) above the list for that difficulty; a won level gets an Endless button (.lve) with its highscore
 const dTxt=d=>d.li+' lives'+(d.hp>1?', enemies have '+Math.round((d.hp-1)*100)+'% more health':'')+(d.gold<1?', '+Math.round((1-d.gold)*100)+'% less starting gold':'')+(d.hp==1?' – the relaxed way to play':'')+'.';
@@ -44,7 +44,7 @@ setH($('m_an'),'<span class="ast">★ '+av+'</span> to spend · '+tot+' earned (
 const el=$('m_al');el.innerHTML='';for(const p of PERKS){const r=pk(p.id),mx=r>=p.mx,c=p.c[r],d=document.createElement('div');d.className='prk'+(r?' own':'');
 d.innerHTML='<span class="pic">'+p.ic+'</span><span class="pt"><b>'+p.n+'</b><small>'+p.d+(p.mx>1?' per rank':'')+'.</small><span class="pip">'+Array.from({length:p.mx},(_,i)=>'<i'+(i<r?' class="on"':'')+'></i>').join('')+(r?'<em>'+pkTxt(p,r)+'</em>':'')+'</span></span>'+
 '<button class="btn pby"'+(mx||av<c?' disabled':'')+'>'+(mx?'Max':'★ '+c)+'</button>';
-d.lastChild.onclick=()=>{if(mx||starsAll()-starsSpent()<c)return;PK[p.id]=r+1;pkSave();snd('coin');mArm();ui();};el.appendChild(d);}
+d.lastChild.onclick=()=>{if(mx||starsAll()-starsSpent()<c)return;PK[p.id]=r+1;pkSave();ach('perk');snd('coin');mArm();ui();};el.appendChild(d);}
 const rb=$('m_ar');rb.disabled=!sp;rb.classList.remove('warn');rb.textContent=sp?'Reset perks (refund ★ '+sp+')':'Reset perks';}
 $('m_ar').onclick=()=>{const b=$('m_ar');if(b.classList.contains('warn')){for(const k in PK)delete PK[k];pkSave();snd('click');mArm();ui();}else{b.classList.add('warn');b.textContent='Refund every perk? Click again';}};
 // a level picked in the menu starts right after the reload
@@ -63,7 +63,7 @@ for(const[k,c,r,l,inv,tm,nu,br,rp]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,
 // the hero keeps his level, xp and post between waves
 if(Array.isArray(d.hero)&&g.hero){const h=g.hero,[lv,xp,x,y]=d.hero;h.lv=clamp(lv|0,1,HERO.mx);h.xp=Math.max(0,+xp||0);if(onB(Math.floor(x/S),Math.floor(y/S))){h.x=h.tx=+x;h.y=h.ty=+y;}h.hp=h.max=hst(h).hp;}ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
-function mPage(p){MENU.pg=p;for(const k of['main','levels','armoury','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
+function mPage(p){MENU.pg=p;for(const k of['main','levels','armoury','achievements','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='achievements')mAch();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
 $('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');
 const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');}
 function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}

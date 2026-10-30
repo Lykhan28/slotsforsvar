@@ -32,6 +32,7 @@ AU.rv=c.createConvolver();AU.rv.buffer=ib;const rg=c.createGain();rg.gain.value=
 const nb=c.createBuffer(1,c.sampleRate*2,c.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;AU.nb=nb;AU.next=c.currentTime+.1;AU.timer=setInterval(sched,60);}
 const SX={
 click(){voice('triangle',680,T0(),.002,.06,.1,3000,DS2(),0);},
+ach(){const t=T0();[523,659,784,1047].forEach((f,i)=>voice('triangle',f,t+i*.09,.004,i==3?.6:.18,.1,4200,DS2(),.35));},
 f_arrow(){const t=T0();nzs(t,.2,'bandpass',2800,700,.22,DS2(),.05,1.5);voice('triangle',300*rr(),t,.002,.14,.1,1400,DS2(),0).frequency.exponentialRampToValueAtTime(180,t+.14);},
 f_ballista(){const t=T0();voice('square',92*rr(),t,.002,.22,.22,450,DS2(),.1);nzs(t,.35,'bandpass',1600,260,.3,DS2(),.1,1);},
 f_cannon(){const t=T0();voice('sine',150,t,.004,.3,.5,500,DS2(),.15).frequency.exponentialRampToValueAtTime(48,t+.3);nzs(t,.45,'bandpass',420,160,.25,DS2(),.2,.8);},

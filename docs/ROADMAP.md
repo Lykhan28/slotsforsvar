@@ -163,7 +163,7 @@ Add a "Royal Armoury" menu page where stars buy permanent perks (e.g. +5% archer
 Add optional challenge modifiers when starting a level (Archers only, No selling, Fast enemies, Fog of war, Double bosses) that give extra stars or a badge when won.
 ```
 
-- [ ] **29. Achievements**
+- [x] **29. Achievements**
 ```text
 Add about 20 achievements (e.g. win without losing a life, banish a dragon 3 times, hold 1000 gold), with a small toast when one is unlocked and an Achievements page in the menu.
 ```

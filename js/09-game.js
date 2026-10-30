@@ -86,7 +86,7 @@ const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
 if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash');const br=b.br||{},c=br.ac?0xd8f03a:br.pl?0xa06ad0:0x7cff4a;for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch',br)>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch',br));o.hit=.15;if(br.ac)o.ac=br.ac;if(br.pl)o.pg=br.pl;}fx(e.x,e.y,c,.1,.75,.5,.1,true);burst(e.x,e.y,c,10,1.2,.2);}else if(b.k=='cannon'){snd('boom');const br=b.br||{};for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon',br)*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
 else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y)*big(e,b.br);e.hp-=dd;if(b.br&&b.br.sk)skewer(e,b);hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
-const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{const rw=e.rw+bounty(e);g.gold+=rw;heroXp(e);snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
+const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else{const rw=e.rw+bounty(e);g.gold+=rw;ach('kill',e);heroXp(e);snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
 for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trollSplit(e);
@@ -122,11 +122,11 @@ function heal(e){if(e.hp<=0)return;healFx(e);
 for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)>HEAL.r)continue;const a=Math.min(o.max-o.hp,o.max*e.hl*(o.bs?.34:1));o.hp+=a;healFx(o,a);}}
 // Wizard: teleport an enemy back along the road (bosses resist), then it is immune for 4 s
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
-pushBack(e,m);
+pushBack(e,m);ach('banish',e);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
 // Repair gate: buy back one life (up to maxL(), the difficulty's lives plus the Stonemasons perk); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
 const maxL=()=>DF.li+pkv('wall'),REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
-function repair(){if(g.over||g.lives>=maxL())return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);return true;}
+function repair(){if(g.over||g.lives>=maxL())return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);ach('repair');return true;}
 // move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
 function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
 // ---------- Hero ----------
@@ -174,7 +174,7 @@ for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm'
 if(g.scd[i]>0)return false;
 if(a.aim&&!(x>=0&&x<W*S&&y>=0&&y<H*S))return false;
 if(a.road){const c=Math.floor(x/S),r=Math.floor(y/S);if(!onB(c,r))return false;x=c*S+S/2;y=r*S+S/2;}
-g.scd[i]=a.cd*(1-pkv('spell'));
+g.scd[i]=a.cd*(1-pkv('spell'));ach('cast');
 if(i==0)g.sp.push({k:'rain',x,y,t:0,v:0});
 if(i==1){const d=SPN.oil*gob();for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
 addZone({k:'fire',x:q.x,y:q.y,r:a.r,t:4,d0:4,d:d*SPN.burn,sl:1});}for(const e of g.en)e.oil=0;spellFx(1,{tiles:gateTiles()});}
