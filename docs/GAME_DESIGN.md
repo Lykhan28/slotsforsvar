@@ -37,7 +37,7 @@ Each level is a walled board with the same castle outside one of its walls. Winn
 
 The waves are hand-designed per level (see **Waves** under Enemies), so each land has its own enemies and introduces them at its own pace. The enemy health multiplier is not a difficulty ranking: it was tuned with the simulator to make up for each board's shape and wave table, so that a sensible build wins every level while losing more lives level by level.
 
-Levels 9–16 (added after the first eight) bring new lands: the snowy fortress, the pirate coast and the narrow mountain pass were asked for, and the other five fill out the run to a finale. They come after The Dread Wastes, so they start a little harder and end with The Sundered Realm, whose last wave sends all four bosses. Their reference builds (`scripts/layouts/level9-full.json` … `level16-full.json`) are generated from each board – the cells covering the most road and bat flight line, filled in the same order as the hand-made full builds. The enemy health multipliers were tuned against them so the build wins Easy (0 lives lost, 5 on Wolfjaw Pass) and Normal (losing 2–12 of 15), while Hard is only won on Harvest Vale. The pirates are scenery and wave names only ("The Pirate King" is the Goblin King); there is no pirate enemy type. Each of the eight has its own level mechanic (below).
+Levels 9–16 (added after the first eight) bring new lands: the snowy fortress, the pirate coast and the narrow mountain pass were asked for, and the other five fill out the run to a finale. They come after The Dread Wastes, so they start a little harder and end with The Sundered Realm, whose last wave sends all four bosses. Their reference builds (`scripts/layouts/level9-full.json` … `level16-full.json`) are generated from each board – the cells covering the most road and bat flight line, filled in the same order as the hand-made full builds. The enemy health multipliers were tuned against them so the build wins Easy (0 lives lost, 5 on Wolfjaw Pass) and Normal (losing 2–12 of 15), while Hard is only won on Harvest Vale. The pirates are scenery and wave names only ("The Pirate King" is the Goblin King); Saltcliff Cove has its own enemy, the **Pirate** (`c` in the wave tables): a goblin buccaneer with 1.2 × a goblin's health, a cutlass, a peg leg and a rum bottle. Below half health it swigs the rum and charges at 1.5 × its speed, and one that reaches the gate steals 25 gold (or what you have) as well as a life. Pirates replace part of the goblins in seven of the cove's waves (Landing party, Shore raiders, both Pirate King waves, both Boarding parties, Last stand); the generated full build still loses 0 / 6 there on Easy / Normal and falls on wave 20 on Hard, as before. Each of the eight has its own level mechanic (below).
 
 Tower placement gets harder level by level: more blocked tiles (often right where two stretches of road would overlap), long straight roads, and on levels 7–8 two breaches that split each wave between two roads (enemies alternate between them unless a wave sends a whole group down one road, as in the **Pincer** waves; the roads merge before the gate).
 
@@ -168,6 +168,7 @@ A guardhouse (90 gold) that must stand **next to the road** (a road cell within 
 | Troll (troll) | 30 | 2.0 | 12 |
 | Ghost (ghost) | 48 | 1.1 | 7 |
 | Fire Imp (imp) | 70 | 0.8 | 6 |
+| Pirate (pirate) | 52 (78 below half health) | 1.2 | 8 (steals 25 if it gets through) |
 
 ## Damage types and resistances
 Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each enemy type has resistances (`E[type].rs`, the share of that type's damage it shrugs off). `dmul(e,k)` in js/09-game.js applies them to every hit, including poison and each jump of the lightning chain.
@@ -196,6 +197,7 @@ Every attacking tower deals one damage type (`T[k].dt`, names in `DTY`); each en
 | Goblin King, Skeleton | – | – | – | – |
 | Ghost | while faded out it can't be targeted or hurt at all | | | |
 | Fire Imp | – | – | **immune** | – |
+| Pirate | – | – | – | – |
 
 Damage numbers are red for a full hit, **grey** when the enemy resisted part of it, and **pale gold** when the Ballista pierced armour. The next-wave preview has a line listing the coming enemies' resistances, plus what an enemy type does on the wave it first appears (not if it was in the previous wave); hovering an enemy icon shows all of it. Knights were cut from 2.6× to 1.8× health when they got their armour: against physical damage they are as tough as a 3.6× enemy, against everything else weaker than before.
 

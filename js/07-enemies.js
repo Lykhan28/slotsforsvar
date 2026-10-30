@@ -3,7 +3,7 @@ const SB=new THREE.SpriteMaterial({color:0x1a1030,depthTest:false,fog:false}),SF
 const FL=new THREE.MeshStandardMaterial({color:new THREE.Color(0xffb8a8).convertSRGBToLinear(),emissive:new THREE.Color(0xff3b1a).convertSRGBToLinear(),emissiveIntensity:.45,roughness:.6});
 const lerpA=(a,b,k)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*k;
 function eye(p,x,y,z,s,col,glo){eSp(p,col,s,s*.75,s*.6,x,y,z,glo||0x332200);eSp(p,0x0a0805,s*.2,s*.62,s*.12,x,y,z+s*.52);}
-// goblin head (also the wolf rider's): big ears on pivots R0/R1, beady eyes, a long nose, tusks; v=0 wears a dented iron cap, v=1 a mohawk
+// goblin head (also the wolf rider's): big ears on pivots R0/R1, beady eyes, a long nose, tusks; v=0 wears a dented iron cap, v=1 a mohawk, v=2 is bare (the pirate's hat goes on top)
 function gHead(H,v){const sk=0x71903c,sk2=0x5a7a2f,bn=0xe8e0c8,dk=0x2a1a10;
 eSp(H,sk,.1,.092,.1,0,.055,.025);eSp(H,sk,.088,.085,.09,0,.078,-.02);eM(H,rboxG(.15,.032,.05,.012),sk2,0,.097,.074,.35);
 eBone(H,sk2,.011,.026,.075,0,.07,.105,0,-.45,1);eSp(H,sk2,.016,.014,.014,0,.045,.17);eSp(H,sk2,.074,.042,.072,0,.012,.055);eM(H,rboxG(.085,.012,.012,.004),dk,0,.03,.112);
@@ -11,7 +11,7 @@ for(const k of[-1,1]){eye(H,k*.042,.072,.098,.024,0xe0c030);eCnD(H,bn,.009,.034,
 const ear=piv(H,'R'+(k<0?0:1),k*.09,.07,-.01);eM(ear,capG(.004,.03,.14,8),sk,0,0,0,0,0,k*1.82).scale.z=.45;eM(ear,capG(.003,.02,.1,8),0xb86a5a,k*.004,.005,.008,0,0,k*1.82).scale.z=.3;}
 eTor(H,0xb87333,.018,.018,.018,.205,.096,-.01).rotation.y=PI/2;
 if(v==0){const m=eM(H,domG(.104,.5),0x777b83,0,.085,-.01);m.scale.y=.85;eTor(H,0x5d7094,.1,.1,.12,0,.088,-.01).rotation.x=PI/2;eCnD(H,0x5d7094,.016,.06,0,.19,-.01,0,1,-.15);eSp(H,0x5d7094,.012,.012,.012,-.06,.15,.05);}
-else{for(let i=0;i<6;i++)eCnD(H,dk,.02,.08-Math.abs(i-2.5)*.008,0,.165-Math.abs(i-2.5)*.006,.07-i*.032,0,1,-.3-i*.12);eBone(H,dk,.01,.018,.12,0,.12,-.1,0,-.8,-.5);}}
+else if(v==1){for(let i=0;i<6;i++)eCnD(H,dk,.02,.08-Math.abs(i-2.5)*.008,0,.165-Math.abs(i-2.5)*.006,.07-i*.032,0,1,-.3-i*.12);eBone(H,dk,.01,.018,.12,0,.12,-.1,0,-.8,-.5);}}
 function makeEnemy(type,v){const g=new THREE.Group(),b=new THREE.Group();b.name='body';g.add(b);let hy=.95,sh=.24;
 const bn=0xe8e0c8,rg=0x6b4a2b,rg2=0x45301d,cl=0x8e2a2a,mt=0x777b83,gd=0xb87333;
 if(type=='norm'){const sk=0x71903c,sk2=0x5a7a2f;
@@ -212,6 +212,26 @@ for(const n of[0,1])limb(TO,'S','E',n,n?.17:-.17,.62,.02,.22,.2,.04,.032,rb,rb,(
 const ST=piv(b,'ST',.3,0,.18);eM(ST,capG(.014,.016,1.55,6),0x2a2018,0,1.55,0);eSp(ST,bo,.055,.06,.055,0,1.6,0);for(const k of[-1,1]){eCnD(ST,bo,.015,.08,k*.05,1.64,0,k,.6,0);eSp(ST,0x0a0a0a,.014,.016,.01,k*.02,1.61,.048);}
 eSp(ST,gn,.04,.07,.04,0,1.72,0,0x3fbf1f);glow(ST,0,1.72,0,.45,0x5aff50).name='GL';
 const OR=piv(TO,'OR',0,.35,0);for(let i=0;i<3;i++){const a=i/3*2*PI;eSp(OR,gn,.022,.022,.022,Math.sin(a)*.38,Math.sin(a*2)*.08,Math.cos(a)*.38,0x3fbf1f);}}
+else if(type=='pirate'){hy=1.1;const sk=0x71903c,sk2=0x5a7a2f,co=0x2c3a58,co2=0x1f2940,sr=0xd8ccb0,st=0x8a2a2a,sa=0xa83228,ht=0x1c1a18,au=0xd9a93a,bt=0x2e2018,tr=0x4a3a2a,wd=0x7a5a34;
+// pirate: a goblin in a striped shirt and a long navy coat with gold trim and buttons, a red sash, a bandana under a black tricorn with a skull badge, an eye patch,
+// a cutlass in the right hand, a green rum bottle in the left and a wooden peg leg (H1/K1). Below half health it swigs the rum and charges with the cutlass raised (animEnemy)
+const TO=piv(b,'TO',0,.34,0);eSp(TO,sk,.11,.12,.1,0,.1,.025);eM(TO,lathG([[0,-.02],[.105,0],[.12,.08],[.122,.16],[.105,.23],[.055,.265],[0,.27]],14),sr,0,0,-.005);
+for(let i=0;i<3;i++)eTor(TO,st,.124,.124,.04,0,.07+i*.055,-.005).rotation.x=PI/2;
+eM(TO,lathG([[.13,-.14],[.135,0],[.14,.1],[.134,.18],[.112,.24],[.065,.272]],14,.62,2*PI-1.24),matDS(co),0,0,-.01);
+for(const k of[-1,1]){eM(TO,rboxG(.014,.4,.012,.004),au,k*.078,.06,.104);for(let i=0;i<3;i++)eSp(TO,au,.011,.011,.008,k*.098,.03+i*.06,.098);}
+eTor(TO,co2,.075,.075,.08,0,.25,0).rotation.x=PI/2;eTor(TO,sa,.126,.126,.09,0,0,-.005).rotation.x=PI/2;eM(TO,rboxG(.03,.11,.012,.005),sa,.075,-.07,.1,.15,0,.25);eM(TO,rboxG(.045,.032,.012,.004),au,0,0,.128);
+const HD=piv(TO,'HD',0,.25,.05);gHead(HD,2);const bd=eM(HD,domG(.1,.5),sa,0,.085,-.015);bd.scale.y=.8;for(const k of[-1,1])eCnD(HD,sa,.018,.08,k*.02,.1,-.11,k*.3,-.6,-1);
+eSp(HD,0x121212,.028,.026,.012,-.042,.072,.112);eTor(HD,0x121212,.104,.104,.03,0,.085,-.008).rotation.set(PI/2,0,.38);
+const Hh=new THREE.Group();Hh.position.set(0,.13,-.012);Hh.rotation.x=-.1;HD.add(Hh);const cr=eM(Hh,domG(.085,.5),ht,0,0,0);cr.scale.y=1.25;eCy(Hh,ht,.15,.012,0,.005,0);
+for(let i=0;i<3;i++){const a=PI/3+i*2*PI/3;for(const[y,h,c]of[[.045,.095,ht],[.094,.012,au]]){const m=eM(Hh,rboxG(.19,h,.014,.004),c,Math.sin(a)*.11,y,Math.cos(a)*.11);m.rotation.order='YXZ';m.rotation.set(.25,a,0);}}
+eSp(Hh,0xe8e0c8,.02,.02,.01,0,.06,.1);for(const k of[-1,1])eBone(Hh,0xe8e0c8,.004,.004,.04,k*.015,.04,.102,k,-1,0,4);
+limb(TO,'S','E',0,-.13,.2,0,.11,.1,.03,.024,co,co,(k,l,r)=>{hand(k,l,sk2,r);eTor(k,au,r*1.3,r*1.3,r*1.5,0,-l*.82,0).rotation.x=PI/2;
+const G=new THREE.Group();G.position.set(0,-l-.035,.02);k.add(G);eSp(G,0x2e5a2a,.03,.042,.03,0,-.01,0);eCy(G,0x2e5a2a,.011,.045,0,.045,0);eCy(G,0x8a6a3a,.012,.016,0,.072,0);});
+limb(TO,'S','E',1,.13,.2,0,.11,.1,.03,.024,co,co,(k,l,r)=>{hand(k,l,sk2,r);eTor(k,au,r*1.3,r*1.3,r*1.5,0,-l*.82,0).rotation.x=PI/2;
+const G=new THREE.Group();G.position.set(0,-l-.025,.02);k.add(G);eCy(G,0x3a2a1a,.011,.06,0,0,0,PI/2);eTor(G,au,.032,.032,.035,0,0,.034);
+eM(G,shpG('cutl',[[-.016,0],[.016,0],[.032,.13],[.026,.22],[.004,.27],[-.012,.14]],.005,.002),0xc8ccd4,0,0,.04,PI/2);});
+limb(b,'H','K',0,-.055,.34,0,.16,.16,.036,.028,tr,bt,(k,l,r)=>{eM(k,rboxG(.06,.04,.1,.012),bt,0,-l-.004,.025);eTor(k,bt,r*1.35,r*1.35,r*1.4,0,-l*.3,0).rotation.x=PI/2;});
+limb(b,'H','K',1,.055,.34,0,.16,.16,.036,.014,tr,wd,(k,l)=>{eCy(k,0x5a3d22,.02,.02,0,-l-.005,0);eTor(k,0x5a3d22,.03,.03,.04,0,0,0).rotation.x=PI/2;});}
 else if(type=='skel'){hy=.95;const bo=0xd8d0bc,bo2=0xb8ae96,cl=0x4a4636;
 // skeleton: a raised goblin skeleton – skull with glowing green sockets and a clattering jaw (JW), ribcage, spine and pelvis, bony limbs, a torn loincloth and a rusty sword
 const TO=piv(b,'TO',0,.36,0);eCy(TO,bo2,.012,.26,0,.13,-.02);for(let i=0;i<4;i++){const r0=.07-Math.abs(i-1.2)*.01;eTor(TO,bo,r0,r0*.8,.06,0,.1+i*.045,.01).rotation.x=PI/2;}
@@ -272,23 +292,23 @@ PRT.cam.position.copy(ct).add(new THREE.Vector3(0,.3,1).normalize().multiplyScal
 const cc=R.getClearColor(new THREE.Color()),ca=R.getClearAlpha(),tm=R.toneMappingExposure;R.setClearColor(0,0);R.toneMappingExposure=1;R.setRenderTarget(PRT.rt);R.clear();R.render(PRT.sc,PRT.cam);
 R.readRenderTargetPixels(PRT.rt,0,0,S,S,PRT.px);R.setRenderTarget(null);R.setClearColor(cc,ca);R.toneMappingExposure=tm;PRT.sc.remove(o);
 const q=PRT.cv.getContext('2d'),im=q.createImageData(S,S);for(let y=0;y<S;y++)im.data.set(PRT.px.subarray((S-1-y)*S*4,(S-y)*S*4),y*S*4);q.putImageData(im,0,0);return PORT[type]=PRT.cv.toDataURL();}
-const BR={norm:[.4,.22],fast:[.4,.3],tank:[.6,.3],boss:[1.0,.55],guard:[.45,.26],shaman:[.4,.22],bat:[1.05,.28],sapper:[.4,.22],troll:[.9,.42],ghost:[.6,.26],imp:[.3,.18],king:[.65,.3],ram:[.6,.5],necro:[.9,.32],skel:[.4,.15]},HT={norm:.8,fast:1.05,tank:1.4,boss:2.3,guard:.95,shaman:.9,bat:1.3,sapper:1,troll:1.6,ghost:1,imp:.75,king:1.45,ram:1.1,necro:1.9,skel:.8},UPV=new THREE.Vector3(0,1,0);
+const BR={norm:[.4,.22],fast:[.4,.3],tank:[.6,.3],boss:[1.0,.55],guard:[.45,.26],shaman:[.4,.22],bat:[1.05,.28],sapper:[.4,.22],troll:[.9,.42],ghost:[.6,.26],imp:[.3,.18],king:[.65,.3],ram:[.6,.5],necro:[.9,.32],skel:[.4,.15],pirate:[.42,.22]},HT={norm:.8,fast:1.05,tank:1.4,boss:2.3,guard:.95,shaman:.9,bat:1.3,sapper:1,troll:1.6,ghost:1,imp:.75,king:1.45,ram:1.1,necro:1.9,skel:.8,pirate:.85},UPV=new THREE.Vector3(0,1,0);
 const ICEM=new THREE.MeshStandardMaterial({color:new THREE.Color(0x9fe8ff).convertSRGBToLinear(),transparent:true,opacity:.3,roughness:.08,metalness:.1,envMapIntensity:1.6,depthWrite:false}),
 ICEM2=new THREE.MeshStandardMaterial({color:new THREE.Color(0xbfefff).convertSRGBToLinear(),transparent:true,opacity:.75,roughness:.1,envMapIntensity:1.6,emissive:new THREE.Color(0x2a9fe0).convertSRGBToLinear(),emissiveIntensity:.35}),
 BUBM=new THREE.MeshBasicMaterial({color:new THREE.Color(0x7cff4a).convertSRGBToLinear(),transparent:true,opacity:.55,depthWrite:false}),
 STARM=new THREE.MeshStandardMaterial({color:new THREE.Color(0xffd24a).convertSRGBToLinear(),emissive:new THREE.Color(0xffa000).convertSRGBToLinear(),emissiveIntensity:.8,metalness:.6,roughness:.3});
 function bub(x,y,yy){const m=L1(new THREE.Mesh(geo('sph'),BUBM));m.position.set(wx(x)+rnd(-.12,.12),yy,wz(y)+rnd(-.12,.12));sc.add(m);pts.push({m,vx:rnd(-.1,.1),vz:rnd(-.1,.1),vy:rnd(.6,1.1),g:-.3,t:0,d:rnd(.7,1.1),s:rnd(.035,.07)});}
 function stick(e,dx,dy,big){if(!e.stuck)e.stuck=[];const len=Math.hypot(dx,dy)||1,ux=dx/len,uz=dy/len,cv=Math.cos(e.vis),sv=Math.sin(e.vis),lx=ux*cv-uz*sv,lz=ux*sv+uz*cv,R0=BR[e.type][1]*.85,
-yr={norm:[.22,.5],fast:[.28,.5],tank:[.3,.8],boss:[.75,1.1],guard:[.25,.55],shaman:[.22,.45],bat:[.98,1.12],sapper:[.22,.45],troll:[.6,1.15],ghost:[.4,.75],imp:[.18,.38],king:[.35,.8],ram:[.4,.9],necro:[.5,1.2],skel:[.2,.5]}[e.type],yy=rnd(yr[0],yr[1]),k=big?2:1,L=big?.5:.22,a=new THREE.Group();
+yr={norm:[.22,.5],fast:[.28,.5],tank:[.3,.8],boss:[.75,1.1],guard:[.25,.55],shaman:[.22,.45],bat:[.98,1.12],sapper:[.22,.45],troll:[.6,1.15],ghost:[.4,.75],imp:[.18,.38],king:[.35,.8],ram:[.4,.9],necro:[.5,1.2],skel:[.2,.5],pirate:[.22,.5]}[e.type],yy=rnd(yr[0],yr[1]),k=big?2:1,L=big?.5:.22,a=new THREE.Group();
 part(a,'box',P.wd2,.016*k,.016*k,L,0,0,-L/2);part(a,'box',P.rd,.05*k,.012,.06,0,0,-L*.9);part(a,'box',P.rd,.012,.05*k,.06,0,0,-L*.9);part(a,'cone',0xdfe6ee,.02*k,.04,.02*k,0,0,.01).rotation.x=PI/2;
 a.position.set(-lx*R0+rnd(-.03,.03),yy,-lz*R0+rnd(-.03,.03));a.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(lx,rnd(-.15,.15),lz).normalize());
 e.body.add(a);e.stuck.push({a,t:0,sc:e.type=='boss'?1.8:1});if(e.stuck.length>7){const o=e.stuck.shift();e.body.remove(o.a);}}
 // hit feedback; damage numbers are grey when the enemy resisted part of the hit (or a Shieldbearer's shield blocked it: sparks and a clang), pale gold when the Ballista pierced its armour
 function hf(o,h,d,kind,dx,dy,br){const bl=shBlk(o,kind,dx||0,dy||0)<1;snd(bl?'block':'h_'+kind);if(bl){o.sbk=1;burst(o.x,o.y,0xffe6a0,5,1,.45);}o.hit=h;o.kb=kind=='ballista'?.3:.1;o.lk=kind;
 if(d>0&&txts.length<40){const rs=o.rs[T[kind].dt]||0;popText(o.x+rnd(-8,8),o.y+rnd(-8,8),String(Math.round(d)),dmul(o,kind,br)<1||bl?'#a9a9a9':rs>0?'#ffe08a':'#ff8a7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[o.type];}
-burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x8a6a44,necro:0x3a2a44,skel:0xd8d0bc}[o.type],o.type=='tank'?5:3,.8,.5);
+burst(o.x,o.y,{norm:0x8fd957,fast:0xb03a2e,tank:0xffd24a,boss:0xff8a3a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x8a6a44,necro:0x3a2a44,skel:0xd8d0bc,pirate:0x8fd957}[o.type],o.type=='tank'?5:3,.8,.5);
 if((kind=='arrow'||kind=='ballista')&&!o.phz)stick(o,dx||0,dy||1,kind=='ballista');else if(kind=='cannon')o.stn=1;else if(kind=='storm')o.shk=2.8;}
-const TXY={norm:1,fast:1.15,tank:1.4,boss:2.3,guard:1.1,shaman:1.15,bat:1.55,sapper:1.15,troll:1.9,ghost:1.25,imp:.95,king:1.6,ram:1.4,necro:2.1,skel:1};
+const TXY={norm:1,fast:1.15,tank:1.4,boss:2.3,guard:1.1,shaman:1.15,bat:1.55,sapper:1.15,troll:1.9,ghost:1.25,imp:.95,king:1.6,ram:1.4,necro:2.1,skel:1,pirate:1.2};
 // Shaman heal (heal() in js/09-game.js): without a it's the pulse – a green ring on the ground as wide as its reach, and the staff flares (e.cst); with a, enemy e was healed by a
 function healFx(e,a){if(a===undefined){e.cst=1;snd('heal');fx(e.x,e.y,0xb8ff9a,.2,HEAL.r/60,.7,.22,true);fx(e.x,e.y,0x7dff6a,.15,HEAL.r/60*.9,.6,.3);burst(e.x,e.y,0x9cff6a,8,.9,.9);return;}
 fx(e.x,e.y,0x9cff6a,.1,.45,.4,.05,true);burst(e.x,e.y,0x9cff6a,4,.6,.5);if(a>=1&&txts.length<40){popText(e.x+rnd(-8,8),e.y+rnd(-8,8),'+'+Math.round(a),'#8dff7a');const q=txts[txts.length-1];q.k=.6;q.s.position.y=TXY[e.type];}}
@@ -364,6 +384,9 @@ else if(e.type=='ram'){for(let i=0;i<4;i++){ro('WH'+i,e.gp);ro('H'+i,(i%2?s:-s)*
 else if(e.type=='necro'){e.cst=Math.max(0,(e.cst||0)-dt*1.2);const cs=e.cst;r.TO.position.y=.5+Math.sin(tt*1.6+e.ph)*.03;ro('TO',.06-q*.2,0,Math.sin(t*.7)*.03);ro('HD',-.1+cs*.3,Math.sin(t*.6)*.3);
 ro('S0',-.5-cs*1.7+Math.sin(t*1.4)*.1,0,-.25);ro('E0',-.4+cs*.3);ro('S1',-.7,0,.25);ro('E1',-.5);ro('ST',.05+cs*.15,0,-.04);ro('OR',0,tt*1.5);ro('HM',Math.sin(t*2)*.05,t*.4,Math.cos(t*1.7)*.05);
 if(r.GL&&dt>0)r.GL.scale.setScalar((.45+cs*.6)*(.9+Math.random()*.2));}
+else if(e.type=='pirate'){const rm=e.rmd?1:0,w=1+rm*.4;ro('H0',-s*.7*w);ro('K0',Math.max(0,c)*.9);ro('H1',s*.6*w);ro('K1',Math.max(0,-c)*.35);
+ro('S0',s*.4-.25-rm*.3,0,-.1);ro('E0',-.9-rm*.5);ro('S1',rm?-2.3+Math.sin(t*9)*.35:-.6-s*.3,0,rm?.25:.05);ro('E1',rm?-.3:-.7);
+ro('TO',.2+rm*.18+s*.03-q*.3,c*.12,s*.06);r.TO.position.y=.34+Math.cos(2*e.gp)*.014;ro('HD',-.18-q*.3-rm*.1+Math.sin(t*1.1)*.06,Math.sin(t*.8)*.25);ro('R0',0,0,.15+Math.abs(s)*.25);ro('R1',0,0,-.15-Math.abs(s)*.25);}
 else if(e.type=='skel'){ro('H0',-s*.6);ro('K0',Math.max(0,c)*.8);ro('H1',s*.6);ro('K1',Math.max(0,-c)*.8);ro('S0',-1.1+s*.15);ro('E0',-.2);ro('S1',-.6-s*.2);ro('E1',-.6);
 ro('TO',.15+s*.04-q*.3,c*.15,s*.08);r.TO.position.y=.36+Math.cos(2*e.gp)*.012;ro('HD',-.1+Math.sin(t*1.7)*.15-q*.3,Math.sin(t*1.1)*.3);ro('JW',.1+Math.abs(Math.sin(tt*11+e.ph))*.25);}
 else if(e.type=='bat'){r.TO.position.y=1.05+Math.sin(tt*2.1+e.ph)*.06;ro('TO',-q*.3);for(let i=0;i<5;i++){const B=r['B'+i],p=B.userData.p,f=tt*(i?17:13)+e.ph+i*1.9,a=Math.sin(f)*.85+.15;
@@ -375,7 +398,7 @@ ro('NK',-.1+Math.sin(f-.5)*.05-roar*.35);ro('HD',.1-roar*.3+Math.sin(tt*.9+e.ph)
 ro('H0',.35+Math.sin(f+1)*.1);ro('K0',.55);ro('H1',.35+Math.sin(f+1.3)*.1);ro('K1',.55);if(r.GL)r.GL.scale.setScalar(.35+roar*.85+Math.sin(tt*9)*.04);}
 fxStatus(e,dt);
 e.ice.visible=e.fz>0;const hr=Math.max(0,e.hp/e.max),hc=hr>.5?0x2ecc71:hr>.25?0xf1c40f:0xe74c3c;e.bar.scale.x=.52*Math.max(hr,.001);e.bar.center.set(.5/Math.max(hr,.001),.5);
-if(hr<.5&&Math.random()<dt*(hr<.25?9:4))burst(e.x,e.y,hr<.25?{norm:0x8fd957,fast:0xb03a2e,tank:0x888888,boss:0xff6a1a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x5a3d22,necro:0x3a2a44,skel:0xd8d0bc}[e.type]:0x444444,1,.35,.4+(e.type=='boss'?1:0));
+if(hr<.5&&Math.random()<dt*(hr<.25?9:4))burst(e.x,e.y,hr<.25?{norm:0x8fd957,fast:0xb03a2e,tank:0x888888,boss:0xff6a1a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x5a3d22,necro:0x3a2a44,skel:0xd8d0bc,pirate:0x8fd957}[e.type]:0x444444,1,.35,.4+(e.type=='boss'?1:0));
 if(hr<.25)e.body.rotation.z+=Math.sin(tt*9+e.ph)*.07;if(e.bc!==hc){e.bc=hc;e.bar.material.color.setHex(hc);}}
 function animDying(dt){for(let i=g.dying.length-1;i>=0;i--){const e=g.dying[i],boss=e.type=='boss',dk=e.dk,D=boss?1.2:dk=='frost'?.45:dk=='cannon'?.9:.7;e.dt+=dt;
 const p=Math.min(1,e.dt/D),f=1-Math.pow(1-Math.min(1,p/.5),3),sink=Math.max(0,(p-.6)/.4);let rz=e.fd*f*(boss?.5:1.5),py=(boss?.3*(1-f):0)-sink*.25,ox=0,oz=0,sx=1,sy=1,s2=Math.max(.01,1-sink*sink*.95);
@@ -538,6 +561,9 @@ if(!MSEEN.lava){MSEEN.lava=1;evMsg(M.ic,'Eruption!','The lava pools blow from ti
 // It leaves the lights alone once the game is over (the ending scenes own them)
 let DKK=0;
 function darkFx(){snd('dark');evMsg(MECH.dark.ic,'Darkness falls','Towers lose 40% range unless a lava pool or a Banner Tower lights them.');}
+// Pirate (js/09-game.js): below half health it swigs its rum and charges (rumFx, once); one that reaches the gate also steals v gold (plunderFx)
+function rumFx(e){snd('rum');popText(e.x,e.y,'Rum!','#ffb04a');const q=txts[txts.length-1];if(q)q.s.position.y=TXY.pirate;burst(e.x,e.y,0xc8862a,6,.7,.7);}
+function plunderFx(e,v){if(!v)return;snd('coin');popText(e.x,e.y,'−'+v+' gold','#ff8a7a');burst(e.x,e.y,0xffd24a,10,1.2,.4);}
 // first time a mechanic shows itself since the page loaded: its banner
 function mFirst(k,t,d){if(MSEEN[k])return;MSEEN[k]=1;evMsg(MECH[k].ic,t,d);}
 // Harvest Vale: the fields pay out (n = unbuilt field cells)

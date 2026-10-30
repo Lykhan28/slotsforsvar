@@ -28,7 +28,7 @@ const LEVELS=[
 // E.g. "Wolf rush: 6n ~2 14f/.35" = 6 goblins, a 2 s lull, then 14 wolf riders in a tight pack; "12nnf/.6" = goblin, goblin, wolf rider, ... 0.6 s apart.
 // Health per enemy is 30 × 1.2^wave × E[type].h × the level's hp, so the waves only set the mix and pacing. Check a table with npm run sim -- --waves N.
 // Rhythm per five waves: an opener/new enemy, a swarm, a wolf rush or knight push, a heavier mixed wave, then a boss with an escort; the wave after a boss is a breather.
-const WC={n:'norm',f:'fast',t:'tank',g:'guard',s:'shaman',v:'bat',p:'sapper',r:'troll',h:'ghost',i:'imp',z:'skel',k:'king',m:'ram',x:'necro',b:'boss'};
+const WC={n:'norm',f:'fast',t:'tank',g:'guard',s:'shaman',v:'bat',p:'sapper',r:'troll',h:'ghost',i:'imp',z:'skel',c:'pirate',k:'king',m:'ram',x:'necro',b:'boss'};
 const WAVES=[
 // 1 Greenmeadow: goblins, wolf riders and knights; Shieldbearers from wave 8, bats from wave 12
 ['First raid: 6n/1.2','Goblin band: 9n','Wolf riders: 6n 6f/.6','Mixed swarm: 14nnf/.6','The Goblin King: 6n 3t/1.4 ~2 1k 4n',
@@ -75,11 +75,11 @@ const WAVES=[
  'Wolf rush: 8n ~2 20f/.3 3t/1.3','Trolls in the corn: 8n 4r/1.5 8nf/.6','Bats over the barns: 10n 10v/.5 4g/1 4t/1.2','Mixed swarm: 34nfgpt/.45','Siege Ram: 12n 6t/1.2 ~2 1m 10np/.6 4g/1',
  'Breather: 18n/.7 10f/.5','Knight push: 10n 8t/1.1 10ng/.6','Barn burners: 12n 12p/.6 6t/1.2 4s/1','Wolf rush: 10n ~1 20f/.3 ~3 20f/.3 4t/1.2','The King returns: 14n 6t/1.2 4g/1 4s/1 ~2 1k 12nf/.5 4v/.8',
  'Breather: 22n/.6 12f/.5 6v/.7','Troll march: 12n 7r/1.3 4s/1 10np/.5 6g/.9','Mixed swarm: 42nfgpvtn/.4','Last stand: 20f/.3 ~2 10t/1.1 4r/1.3 ~2 18nng/.45','The Dragon: 14n 7t/1.2 6v/.7 ~8 1b ~4 12nf/.5 3r/1.4'],
-// 10 Saltcliff Cove: a pirate landing – Sappers with powder kegs, Shamans as sea witches, Trolls from the hold, a drowned captain (Necromancer)
-['Landing party: 10n/.9','Shore raiders: 8n 8f/.45','Powder kegs: 8n 5p/.8 6nf/.6','Sea witches: 8n 4s/1.1 6nf/.6','The Pirate King: 10n 4t/1.3 3s/1 ~2 1k 8nf/.6',
- 'Bats from the caves: 8n 12v/.45 6nf/.6','Boarding party: 10n 6t/1.2 8np/.6','Wolf rush: 8n ~2 20f/.3 4t/1.2','Mixed swarm: 34nfspgt/.45','The Drowned Captain: 12n 6t/1.2 4h/.9 ~2 1x 10nz/.5',
+// 10 Saltcliff Cove: a pirate landing – pirate crews (c) in most waves, Sappers with powder kegs, Shamans as sea witches, Trolls from the hold, a drowned captain (Necromancer)
+['Landing party: 7n/.9 3c/1.1','Shore raiders: 6n 4c/.9 8f/.45','Powder kegs: 8n 5p/.8 6nf/.6','Sea witches: 8n 4s/1.1 6nf/.6','The Pirate King: 6n 6c/.8 4t/1.3 3s/1 ~2 1k 8cf/.6',
+ 'Bats from the caves: 8n 12v/.45 6nf/.6','Boarding party: 6n 8c/.7 6t/1.2 8cp/.6','Wolf rush: 8n ~2 20f/.3 4t/1.2','Mixed swarm: 34nfspgt/.45','The Drowned Captain: 12n 6t/1.2 4h/.9 ~2 1x 10nz/.5',
  'Breather: 18n/.7 10f/.5','Ogres from the hold: 10n 6r/1.4 4s/1 8nf/.6','Shield wall: 10g/.8 10n 6t/1.2 6v/.6','Powder kegs: 12n 14p/.5 8t/1.1 6f/.4','Siege Ram: 14n 7t/1.2 4s/1 ~2 1m 12np/.5 4v/.8',
- 'Breather: 22n/.6 12f/.5 6v/.7','Boarding party: 12n 9t/1.1 12ng/.5 4r/1.3','Mixed swarm: 42nfspvgtn/.4','Last stand: 20f/.3 ~2 10t/1.1 4s/1 ~2 20nnp/.45','The Pirate King and the Dragon: 14n 7t/1.2 4s/1 ~6 1k ~8 1b ~4 12nf/.5'],
+ 'Breather: 22n/.6 12f/.5 6v/.7','Boarding party: 6n 10c/.6 9t/1.1 12cg/.5 4r/1.3','Mixed swarm: 42nfspvgtn/.4','Last stand: 20f/.3 ~2 10t/1.1 4s/1 ~2 20ncp/.45','The Pirate King and the Dragon: 8n 8c/.6 7t/1.2 4s/1 ~6 1k ~8 1b ~4 12cf/.5'],
 // 11 Sunscorch Dunes (two roads, @0 west, @1 north): Fire Imps out of the heat, desert riders, Sappers
 ['Out of the haze: 10n/.9','Desert riders: 8n 10f/.45','Sand imps: 8n 6i/.7 4nf/.6','Pincer: 12f/.35@0 8n/.8@1 3t/1.3@1','Siege Ram: 10n 5t/1.2 ~2 1m@0 8ni/.6',
  'Imp swarm: 8n 16i/.4 4p/.8','Sappers: 10n 8p/.6 4t/1.2 6nf/.5','Bats: 10n 12v/.45 4g/1 4i/.6','Mixed swarm: 34nfipgt/.45','The Dragon: 12n 6t/1.2 4i/.6 ~2 1b@1 10nf/.5 4s/1',
@@ -260,6 +260,8 @@ sapper:{s:65,h:.7,rw:6,r:10,col:0x71903c,rs:{},sap:1},troll:{s:30,h:2,rw:12,r:16
 // bosses (bs; lv = lives lost if it reaches the gate): sum = Goblin King, goblins per summon (summon()); rz = Necromancer, skeletons per raise (raise()); skel = what it raises
 king:{s:32,h:8,rw:50,r:18,col:0x71903c,rs:{},bs:1,lv:5,sum:2},ram:{s:22,h:9,rw:60,r:18,col:0x8a6a44,rs:{phys:.25},bs:1,lv:10},necro:{s:30,h:7,rw:50,r:16,col:0x3a2a44,rs:{magic:.5},bs:1,lv:5,rz:2},
 skel:{s:42,h:.6,rw:1,r:10,col:0xd8d0bc,rs:{}},
+// Pirate: plu = gold it steals if it reaches the gate (on top of the life); rum = speed multiplier once it is below half health (it swigs its rum and charges)
+pirate:{s:52,h:1.2,rw:8,r:11,col:0x2c3a58,rs:{},plu:25,rum:1.5},
 ghost:{s:48,h:1.1,rw:7,r:11,col:0xcfe6ee,rs:{},phz:1},imp:{s:70,h:.8,rw:6,r:9,col:0xff7a2a,rs:{fire:1}},shaman:{s:45,h:.9,rw:9,r:11,col:0x7cff4a,rs:{},hl:.03}};
 const P={st:0xece5d6,st2:0xd2c8b4,st3:0xf7f2e6,wd:0xc98a4b,wd2:0x8a5a2e,rd:0xe8483c,bl:0x3f86e0,pu:0x9a5be0,gd:0xffc93c,gr:0x7ed957};
 // game coords (pixels, origin at the board's top-left) → world; cell → world centre; HX/HZ = wall lines
