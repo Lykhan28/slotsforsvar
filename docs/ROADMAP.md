@@ -200,7 +200,7 @@ Add a day/night cycle across waves: lighting, sky and fog shift towards dusk and
 Add three new levels with new themes: a snowy mountain fortress, a coastal cliff with pirates, and a mountain pass with a narrow road. Follow the level and theme notes in CLAUDE.md.
 ```
 
-- [ ] **36. World map**
+- [x] **36. World map**
 ```text
 Replace the level list with an illustrated world map (2D, drawn in code or SVG) where each level is a location along a path, showing stars and locks. Clicking a location opens the level card.
 ```

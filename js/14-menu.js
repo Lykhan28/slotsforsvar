@@ -22,17 +22,96 @@ try{INF=(new URLSearchParams(location.search).get('endless')=='1'||localStorage.
 const BEST={};for(const d of DIFS)BEST[d.k]=[];try{const d=JSON.parse(localStorage.getItem('sfbest'));if(d)for(const k in BEST)if(Array.isArray(d[k]))BEST[k]=d[k].map(x=>Math.max(0,x|0));}catch(e){}
 function infRec(){const b=BEST[DF.k];if(g.wave<=(b[LVN]||0))return;b[LVN]=g.wave;g.rec=true;try{localStorage.setItem('sfbest',JSON.stringify(BEST));}catch(e){}ach('endless');}
 function goLevel(i,di=DFN,inf=false){if(i===LVN&&di===DFN&&inf===INF){if(g.over)reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);localStorage.setItem('sfdif',DIFS[di].k);localStorage.setItem('sfmode',inf?'endless':'');sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1)+'&diff='+DIFS[di].k+(inf?'&endless=1':''));}
-// level picker: difficulty tabs (MENU.df, applied when a level is clicked) above the list for that difficulty; a won level gets an Endless button (.lve) with its highscore
+// level picker = a world map: difficulty tabs (MENU.df, applied when a level is played) above an SVG map where every level is a node along one winding road.
+// WMP = node positions in the 1000×620 viewBox (index = level), WMT = per theme the land colour and the icons drawn around it, WIC = the icons (drawn at 0,0, foot at y=0).
+// The land and icons are built once (wMap, cached in WMS); the road progress and nodes (wDyn) and the card of the selected level (MENU.ls, lvCard) are redrawn.
+// A won level's card has the Endless button (.lve) with its highscore. More levels than WMP would need more positions there.
 const dTxt=d=>d.li+' lives'+(d.hp>1?', enemies have '+Math.round((d.hp-1)*100)+'% more health':'')+(d.gold<1?', '+Math.round((1-d.gold)*100)+'% less starting gold':'')+(d.hp==1?' – the relaxed way to play':'')+'.';
-function mLevels(){const di=MENU.df,D=DIFS[di],p=PROG[D.k],here=di===DFN,el=$('m_lvls');el.innerHTML='';
-$('m_df').innerHTML=DIFS.map((d,j)=>'<button class="dfb'+(j==di?' on':'')+'" data-d="'+j+'">'+d.n+'</button>').join('');$('m_dd').textContent=dTxt(D);
-LEVELS.forEach((L,i)=>{const rw=document.createElement('div'),b=document.createElement('button'),cur=here&&i==LVN&&!INF,lock=i>p.n&&!(here&&i==LVN),done=i<p.n,st=p.st[i]||0;rw.className='lvr';b.className='lvb'+(cur?' cur':'')+(lock?' lock':'');b.disabled=lock;
+const WMP=[[95,545],[215,478],[340,540],[465,468],[590,530],[715,462],[840,525],[893,408],[815,328],[668,292],[520,350],[370,285],[222,338],[100,212],[255,118],[440,82]],
+WSH=[[560,0],[560,98],[598,168],[650,192],[722,208],[800,226],[880,222],[940,246],[1000,250],[1000,0]],
+wSea=(x,y)=>{if(x<560)return false;for(let i=1;i<9;i++){const[a,b]=WSH[i],[c,d]=WSH[i+1];if(x>=a&&x<=c)return y<b+(d-b)*(x-a)/(c-a||1)+14;}return false;},
+WIC={tree:c=>'<path d="M0 0V-8" stroke="#3a2a18" stroke-width="2.4"/><circle cy="-14" r="9" fill="'+c+'"/><circle cx="-3" cy="-17" r="4" fill="#fff" opacity=".13"/>',
+bush:c=>'<ellipse cy="-4" rx="9" ry="6" fill="'+c+'"/><ellipse cx="-3" cy="-6" rx="4" ry="2.5" fill="#fff" opacity=".12"/>',
+pine:c=>'<path d="M0 0V-5" stroke="#2a1e12" stroke-width="2"/><path d="M-8-4L0-26L8-4Z" fill="'+c+'"/><path d="M0-26L8-4H3Z" fill="#000" opacity=".2"/>',
+spine:c=>WIC.pine(c)+'<path d="M-3.5-18L0-26L3.5-18L0-20Z" fill="#eef4f8"/>',
+dead:c=>'<path d="M0 0V-18M0-10L-6-16M0-13L5-20M0-6L5-9" stroke="'+c+'" stroke-width="2" fill="none" stroke-linecap="round"/>',
+flame:c=>'<path d="M0 0C-7 0-8-8-3-13C-3-9 0-9 0-9C-1-15 2-19 5-22C4-16 8-12 7-6C7-2 4 0 0 0Z" fill="'+c+'"/><path d="M0-1C-3-1-3-5 0-8C1-5 3-4 2-2Z" fill="#ffd36a"/>',
+reed:c=>'<ellipse cx="2" cy="1" rx="11" ry="4" fill="#33524c" opacity=".8"/><path d="M-2 0V-14M1 0V-18M4 0V-12" stroke="'+c+'" stroke-width="1.6"/><path d="M1-18v-5" stroke="#5a3e22" stroke-width="3" stroke-linecap="round"/>',
+ruin:c=>'<path d="M-10 0V-14H-6V-11H-2V-17H2V-8H6V-12H10V0Z" fill="'+c+'"/><path d="M-6-6H-2V0H-6Z" fill="#000" opacity=".3"/>',
+grave:c=>'<path d="M-4 0V-10A4 4 0 0 1 4-10V0Z" fill="'+c+'"/><path d="M10 0V-12M7-9H13" stroke="'+c+'" stroke-width="2"/>',
+mesa:c=>'<path d="M-13 0L-8-12H7L12 0Z" fill="'+c+'"/><path d="M-8-12H7L5-9H-7Z" fill="#fff" opacity=".15"/>',
+lava:c=>'<path d="M-12 0L-5-3L0 1L6-2L12 1" stroke="'+c+'" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="0" cy="0" r="9" fill="'+c+'" opacity=".12"/>',
+spike:c=>'<path d="M-6 0L-2-20L2 0ZM3 0L6-11L9 0Z" fill="'+c+'"/>',
+hay:c=>'<path d="M-9 0A9 10 0 0 1 9 0Z" fill="'+c+'"/><path d="M-5-3H5M-3-7H3" stroke="#8a6020" opacity=".6"/>',
+palm:c=>'<path d="M0 0C1-8 3-14 1-20" stroke="#7a5a32" stroke-width="2.2" fill="none"/><path d="M1-20C-5-23-9-20-11-16M1-20C6-24 10-21 12-16M1-20C-2-26 2-28 6-27M1-20C-6-19-8-15-8-12" stroke="'+c+'" stroke-width="3" fill="none" stroke-linecap="round"/>',
+rock:c=>'<path d="M-9 0L-6-7L1-9L8-4L9 0Z" fill="'+c+'"/><path d="M-6-7L1-9L2-5Z" fill="#fff" opacity=".18"/>',
+dune:c=>'<path d="M-16 0Q-4-9 10-1M-4 4Q6-3 16 3" stroke="'+c+'" stroke-width="2" fill="none" stroke-linecap="round"/>',
+pillar:c=>'<path d="M-4 0V-16L-2-19L1-17L4-20V0ZM-6 0H6V2H-6Z" fill="'+c+'"/><path d="M1-17L4-20V0H1Z" fill="#000" opacity=".15"/>',
+peak:c=>'<path d="M-20 0L-3-28L16 0Z" fill="'+c+'"/><path d="M-3-28L16 0H7Z" fill="#000" opacity=".18"/><path d="M-9-18L-3-28L4-18L0-20Z" fill="#f4f7fa"/>',
+crystal:c=>'<path d="M-6 0L-8-12L-4-20L-1-10ZM-1 0L1-24L6-14L4 0ZM4 0L9-10L11-2Z" fill="'+c+'"/><path d="M1-24L2 0" stroke="#fff" opacity=".4"/><circle cy="-8" r="13" fill="'+c+'" opacity=".12"/>',
+stone:c=>'<path d="M-9 0V-14L-5-16V0ZM2 0V-17L7-15V0Z" fill="'+c+'"/>',
+cloud:c=>'<path d="M-12-30A6 6 0 0 1-4-36A7 7 0 0 1 9-34A5 5 0 0 1 11-26H-12A4 4 0 0 1-12-30Z" fill="'+c+'"/><path d="M0-26L-3-17H1L-2-8" stroke="#ffe88a" stroke-width="1.8" fill="none"/>',
+isle:c=>'<circle cy="-10" r="17" fill="#a070ff" opacity=".1"/><path d="M-12-12H12L0 2Z" fill="'+c+'"/><ellipse cy="-12" rx="12" ry="3" fill="#6a5a7e"/>',
+spark:c=>'<path d="M0-6L1.4-1.4L6 0L1.4 1.4L0 6L-1.4 1.4L-6 0L-1.4-1.4Z" fill="'+c+'"/>'},
+WMT={meadow:['#62803e',[['tree','#3e6a2a'],['tree','#4c7a30'],['bush','#557f36']]],darkwood:['#2b4230',[['pine','#1b3a24'],['pine','#24482c'],['dead','#4a4436']]],
+burning:['#503424',[['flame','#e8642a'],['dead','#1c1410'],['dead','#2a1e16']]],marsh:['#59633e',[['reed','#8a9a52'],['dead','#4c4a36'],['tree','#4a5a34']]],
+ruins:['#67615a',[['ruin','#8e877c'],['rock','#77716a'],['dead','#3a3630']]],moor:['#46445a',[['grave','#8c889c'],['dead','#2c2a36'],['grave','#a09cae']]],
+badlands:['#8a563a',[['mesa','#a86a48'],['lava','#ff7a2a'],['rock','#7a4a32']]],hell:['#3a201c',[['spike','#160e0c'],['lava','#ff5a1e'],['rock','#2a1a18']]],
+autumn:['#8a7238',[['tree','#c2702a'],['tree','#a8442a'],['hay','#d4a84a']]],coast:['#6a7e4e',[['palm','#4a7a3a'],['rock','#8a8270'],['tree','#4c7432']]],
+desert:['#b49660',[['dune','#9e7e48'],['pillar','#dccca0'],['palm','#5a7a3a']]],snow:['#a4b0b8',[['peak','#7e8a98'],['spine','#2e4a3a'],['spine','#3a5646']]],
+crystal:['#40365c',[['crystal','#a98ae8'],['crystal','#6ad0e0'],['rock','#2e2840']]],pass:['#69655b',[['peak','#8a857a'],['rock','#5a564e'],['pine','#2e4630']]],
+storm:['#4a5856',[['stone','#8e9494'],['cloud','#5a6266'],['stone','#7a8080']]],void:['#24193a',[['isle','#3a2c4a'],['spark','#c8a8ff'],['spark','#8ad0ff']]]},
+wmt=i=>WMT[LEVELS[i].th]||WMT.meadow,
+// road segment i→i+1 as a cubic Bézier (Catmull-Rom through the nodes); wSeg(i,t) samples it
+wCtl=i=>{const P=WMP,a=P[i-1]||P[i],b=P[i],c=P[i+1],d=P[i+2]||c;return[b,[b[0]+(c[0]-a[0])/6,b[1]+(c[1]-a[1])/6],[c[0]-(d[0]-b[0])/6,c[1]-(d[1]-b[1])/6],c];},
+wSeg=(i,t)=>{const[p,q,r,s]=wCtl(i),u=1-t,f=k=>u*u*u*p[k]+3*u*u*t*q[k]+3*u*t*t*r[k]+t*t*t*s[k];return[f(0),f(1)];},
+wD=i=>{const[p,q,r,s]=wCtl(i),f=v=>v.map(n=>n.toFixed(1)).join(' ');return'M'+f(p)+'C'+f(q)+' '+f(r)+' '+f(s);};
+let WMS=null;
+function wMap(){if(WMS)return WMS;const N=Math.min(LEVELS.length,WMP.length);let sd=7;const rr=()=>(sd=sd*16807%2147483647)/2147483647;
+const near=(x,y)=>{let b=0,bd=1e9;for(let i=0;i<N;i++){const d=Math.hypot(WMP[i][0]-x,WMP[i][1]-y);if(d<bd){bd=d;b=i;}}return b;};
+const RP=[];for(let i=0;i<N-1;i++)for(let t=0;t<1;t+=.05)RP.push(wSeg(i,t));
+let land='',ic=[];
+for(let y=-20;y<=660;y+=34)for(let x=-20;x<=1030;x+=34){const jx=x+(rr()-.5)*14,jy=y+(rr()-.5)*14;if(wSea(jx,jy-20))continue;land+='<circle cx="'+jx.toFixed(0)+'" cy="'+jy.toFixed(0)+'" r="30" fill="'+wmt(near(jx,jy))[0]+'"/>';}
+for(let y=22;y<=616;y+=30)for(let x=12;x<=990;x+=34){const px=x+(rr()-.5)*24,py=y+(rr()-.5)*20,k=rr();if(k<.12||wSea(px,py)||px<8||px>992)continue;
+if(RP.some(([a,b])=>Math.hypot(a-px,b-py)<28))continue;if(WMP.slice(0,N).some(([a,b])=>Math.abs(a-px)<66&&py-b>-38&&py-b<66))continue;
+const T=wmt(near(px,py))[1],[n,c]=T[Math.floor(rr()*T.length)];ic.push([py,'<g transform="translate('+px.toFixed(0)+' '+py.toFixed(0)+') scale('+(.8+rr()*.4).toFixed(2)+')">'+WIC[n](c)+'</g>']);}
+ic.sort((a,b)=>a[0]-b[0]);
+const sh='M'+WSH.map(p=>p.join(' ')).join('L')+'Z';let wv='';for(let i=0;i<14;i++){const x=600+rr()*380,y=14+rr()*170;if(wSea(x,y-8))wv+='<path d="M'+x.toFixed(0)+' '+y.toFixed(0)+'q5-4 10 0t10 0"/>';}
+let rd='';for(let i=0;i<N-1;i++)rd+='<path d="'+wD(i)+'"/>';
+return WMS='<defs><filter id="wmb" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="16"/></filter><radialGradient id="wmv" cx="50%" cy="50%" r="72%"><stop offset="55%" stop-color="#0a0603" stop-opacity="0"/><stop offset="100%" stop-color="#0a0603" stop-opacity=".7"/></radialGradient></defs>'+
+'<rect width="1000" height="620" fill="#3a3226"/><g filter="url(#wmb)">'+land+'</g>'+
+'<path d="'+sh+'" fill="#2b4a5a"/><path d="'+sh+'" fill="none" stroke="#e6d6a8" stroke-opacity=".45" stroke-width="3"/><g fill="none" stroke="#9ec0cc" stroke-opacity=".45" stroke-width="1.6" stroke-linecap="round">'+wv+'</g>'+
+'<g fill="none" stroke-linecap="round"><g stroke="#140d06" stroke-opacity=".5" stroke-width="10">'+rd+'</g><g stroke="#e3cf9f" stroke-opacity=".5" stroke-width="4" stroke-dasharray="1 10">'+rd+'</g></g>'+
+ic.map(a=>a[1]).join('')+'<rect width="1000" height="620" fill="url(#wmv)" pointer-events="none"/><g id="wm_dyn"></g>';}
+// the road walked so far (a segment is lit once the level before it is won) and the level nodes, for the difficulty shown
+function wDyn(){const di=MENU.df,p=PROG[DIFS[di].k],here=di===DFN,N=Math.min(LEVELS.length,WMP.length);let s='<g fill="none" stroke="#f0c770" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="11 7">';
+for(let i=0;i<N-1;i++)if(i<p.n)s+='<path d="'+wD(i)+'"/>';s+='</g>';
+for(let i=0;i<N;i++){const[x,y]=WMP[i],L=LEVELS[i],cur=here&&i==LVN&&!INF,lock=i>p.n&&!(here&&i==LVN),done=i<p.n,st=p.st[i]||0;
+s+='<g class="wnd'+(lock?' lock':'')+(done?' won':'')+(cur?' cur':'')+(i===MENU.ls?' sel':'')+'" data-i="'+i+'" tabindex="0" role="button" aria-label="'+(i+1)+'. '+L.n+(lock?', locked':done?', won, '+st+' of 3 stars':'')+'" transform="translate('+x+' '+y+')">'+
+'<circle class="wh" r="34"/><circle class="wg" r="29"/><circle class="wc" r="21"/>'+(lock?'<text class="wl" y="6">🔒</text>':'<text class="wi" y="6">'+(i+1)+'</text>')+
+(done?'<text class="ws" y="31">'+[0,1,2].map(j=>'<tspan'+(j<st?' class="on"':'')+'>★</tspan>').join('')+'</text>':'')+'<text class="wt" y="'+(done?50:42)+'">'+L.n+'</text></g>';}
+$('wm_dyn').innerHTML=s;}
+// the card under the map for the selected level: description, mechanic, stars or progress, Play/Continue and (once won) Endless
+function lvCard(){const di=MENU.df,D=DIFS[di],p=PROG[D.k],here=di===DFN,i=MENU.ls,L=LEVELS[i],cur=here&&i==LVN&&!INF,lock=i>p.n&&!(here&&i==LVN),done=i<p.n,st=p.st[i]||0,M=MECH[L.mc];
 const sv=lock||cur?null:savedRun(i,di,false),sw=cur?(inGame()?g.wave:null):sv?sv.wave:null;
-b.innerHTML='<span class="ln">'+(i+1)+'</span><span class="lt"><b>'+L.n+'</b><small>'+(lock?'Win '+LEVELS[i-1].n+' on '+D.n+' to unlock':sw!=null?'Run in progress · '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):L.d)+'</small>'+(MECH[L.mc]?'<span class="lm">'+MECH[L.mc].ic+' <em>'+MECH[L.mc].n+':</em> '+MECH[L.mc].d+'</span>':'')+'</span><span class="lx">'+(done?(st?starH(st):'✓'):lock?'🔒':'')+'<small>'+L.w+'×'+L.h+'</small></span>';if(done)b.title=st?'Best on '+D.n+': '+st+' of 3 stars':'Won before stars were counted – win it again to earn them';b.onclick=()=>goLevel(i,di);rw.appendChild(b);
-if(done){const e=document.createElement('button'),ec=here&&i==LVN&&INF,es=ec?(inGame()?g.wave:null):(()=>{const v=savedRun(i,di,true);return v?v.wave:null;})(),hb=BEST[D.k][i]||0;e.className='lve'+(ec?' cur':'');
-e.innerHTML='<b>∞</b><small>'+(hb?'best '+hb:'Endless')+'</small>';e.title='Endless mode on '+D.n+': the waves never stop – how long can you hold?'+(hb?' Best: '+hb+' waves survived.':'')+(es!=null?' Run in progress, '+(es?'wave '+es+' cleared':'not started')+'.':'');e.onclick=()=>goLevel(i,di,true);rw.appendChild(e);}
-el.appendChild(rw);});
-$('m_st').textContent=starT(D);const c=el.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}
+let h='<span class="ln">'+(i+1)+'</span><div class="lt"><b>'+L.n+(done?' '+(st?starH(st):'✓'):'')+'</b><small>'+(lock?'🔒 Win '+LEVELS[i-1].n+' on '+D.n+' to unlock':L.d)+'</small>'+(M?'<span class="lm">'+M.ic+' <em>'+M.n+':</em> '+M.d+'</span>':'')+
+'<small class="lsz">'+L.w+'×'+L.h+' board'+(sw!=null?' · run in progress, '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):'')+(done&&!st?' · won before stars were counted':'')+'</small></div><div class="lca">'+
+'<button class="btn go" id="lc_go"'+(lock?' disabled':'')+'><span class="t">'+(lock?'Locked':sw!=null?'Continue':'Play')+'</span></button>';
+let es=null,hb=0,ec=false;if(done){ec=here&&i==LVN&&INF;es=ec?(inGame()?g.wave:null):(()=>{const v=savedRun(i,di,true);return v?v.wave:null;})();hb=BEST[D.k][i]||0;
+h+='<button class="lve'+(ec?' cur':'')+'" id="lc_inf" title="Endless mode on '+D.n+': the waves never stop – how long can you hold?'+(hb?' Best: '+hb+' waves survived.':'')+(es!=null?' Run in progress, '+(es?'wave '+es+' cleared':'not started')+'.':'')+'"><b>∞</b><small>'+(hb?'best '+hb:'Endless')+'</small></button>';}
+const c=$('m_card');c.innerHTML=h+'</div>';if(!lock)$('lc_go').onclick=()=>goLevel(i,di);if(done)$('lc_inf').onclick=()=>goLevel(i,di,true);}
+function lvPick(i,go){const p=PROG[DIFS[MENU.df].k],lock=i>p.n&&!(MENU.df===DFN&&i==LVN);if(go&&i===MENU.ls&&!lock){goLevel(i,MENU.df);return;}if(i===MENU.ls)return;MENU.ls=i;snd('click');for(const e of document.querySelectorAll('#wm_dyn .wnd'))e.classList.toggle('sel',+e.dataset.i===i);lvCard();wCenter(true);}
+function mLevels(){const di=MENU.df,D=DIFS[di],p=PROG[D.k],here=di===DFN,N=Math.min(LEVELS.length,WMP.length),el=$('m_lvls');
+$('m_df').innerHTML=DIFS.map((d,j)=>'<button class="dfb'+(j==di?' on':'')+'" data-d="'+j+'">'+d.n+'</button>').join('');$('m_dd').textContent=dTxt(D);
+if(!el.firstChild)el.innerHTML='<div class="wmap"><svg class="wm" viewBox="0 0 1000 620">'+wMap()+'</svg></div><div class="lvb lvc" id="m_card"></div>';
+const un=i=>i<=p.n||here&&i==LVN;if(MENU.ls==null||MENU.ls>=N||!un(MENU.ls))MENU.ls=here?LVN:Math.min(p.n,N-1);
+wDyn();lvCard();$('m_st').textContent=starT(D);
+requestAnimationFrame(()=>wCenter(false));}
+// on a phone the map scrolls sideways: keep the selected node in the middle
+function wCenter(sm){const w=document.querySelector('.wmap');if(w&&w.scrollWidth>w.clientWidth)w.scrollTo({left:WMP[MENU.ls][0]/1000*w.scrollWidth-w.clientWidth/2,behavior:sm?'smooth':'auto'});}
+$('m_lvls').onclick=e=>{const n=e.target.closest&&e.target.closest('[data-i]');if(n)lvPick(+n.dataset.i);};
+$('m_lvls').ondblclick=e=>{const n=e.target.closest&&e.target.closest('[data-i]');if(n)lvPick(+n.dataset.i,true);};
+$('m_lvls').onkeydown=e=>{const n=e.target.closest&&e.target.closest('[data-i]');if(n&&(e.key=='Enter'||e.key==' ')){e.preventDefault();lvPick(+n.dataset.i,true);}};
 $('m_df').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b&&+b.dataset.d!==MENU.df){MENU.df=+b.dataset.d;snd('click');mLevels();}};
 // Royal Armoury: stars buy perk ranks (PERKS/PK in js/09-game.js), saved in localStorage sfperk as {id: ranks}. Stars = every star in PROG on every difficulty
 // (a win on a harder difficulty is also counted on the easier ones, so it pays more); spent = the cost of every rank owned. Reset refunds them all.
@@ -67,7 +146,7 @@ if(LV.mc=='fire'&&Array.isArray(d.fire))for(const[c,r,t]of d.fire)if(free(c,r)&&
 // Ashfall: a run past the collapse wave has the shortcut open
 if(LV.ru&&g.wave>=LV.ru.w)ruinOpen(true,true);ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
-function mPage(p){MENU.pg=p;for(const k of['main','levels','armoury','achievements','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='achievements')mAch();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
+function mPage(p){MENU.pg=p;document.querySelector('.mbox').classList.toggle('wide',p=='levels');for(const k of['main','levels','armoury','achievements','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='achievements')mAch();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
 $('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');
 const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');}
 function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}
