@@ -3,6 +3,7 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-30
+- **Stars:** winning a level now earns 1–3 stars for the lives you have left – three for 18 or more, two for 10 or more, one for any win. They appear on the victory screen (with "New best!" when you beat your old score) and next to each level in the level picker, which keeps your best result. Levels won before this update show a tick until you win them again.
 - **Repair the gate:** when you've lost lives, a hammer button next to your lives (or the R key) buys one back for gold. The first repair costs 50 gold and each one after gets dearer.
 - **Three new spells** replace Sir Roland's Shield Bash, Lance Charge and Rallying Cry on the hero bar (keys 1–3): **Rain of Arrows** – pick it, click a spot, and four volleys of arrows hammer everything there, bats included; **Boiling Oil** – cauldrons pour scalding oil over the three road tiles at the castle gate, setting the road ablaze and slowing everything in it; **Reinforcements** – click the road and two soldiers drop in to hold it for 15 seconds. Each has its own cooldown, effects and sounds. Divine Smite stays on key 4.
 - **Sir Roland's attacks are easy to read now:** every stroke is a big overhead chop with a bright slash and sparks on the enemy, a ring on the ground shows how far he reaches (gold while he's fighting), and a red ring marks the enemy he's fighting.

@@ -33,7 +33,7 @@ Plain classic `<script>` files, **no modules**: they share one global scope, and
 | `js/11-audio.js` | all audio generated with WebAudio (no files): music (calm/battle) and `SX` sound effects, `snd(name)` |
 | `js/12-input.js` | pointer/touch/mouse camera (orbit 360°, zoom, pan), placing/selecting towers |
 | `js/13-ending.js` | enemy army outside the wall, victory fireworks, defeat (castle burns, keep collapses) |
-| `js/14-menu.js` | main menu (Play/Levels/Bestiary/Settings/Changelog/Quit), bestiary page `mBest()`, level picker and progress (`PROG`, localStorage `sfprog`; chosen level `sflv`), `goLevel()`, saved runs (`saveRun`/`loadRun`/`restartLevel`, localStorage `sfrun<level index>`), `MENU` state, graphics settings `GFX` (glow/shadows/resolution, saved in localStorage `sfgfx`), in-game changelog (fetches and renders `CHANGELOG.md`) |
+| `js/14-menu.js` | main menu (Play/Levels/Bestiary/Settings/Changelog/Quit), bestiary page `mBest()`, level picker and progress (`PROG` = {n levels won, st best stars per level}, localStorage `sfprog` as JSON – older saves are a bare number; stars `STAR`/`stars()`/`starH()`, set by `lvWon()` which also puts `g.stN`/`g.stB` for the end screen; chosen level `sflv`), `goLevel()`, saved runs (`saveRun`/`loadRun`/`restartLevel`, localStorage `sfrun<level index>`), `MENU` state, graphics settings `GFX` (glow/shadows/resolution, saved in localStorage `sfgfx`), in-game changelog (fetches and renders `CHANGELOG.md`) |
 | `js/15-main.js` | render loop, start (opens the menu) |
 
 ## Gotchas learned the hard way

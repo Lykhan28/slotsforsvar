@@ -138,7 +138,7 @@ Let the player click enemies to throw a rock for small damage (with a short cool
 
 ## Phase 5 – Progression
 
-- [ ] **24. Stars**
+- [x] **24. Stars**
 ```text
 Award 1–3 stars per level based on lives left (show the thresholds), show them in the level picker and on the end screen, and save them in PROG.
 ```

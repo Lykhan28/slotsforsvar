@@ -169,6 +169,11 @@ body.wave #hab{display:grid}body.wave #towers{display:none}
 .ovbox .k{font:600 11px var(--ui);letter-spacing:.24em;text-transform:uppercase;color:var(--ac)}
 .ovbox h2{margin:0;font:900 30px var(--disp);letter-spacing:.04em;color:var(--gold2);text-shadow:0 0 22px rgba(240,199,112,.35)}
 .ovbox p{margin:0 0 10px;color:var(--ink2)}
+.stars{display:inline-flex;gap:2px;line-height:1}.stars i{font-style:normal;color:rgba(255,255,255,.3)}.stars i.on{color:var(--gold);text-shadow:0 0 10px rgba(240,199,112,.45)}
+.ovbox .stars{font-size:40px;gap:6px;margin:2px 0}.ovbox .stars i.on{animation:star .5s cubic-bezier(.2,1.6,.4,1) backwards}.ovbox .stars i:nth-child(2){animation-delay:.25s}.ovbox .stars i:nth-child(3){animation-delay:.5s}
+@keyframes star{from{transform:scale(0) rotate(-40deg);opacity:0}}
+.ovbox .stt{font-size:12px;color:var(--ink3);margin-bottom:4px}.ovbox .stt b{color:var(--gold2)}
+.mst{margin:-4px 0 10px;font-size:12px;color:var(--ink3)}
 .ovbox .btn{flex:none;height:46px;padding:0 28px;font-size:15px}
 body.over #panel{opacity:0;transform:translateY(20px);pointer-events:none}body.over #panel>*{pointer-events:none}
 

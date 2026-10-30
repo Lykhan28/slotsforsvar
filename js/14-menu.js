@@ -8,14 +8,17 @@ function gfxApply(){if(bloom)bloom.enabled=GFX.glow;if(AO)AO.pass.enabled=GFX.ao
 const OPT={auto:false};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;
 function optSet(k){OPT[k]=!OPT[k];try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}autoW=!!OPT.auto;ui();}
 function gfxSet(k){GFX[k]=!GFX[k];try{localStorage.setItem('sfgfx',JSON.stringify(GFX));}catch(e){}gfxApply();}
-// levels: PROG = how many levels have been won (level i is unlocked when i <= PROG). Switching level reloads the page, because the whole scene is built once at load (js/01-config.js picks LVN)
-let PROG=0;try{PROG=+localStorage.getItem('sfprog')||0;}catch(e){}
-function lvWon(){if(LVN+1>PROG){PROG=LVN+1;try{localStorage.setItem('sfprog',PROG);}catch(e){}}}
+// levels: PROG.n = how many levels have been won (level i is unlocked when i <= PROG.n), PROG.st[i] = best stars on level i (0 = won before stars existed).
+// Saved in localStorage sfprog as {n,st}; older saves hold just the number. Switching level reloads the page, because the whole scene is built once at load (js/01-config.js picks LVN)
+// stars for a win by lives left: STAR[0]+ = 3, STAR[1]+ = 2, any win = 1. lvWon() puts this win's stars in g.stN and the earlier best in g.stB (end screen)
+const STAR=[18,10],stars=l=>l>=STAR[0]?3:l>=STAR[1]?2:1,starH=n=>'<span class="stars">'+[0,1,2].map(i=>'<i'+(i<n?' class="on"':'')+'>★</i>').join('')+'</span>',starT='★★★ '+STAR[0]+'+ lives left · ★★ '+STAR[1]+'+ · ★ any win';
+const PROG={n:0,st:[]};try{const d=JSON.parse(localStorage.getItem('sfprog'));if(typeof d=='number')PROG.n=d|0;else if(d){PROG.n=d.n|0;if(Array.isArray(d.st))PROG.st=d.st.map(x=>Math.min(3,Math.max(0,x|0)));}}catch(e){}
+function lvWon(){PROG.n=Math.max(PROG.n,LVN+1);g.stB=PROG.st[LVN]||0;g.stN=stars(g.lives);PROG.st[LVN]=Math.max(g.stB,g.stN);try{localStorage.setItem('sfprog',JSON.stringify(PROG));}catch(e){}}
 function goLevel(i){if(i===LVN){if(g.over)reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1));}
-function mLevels(){const el=$('m_lvls');el.innerHTML='';LEVELS.forEach((L,i)=>{const b=document.createElement('button'),lock=i>PROG&&i!=LVN,done=i<PROG;b.className='lvb'+(i==LVN?' cur':'')+(lock?' lock':'');b.disabled=lock;
+function mLevels(){const el=$('m_lvls');el.innerHTML='';LEVELS.forEach((L,i)=>{const b=document.createElement('button'),lock=i>PROG.n&&i!=LVN,done=i<PROG.n,st=PROG.st[i]||0;b.className='lvb'+(i==LVN?' cur':'')+(lock?' lock':'');b.disabled=lock;
 const sv=lock||i==LVN?null:savedRun(i),sw=i==LVN?(inGame()?g.wave:null):sv?sv.wave:null;
-b.innerHTML='<span class="ln">'+(i+1)+'</span><span class="lt"><b>'+L.n+'</b><small>'+(lock?'Win '+LEVELS[i-1].n+' to unlock':sw!=null?'Run in progress · '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):L.d)+'</small></span><span class="lx">'+(done?'✓':lock?'🔒':'')+'<small>'+L.w+'×'+L.h+'</small></span>';b.onclick=()=>goLevel(i);el.appendChild(b);});
-const c=el.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}
+b.innerHTML='<span class="ln">'+(i+1)+'</span><span class="lt"><b>'+L.n+'</b><small>'+(lock?'Win '+LEVELS[i-1].n+' to unlock':sw!=null?'Run in progress · '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):L.d)+'</small></span><span class="lx">'+(done?(st?starH(st):'✓'):lock?'🔒':'')+'<small>'+L.w+'×'+L.h+'</small></span>';if(done)b.title=st?'Best: '+st+' of 3 stars':'Won before stars were counted – win it again to earn them';b.onclick=()=>goLevel(i);el.appendChild(b);});
+$('m_st').textContent=starT;const c=el.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}
 // a level picked in the menu starts right after the reload
 function menuStart(){let go=false;try{go=sessionStorage.getItem('sfgo')=='1';sessionStorage.removeItem('sfgo');}catch(e){}if(go){MENU.open=false;$('menu').style.display='none';}else menuOpen();}
 $('lvl').textContent='Level '+(LVN+1)+' · '+LV.n;
