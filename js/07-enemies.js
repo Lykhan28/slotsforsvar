@@ -325,7 +325,7 @@ for(let i=1;i<6;i++){const k=i/6;burst(e.x+(o.x-e.x)*k,e.y+(o.y-e.y)*k,0x9cff6a,
 // Troll: its basket breaks open as the goblins jump out
 function trollFx(e){snd('h_cannon');burst(e.x,e.y,0x8a6a3a,12,1.3,1.1);burst(e.x,e.y,0x71903c,6,1.6,1.1);}
 function tfx(t){snd('f_'+t.k);const c={arrow:0xdcc9a0,cannon:0xcfc2a0,frost:0x9ff7ff,ballista:0xe8e0c8,storm:0x7fd8ff,alch:0x7cff4a}[t.k];if(!c)return;burst(t.x,t.y,c,t.k=='cannon'?7:t.k=='arrow'?2:5,t.k=='storm'?1.2:.8,t.head.position.y+.1);if(t.k=='cannon')fx(t.x,t.y,0xcfc2a0,.2,.7,.35,.3);}
-function killFx(e){snd('die_'+e.type);e.dt=0;e.dk=e.lk;e.fd=Math.random()<.5?-1:1;e.bx=e.m.position.x;e.bz=e.m.position.z;e.ice.visible=false;e.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});
+function killFx(e){snd('die_'+e.type);coins(e,Math.min(7,1+Math.floor(e.rw/8)));if(e.bs){shake(1);hitStop(.32);}else if(E[e.type].h>=1.8)hitStop(.07);e.dt=0;e.dk=e.lk;e.fd=Math.random()<.5?-1:1;e.bx=e.m.position.x;e.bz=e.m.position.z;e.ice.visible=false;e.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});
 if(e.shG)e.shG.visible=false;if(e.stG)e.stG.visible=false;if(e.fzG&&e.dk!='frost')e.fzG.visible=false;g.dying.push(e);const dk=e.dk;
 if(dk=='frost')burst(e.x,e.y,0x9ff7ff,22,1.8,.5);else if(dk=='storm')burst(e.x,e.y,0x7fd8ff,16,1.6,.5);else if(dk=='alch')burst(e.x,e.y,0x7cff4a,18,1.2,.4);else if(dk=='cannon')burst(e.x,e.y,0xcfc2a0,16,1.8,.3);
 if(e.bs){burst(e.x,e.y,0xff8c3a,26,2,.6);fx(e.x,e.y,0xffc060,.3,2.2,.6,.4);}

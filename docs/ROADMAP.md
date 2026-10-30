@@ -212,7 +212,7 @@ Add a level editor: paint roads, blocked cells, breach/gate positions and pick a
 
 ## Phase 7 – Juice
 
-- [ ] **38. Impact feedback**
+- [x] **38. Impact feedback**
 ```text
 Do a juice pass on combat: camera shake on catapult hits and boss deaths (with a setting to turn it off), a brief hit-stop on big kills, gold coins flying to the gold pill, and a big "Wave 10" / "Boss incoming" banner.
 ```

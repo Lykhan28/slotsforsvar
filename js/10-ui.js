@@ -104,7 +104,11 @@ function bossBar(){const e=g.en.find(o=>o.bs&&o.hp>0),el=$('bb');el.classList.to
 setH(el.firstChild,'<span class="bbn">'+FOE[e.type][0]+' '+BST[e.type][0]+'</span><span class="bbv">'+(e.lv>1?'💔 '+e.lv+' lives at the gate':'')+'</span>');el.lastChild.firstChild.style.width=(100*Math.max(0,e.hp)/e.max).toFixed(1)+'%';}
 // level-mechanic events (js/07-enemies.js): a banner over the board for a few seconds (#evt); ui() hides it again
 let evT=0;function evMsg(ic,t,d){const el=$('evt');el.innerHTML='<span class="ei">'+ic+'</span><span class="et"><b>'+t+'</b><em>'+d+'</em></span>';el.classList.add('on');evT=performance.now()+4500;}
-function ui(){bossBar();if(evT&&(performance.now()>evT||g.over)){evT=0;$('evt').classList.remove('on');}const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
+// big banner when a wave starts (#wban): "Wave 7" with its name, "Final wave", or "Boss incoming" with the boss's name; banW = the last wave announced
+let banW=0;function waveBan(){const el=$('wban'),bs=[...new Set(waveMix(g.wave).filter(t=>E[t].bs))],nm=waveName(g.wave),fin=!INF&&g.wave>=MAXW;
+el.className='';el.innerHTML=bs.length?'<em>Wave '+g.wave+'</em><b>Boss incoming</b><i>'+bs.map(t=>BST[t][0]).join(' & ')+'</i>':'<em>'+(fin?'Wave '+g.wave:nm||'&nbsp;')+'</em><b>'+(fin?'Final wave':'Wave '+g.wave)+'</b>'+(fin&&nm?'<i>'+nm+'</i>':'');
+void el.offsetWidth;el.className='on'+(bs.length?' boss':'');if(bs.length)shake(.5);}
+function ui(){bossBar();if(g.run&&g.wave!==banW){banW=g.wave;waveBan();}if(evT&&(performance.now()>evT||g.over)){evT=0;$('evt').classList.remove('on');}const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;
 // Repair gate: shown while a life is missing, greyed out when you can't afford it
 {const b=$('rep'),c=repCost(),show=g.lives<maxL()&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);

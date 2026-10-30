@@ -5,7 +5,7 @@ const GFX={glow:true,shadows:true,sharp:true,ao:!LOWQ};
 try{Object.assign(GFX,JSON.parse(localStorage.getItem('sfgfx')||'{}'));}catch(e){}
 function gfxApply(){if(bloom)bloom.enabled=GFX.glow;if(AO)AO.pass.enabled=GFX.ao;sun.castShadow=GFX.shadows;R.setPixelRatio(GFX.sharp?Math.min(devicePixelRatio,PP?1.75:2):1);resize();}
 // gameplay settings (localStorage sfopt): auto-start = the next wave starts by itself when the break countdown runs out
-const OPT={auto:false};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;
+const OPT={auto:false,shake:true};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;
 function optSet(k){OPT[k]=!OPT[k];try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}autoW=!!OPT.auto;ui();}
 function gfxSet(k){GFX[k]=!GFX[k];try{localStorage.setItem('sfgfx',JSON.stringify(GFX));}catch(e){}gfxApply();}
 // levels and stars, tracked per difficulty (DIFS in js/01-config.js): PROG[k] = {n: levels won (level i is unlocked when i <= n), st: best stars per level (0 = won before stars existed)}.
@@ -157,7 +157,7 @@ const q=[];for(const t of BSK){const s=SEEN[t],d=document.createElement('div');d
 d.innerHTML='<img alt="">'+'<div class="bt"><b>'+(s?BST[t][0]:'???')+'</b><p>'+(s?BST[t][1]:'Not met yet.')+'</p>'+(s?'<div class="chips">'+foeChips(t)+'</div><small>First met: '+(LEVELS[s[0]-1]?LEVELS[s[0]-1].n:'?')+', wave '+s[1]+'</small>':'')+'</div>';el.appendChild(d);q.push([d.firstChild,t]);}
 const step=()=>{const j=q.shift();if(!j||MENU.pg!='bestiary')return;j[0].src=portrait(j[1]);setTimeout(step,0);};setTimeout(step,0);}
 // settings: [label, current value, toggle]; music/sound reuse the HUD buttons so both stay in sync
-const OPTS=[['Auto-start waves',()=>OPT.auto,()=>optSet('auto')],['Music',()=>AU.on.m,()=>$('mu').onclick()],['Sound effects',()=>AU.on.s,()=>$('sf').onclick()],...(PP?[['Glow effects',()=>GFX.glow,()=>gfxSet('glow')]]:[]),...(AO?[['Ambient occlusion',()=>GFX.ao,()=>gfxSet('ao')]]:[]),['Shadows',()=>GFX.shadows,()=>gfxSet('shadows')],['High resolution',()=>GFX.sharp,()=>gfxSet('sharp')]];
+const OPTS=[['Auto-start waves',()=>OPT.auto,()=>optSet('auto')],['Screen shake',()=>OPT.shake,()=>optSet('shake')],['Music',()=>AU.on.m,()=>$('mu').onclick()],['Sound effects',()=>AU.on.s,()=>$('sf').onclick()],...(PP?[['Glow effects',()=>GFX.glow,()=>gfxSet('glow')]]:[]),...(AO?[['Ambient occlusion',()=>GFX.ao,()=>gfxSet('ao')]]:[]),['Shadows',()=>GFX.shadows,()=>gfxSet('shadows')],['High resolution',()=>GFX.sharp,()=>gfxSet('sharp')]];
 function mOpts(){const el=$('m_opts');el.innerHTML='';for(const[n,get,flip]of OPTS){const r=document.createElement('div'),b=document.createElement('button');r.className='mopt';r.textContent=n;b.className='wb';
 const lbl=()=>{b.textContent=get()?'On':'Off';b.classList.toggle('off',!get());};b.onclick=()=>{flip();lbl();};lbl();r.appendChild(b);el.appendChild(r);}}
 // changelog: CHANGELOG.md fetched and turned into a list (only "## date" headings and "- " bullets are shown)
