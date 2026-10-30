@@ -234,7 +234,7 @@ Show gate damage as lives drop (cracks, then a splintered gate, then fires). Add
 
 ## Phase 8 – Audio
 
-- [ ] **42. Theme music**
+- [x] **42. Theme music**
 ```text
 Give each level theme its own music variation using the existing WebAudio generator (different scale, tempo, instruments) for both calm and battle music.
 ```
