@@ -6,7 +6,11 @@ const free=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&!road.has(c+','+r)&&!blk.has(c+','+r)&&!
 // put a tower on the board (also used to restore a saved run)
 // br = level-3 upgrade branch (BRN), or null
 function addTw(k,c,r,l,inv,br){const t={k,c,r,x:c*S+S/2,y:r*S+S/2,l,cd:0,inv,br:br==null?null:br};if(T[k].bar)barInit(t);buildTower(t);g.tw.push(t);return t;}
-function tap(ev){if(g.over)return;const k=cellAt(ev);if(!k)return;const ex=g.tw.find(t=>t.c==k.c&&t.r==k.r);
+// game point under the pointer (after cellAt() has set pt)
+const ptX=()=>pt.x*S+W*S/2,ptY=()=>pt.z*S+H*S/2;
+function tap(ev){if(g.over)return;const k=cellAt(ev);if(!k)return;
+// a spell waiting for its spot (g.aim): this click casts it there
+if(g.aim!=null){if(heroCast(g.aim,ptX(),ptY())){g.aim=null;selRng();}else snd('click');ui();return;}const ex=g.tw.find(t=>t.c==k.c&&t.r==k.r);
 if(ex){g.sel=g.sel===ex?null:ex;selRng();ui();return;}
 // a Barracks is selected and a road cell in its range is clicked: move its rally point there
 const bs=g.sel;if(bs&&bs.sol&&road.has(k.c+','+k.r)){const x=k.c*S+S/2,y=k.r*S+S/2;if(Math.hypot(x-bs.x,y-bs.y)<=stat(bs).r){setRally(bs,x,y);snd('click');burst(x,y,0xffe6a0,6,.8,.1);selRng();ui();return;}}
@@ -16,7 +20,11 @@ if(onB(k.c,k.r)&&heroGo(k.c*S+S/2,k.r*S+S/2)){g.sel=null;heroMark(k.c*S+S/2,k.r*
 g.sel=null;if(g.run){if(free(k.c,k.r)){offMsg=performance.now()+2500;offT=['Wave in progress','⚔️ Towers can only be built between waves – command your hero instead. You can still upgrade towers.'];}}
 else if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
 selRng();ui();}
-function hover(ev){if(ev.pointerType!='mouse'||g.sel)return;if(g.run){if(rng.visible||COV.pv){rng.visible=false;COV.pv=null;covUpd();}return;}const k=cellAt(ev);
+function hover(ev){if(ev.pointerType!='mouse')return;
+// aiming a spell: its ring follows the pointer (red where it can't go)
+if(g.aim!=null){const k=cellAt(ev),a=HAB[g.aim];if(!k){rng.visible=false;return;}if(a.road){const ok=onB(k.c,k.r);showRng(cx(k.c),cz(k.r),.5,ok?0xffd24a:0xff6666);}
+else{const ok=k.c>=0&&k.c<W&&k.r>=0&&k.r<H;showRng(pt.x,pt.z,a.r/60,ok?0xffd24a:0xff6666);}return;}
+if(g.sel)return;if(g.run){if(rng.visible||COV.pv){rng.visible=false;COV.pv=null;covUpd();}return;}const k=cellAt(ev);
 const tp=T[g.build],ok=k&&(!tp.bar||nearRoad(k.c,k.r)),col=g.gold>=tp.c&&ok?0xffffff:0xff6666;
 // a Barracks must go next to the road: elsewhere its ring shows red
 if(k&&free(k.c,k.r)){showRng(cx(k.c),cz(k.r),tp.r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r:tp.r,col:g.gold>=tp.c&&ok?0xf0b840:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}
@@ -26,7 +34,7 @@ function pan(dx,dy){cine=null;const k=dist*.0022,s=Math.sin(az),c=Math.cos(az);t
 const ptrs=new Map();let dn=null,drag=false,pin=null;
 C.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.12:.89);},{passive:false});
 // right-click anywhere drops the selected tower; on the board it waits for pointerup so a right-drag pan keeps it
-function unsel(){if(g.sel){g.sel=null;selRng();ui();}}
+function unsel(){if(g.aim!=null){g.aim=null;selRng();ui();return;}if(g.sel){g.sel=null;selRng();ui();}}
 document.addEventListener('contextmenu',e=>{if(MENU.open)return;e.preventDefault();if(!C.contains(e.target))unsel();});
 C.addEventListener('pointerdown',e=>{cine=null;C.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
 if(ptrs.size==1){dn={x:e.clientX,y:e.clientY,az,pol,btn:e.button,sh:e.shiftKey};drag=false;}

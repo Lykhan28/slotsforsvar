@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
-function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
+g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
 function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
@@ -42,7 +42,7 @@ const upCost=t=>Math.round(T[t.k].c*.8*t.l);
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&g.wave<MAXW&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-zones(dt);soldiers(dt);heroUpd(dt);
+zones(dt);spells(dt);soldiers(dt);heroUpd(dt);
 for(const e of g.en){let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*dt;if(e.bk&&held(e))m=0;e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
@@ -61,7 +61,7 @@ for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trollSplit(e);
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
-if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}
+if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;g.aim=null;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=T[t.k].inc*t.l;g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}
 // Royal Bank: interest on the gold held after the wave's income
 for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.min(b.it[1],Math.floor(g.gold*b.it[0]));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
 // Sapper: once a tower stands within SAP.r it leaves the road, runs at it (40% faster) and blows up beside it, stunning it for SAP.st s (no gold for that);
@@ -104,22 +104,24 @@ function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1
 // falls and rides back out from the gate after HERO.rsp s. Abilities: HAB (cooldowns in h.ab, Divine Smite once a wave in h.ult), heroCast(i).
 // Looks: heroSync()/heroFx() in js/07-enemies.js (stubbed in the sim)
 const HERO={sp:110,eng:75,rg:26,hp:300,d:20,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
-const HAB=[{n:'Shield Bash',ic:'🛡️',cd:10,r:70,ds:'Slams his shield down: enemies around him are stunned for 2 s (bosses 0.7 s) and take double damage.'},
-{n:'Lance Charge',ic:'🐎',cd:15,r:100,ds:'Charges into the enemies around him, hurling them back down the road (bosses a little) and hitting each for triple damage.'},
-{n:'Rallying Cry',ic:'📯',cd:20,r:150,ds:'Towers near the hero attack 35% faster for 6 s.'},
+// abilities: three spells on cooldowns (castable anywhere during a wave, hero or not; aim = click a spot on the board after picking it, road = a road cell)
+// and Sir Roland's own Divine Smite (once a wave, centred on him)
+const HAB=[{n:'Rain of Arrows',ic:'🏹',cd:20,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
+{n:'Boiling Oil',ic:'🛢️',cd:30,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
+{n:'Reinforcements',ic:'⚔️',cd:35,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for 15 s, blocking anything on foot except bosses.'},
 {n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a wave: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
 const hst=h=>({hp:HERO.hp*(1+.35*(h.lv-1)),d:HERO.d*(1+.3*(h.lv-1))});
 // where he starts and respawns: the road cell nearest the gate
 function heroHome(){const gx=GATE.x*S+W*S/2,gy=GATE.z*S+H*S/2;let bd=Infinity,b=null;for(const k of road){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2,d=Math.hypot(x-gx,y-gy);if(onB(c,r)&&d<bd){bd=d;b={x,y};}}return b;}
 // the hero only goes to road cells on the board (not the breach or gate outside the wall)
 const onB=(c,r)=>c>=0&&c<W&&r>=0&&r<H&&road.has(c+','+r);
-function heroInit(){const p=heroHome();return{x:p.x,y:p.y,tx:p.x,ty:p.y,lv:1,xp:0,hp:HERO.hp,max:HERO.hp,cd:0,rs:0,e:null,dir:-PI/2,mv:0,sw:0,ab:[0,0,0],ult:1};}
+function heroInit(){const p=heroHome();return{x:p.x,y:p.y,tx:p.x,ty:p.y,lv:1,xp:0,hp:HERO.hp,max:HERO.hp,cd:0,rs:0,e:null,dir:-PI/2,mv:0,sw:0,ult:1};}
 const heroRel=h=>{if(h.e&&h.e.bk===h)h.e.bk=null;h.e=null;};
 // send him to (x,y) (a road cell centre); he drops his fight
 function heroGo(x,y){const h=g.hero;if(!h||h.hp<=0)return false;h.tx=x;h.ty=y;heroRel(h);return true;}
 function heroXp(e){const h=g.hero;if(!h||h.hp<=0||h.lv>=HERO.mx||Math.hypot(e.x-h.x,e.y-h.y)>HERO.xr)return;h.xp+=e.rw;
 while(h.lv<HERO.mx&&h.xp>=HERO.xp[h.lv]){h.lv++;const s=hst(h);h.hp=Math.min(s.hp,h.hp+(s.hp-h.max)+s.hp*.3);h.max=s.hp;heroLvl(h);}}
-function heroUpd(dt){const h=g.hero;if(!h)return;for(let i=0;i<3;i++)h.ab[i]=Math.max(0,h.ab[i]-dt);for(const t of g.tw)if(t.cry>0)t.cry-=dt;
+function heroUpd(dt){const h=g.hero;if(!h)return;
 if(h.hp<=0){h.rs-=dt;if(h.rs<=0){const p=heroHome(),s=hst(h);Object.assign(h,{x:p.x,y:p.y,tx:p.x,ty:p.y,hp:s.hp,max:s.hp,e:null,cd:0});}return;}
 const s=hst(h);if(h.max!==s.hp){h.hp+=s.hp-h.max;h.max=s.hp;}
 const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2;if(ride&&h.e)heroRel(h);
@@ -131,15 +133,35 @@ if(L>.01)h.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(HERO.sp*dt,L-stop)/
 if(e&&L<=HERO.rg+6){if(e.bk!==h&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=h;h.cd-=dt;if(h.cd<=0){h.cd=HERO.f;h.sw=1;const dd=s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.15,dd,'barracks',dx,dy);heroHit(h,e);}
 if(e.bk===h&&!(e.stun>0)){e.dir=Math.atan2(h.x-e.x,h.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;h.hp-=edmg(e)*(1-HERO.arm);h.hit=.2;if(h.hp<=0){h.rs=HERO.rsp;heroRel(h);heroFx(-1,h,[]);}}}}
 else if(!e)h.hp=Math.min(h.max,h.hp+h.max*HERO.reg*dt);}
-// ability i (0..3): returns false when it can't be used now (dead, on cooldown, Divine Smite used this wave or no wave running)
-function heroCast(i){const h=g.hero,a=HAB[i];if(!h||!a||h.hp<=0||g.over)return false;
-if(a.ult){if(!g.run||!h.ult)return false;h.ult=0;}else{if(h.ab[i]>0)return false;h.ab[i]=a.cd;}
-const s=hst(h),near=g.en.filter(e=>e.hp>0&&!e.out&&(a.ult||!e.fy)&&Math.hypot(e.x-h.x,e.y-h.y)<=a.r);
-if(i==0)for(const e of near){e.stun=Math.max(e.stun,e.bs?.7:2);const dd=2*s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.25,dd,'barracks');}
-if(i==1)for(const e of near){const dd=3*s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.25,dd,'barracks');pushBack(e,e.bs?15:45);e.px=e.x;e.py=e.y;}
-if(i==2)for(const t of g.tw)if(Math.hypot(t.x-h.x,t.y-h.y)<=a.r)t.cry=6;
-if(i==3){for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm');e.stun=Math.max(e.stun,1);}h.hp=h.max;}
-heroFx(i,h,near);return true;}
+// ability i (0..3) at game point (x,y) for the aimed spells: returns false when it can't be cast now (no wave running, on cooldown, a bad spot,
+// or for Divine Smite: hero dead or already used this wave)
+function heroCast(i,x,y){const h=g.hero,a=HAB[i];if(!a||g.over||!g.run)return false;
+if(a.ult){if(!h||h.hp<=0||!h.ult)return false;h.ult=0;const s=hst(h),near=g.en.filter(e=>e.hp>0&&!e.out&&Math.hypot(e.x-h.x,e.y-h.y)<=a.r);
+for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm');e.stun=Math.max(e.stun,1);}h.hp=h.max;heroFx(3,h,near);return true;}
+if(g.scd[i]>0)return false;
+if(a.aim&&!(x>=0&&x<W*S&&y>=0&&y<H*S))return false;
+if(a.road){const c=Math.floor(x/S),r=Math.floor(y/S);if(!onB(c,r))return false;x=c*S+S/2;y=r*S+S/2;}
+g.scd[i]=a.cd;
+if(i==0)g.sp.push({k:'rain',x,y,t:0,v:0});
+if(i==1){const d=SPN.oil*gob();for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
+addZone({k:'fire',x:q.x,y:q.y,r:a.r,t:4,d0:4,d:d*SPN.burn,sl:1});}for(const e of g.en)e.oil=0;spellFx(1,{tiles:gateTiles()});}
+if(i==2){const l=1+(g.wave>=8)+(g.wave>=15),t={k:'barracks',l,br:null,x,y,rp:{x,y},n:SPN.rn,tmp:SPN.rt,sol:[]};
+for(let j=0;j<SPN.rn;j++){const mx=solHp(t);t.sol.push({i:j,x:x+(j?14:-14),y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});}g.rf.push(t);spellFx(2,t);}
+return true;}
+// spell numbers: damage as a share of a goblin's health this wave (gob()), so they stay useful all game: Rain of Arrows rn volleys of rain each,
+// Boiling Oil oil at once then burn a second; Reinforcements: rn soldiers (Barracks level 1/2/3 from waves 1/8/15) for rt s
+const SPN={rain:.22,vol:4,oil:.9,burn:.25,rn:2,rt:15};
+const gob=()=>30*Math.pow(1.2,g.wave)*LV.hp;
+// the three on-board road cells nearest the gate (Boiling Oil): the hero's home cell and the next two along the road
+let GTL=null;
+function gateTiles(){if(GTL)return GTL;const h=heroHome(),c0=Math.floor(h.x/S),r0=Math.floor(h.y/S),seen=new Set([c0+','+r0]),q=[[c0,r0]];GTL=[];
+while(q.length&&GTL.length<3){const[c,r]=q.shift();GTL.push({x:c*S+S/2,y:r*S+S/2});for(const[dc,dr]of[[1,0],[-1,0],[0,1],[0,-1]]){const k=(c+dc)+','+(r+dr);if(!seen.has(k)&&onB(c+dc,r+dr)){seen.add(k);q.push([c+dc,r+dr]);}}}return GTL;}
+// active spells and squads, run from update(): cooldowns tick, Rain of Arrows drops a volley every 0.4 s, squads count down and leave
+function spells(dt){for(let i=0;i<3;i++)g.scd[i]=Math.max(0,g.scd[i]-dt);
+for(const p of g.sp){p.t+=dt;if(p.k=='rain'&&p.t>=.3+p.v*.4&&p.v<SPN.vol){p.v++;const d=SPN.rain*gob();
+for(const e of g.en)if(e.hp>0&&!e.out&&Math.hypot(e.x-p.x,e.y-p.y)<=HAB[0].r){const dd=d*dmul(e,'arrow');e.hp-=dd;hf(e,.15,dd,'arrow');}spellFx(0,p);}}
+if(g.sp.length)g.sp=g.sp.filter(p=>p.v<SPN.vol);
+for(const t of g.rf){t.tmp-=dt;if(t.tmp<=0||t.sol.every(d=>d.hp<=0)){barGone(t);squadEnd(t);}}if(g.rf.length)g.rf=g.rf.filter(t=>t.tmp>0&&t.sol.some(d=>d.hp>0));}
 // ---------- Barracks ----------
 // A Barracks stands next to the road (a road cell centre within BAR.near) and keeps BAR.n soldiers (t.sol) at its rally point t.rp, a road cell centre within its range.
 // Each soldier guards a post round the rally point; when a ground enemy comes within BAR.eng of the rally point it runs at it (unblocked ones first, then the one
@@ -163,11 +185,11 @@ function barGone(t){if(t.sol)for(const d of t.sol){if(d.e&&d.e.bk===d)d.e.bk=nul
 const post=(t,d)=>{const a=d.i/t.sol.length*2*PI+.5;return{x:t.rp.x+Math.sin(a)*16,y:t.rp.y+Math.cos(a)*16};};
 // is enemy e held by the soldier blocking it (alive and close enough)
 const held=e=>{const d=e.bk;return d.hp>0&&d.e===e&&Math.hypot(d.x-e.x,d.y-e.y)<=BAR.rg+6;};
-function soldiers(dt){for(const t of g.tw){if(!t.sol)continue;const s=stat(t),mx=solHp(t),br=tbr(t);
+function soldiers(dt){for(const t of g.rf.length?g.tw.concat(g.rf):g.tw){if(!t.sol)continue;const s=stat(t),mx=solHp(t),br=tbr(t);
 // a Warband's extra fighter marches out of the Barracks
-while(t.sol.length<solN(t))t.sol.push({i:t.sol.length,x:t.x,y:t.y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});
+while(t.sol.length<(t.n||solN(t)))t.sol.push({i:t.sol.length,x:t.x,y:t.y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});
 for(const d of t.sol){if(d.max!==mx){d.hp+=mx-d.max;d.max=mx;}
-if(d.hp<=0){if(!(t.stun>0))d.rs-=dt;if(d.rs<=0){d.hp=mx;d.x=t.x;d.y=t.y;d.cd=0;}continue;}
+if(d.hp<=0){if(t.tmp)continue;if(!(t.stun>0))d.rs-=dt;if(d.rs<=0){d.hp=mx;d.x=t.x;d.y=t.y;d.cd=0;}continue;}
 let e=d.e;if(e&&(e.hp<=0||e.out||e.bs||Math.hypot(e.x-t.rp.x,e.y-t.rp.y)>BAR.eng*1.6)){if(e.bk===d)e.bk=null;e=d.e=null;}
 if(!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||o.bs||Math.hypot(o.x-t.rp.x,o.y-t.rp.y)>BAR.eng)continue;const p=prog(o)-(o.bk&&o.bk.hp>0&&o.bk!==d?1e6:0);if(p>bp){bp=p;e=o;}}
 if(e){d.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=d;}}
@@ -195,11 +217,11 @@ const FIRE={dt:'fire'};
 function addZone(z){z.m=zoneFx(z);g.zn.push(z);}
 function zones(dt){for(const e of g.en)e.tf=1;if(!g.zn.length)return;
 for(const z of g.zn){z.t-=dt;for(const e of g.en){if(e.hp<=0||e.out||(e.fy&&z.k=='fire')||Math.hypot(e.x-z.x,e.y-z.y)>z.r)continue;
-if(z.k=='fire'){e.hp-=z.d*dmul(e,'cannon',FIRE)*dt;e.lk='cannon';if(Math.random()<dt*3)burst(e.x,e.y,0xff8a1f,1,.4,.4);}else e.tf=Math.min(e.tf,1-(1-z.f)*(e.bs?.34:1));}}
+if(z.k=='fire'){e.hp-=z.d*dmul(e,'cannon',FIRE)*dt;e.lk='cannon';if(z.sl){e.sl=Math.max(e.sl,.3);e.slf=.5;}if(Math.random()<dt*3)burst(e.x,e.y,0xff8a1f,1,.4,.4);}else e.tf=Math.min(e.tf,1-(1-z.f)*(e.bs?.34:1));}}
 for(const z of g.zn)if(z.t<=0)zoneEnd(z);g.zn=g.zn.filter(z=>z.t>0);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
-for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);rallyHide();heroSync(dt);
+for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;
@@ -212,7 +234,7 @@ if(t.flag)t.flag.rotation.y=Math.sin(tt*3+t.c)*.35;if(t.sol)solSync(t,dt);
 if(t.stun>0){if(!t.stG){const gq=new THREE.Group();for(let i=0;i<4;i++){const m=new THREE.Mesh(geo('oct'),STARM);m.scale.set(.07,.1,.07);gq.add(m);}t.stG=gq;t.m.add(gq);}t.stG.visible=true;
 t.stG.children.forEach((m,i)=>{const a=tt*5+i*PI/2;m.position.set(Math.cos(a)*.38,t.head.position.y+.55+Math.sin(a*2)*.05,Math.sin(a)*.38);m.rotation.y=a*2;});if(dt>0&&Math.random()<dt*5)fx(t.x,t.y,0x4a4a4a,.08,.35,.9,t.head.position.y+.3+Math.random()*.3);}
 else if(t.stG)t.stG.visible=false;
-if(t.buff>1||t.cry>0){if(!t.aura)t.aura=glow(t.m,0,.2,0,1.3,0xc9902a);t.aura.visible=true;t.aura.scale.setScalar(1.3+Math.sin(tt*3+t.c)*.1);}else if(t.aura)t.aura.visible=false;fl(t.fl,t.c);}
+if(t.buff>1){if(!t.aura)t.aura=glow(t.m,0,.2,0,1.3,0xc9902a);t.aura.visible=true;t.aura.scale.setScalar(1.3+Math.sin(tt*3+t.c)*.1);}else if(t.aura)t.aura.visible=false;fl(t.fl,t.c);}
 for(const b of g.bu){const e=b.tg,ty=e.fy||.4,p=1-Math.hypot(e.x-b.x,e.y-b.y)/b.d0,y=b.y0+(ty-b.y0)*p+(T[b.k].arc?Math.sin(clamp(p,0,1)*PI)*.7:0);
 b.m.position.set(wx(b.x),y,wz(b.y));if(b.k=='arrow'||b.k=='ballista')b.m.lookAt(wx(e.x),ty,wz(e.y));else b.m.rotation.x+=dt*8;if(b.k=='cannon'&&dt>0&&Math.random()<.4)fx(b.x,b.y,0xdddddd,.04,.14,.35,y);}
 for(let i=fxs.length-1;i>=0;i--){const f=fxs[i];f.t+=dt;const p=f.t/f.d;if(p>=1){sc.remove(f.m);f.m.material.dispose();fxs.splice(i,1);continue;}f.m.scale.setScalar(f.s0+(f.s1-f.s0)*p);f.m.material.opacity=.7*(1-p);}

@@ -126,7 +126,7 @@ Add a hero (a knight on horseback) the player can move by clicking the road. The
 
 ## Phase 4 – Player abilities
 
-- [ ] **22. Spells**
+- [x] **22. Spells** (on the hero bar, keys 1–3; Rain of Arrows and Reinforcements are aimed with a click, Boiling Oil always hits the three tiles at the gate)
 ```text
 Add three spells with cooldowns and HUD buttons (keys Z/X/V): Rain of Arrows (area damage), Boiling Oil (damages everything near the gate) and Reinforcements (two temporary soldiers). Make them feel impactful with effects and sounds.
 ```

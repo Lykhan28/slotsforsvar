@@ -479,14 +479,25 @@ r.RD.rotation.x=sk?Math.sin(q*PI)*.32:0;if(sk)r.BD.rotation.x=-Math.sin(q*PI)*.0
 const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2,showR=g.run&&!ride&&!g.over;h.rg.visible=showR;if(showR){h.rg.position.x=wx(h.tx);h.rg.position.z=wz(h.ty);h.rg.scale.setScalar(HERO.eng/60);h.rg.material.color.setHex(h.e?0xffd24a:0xffffff);h.rg.material.color.convertSRGBToLinear();h.rg.material.opacity=h.e?.55:.22;}
 const fe=h.e&&h.e.hp>0?h.e:null;h.tg.visible=!!fe&&!g.over;if(fe){h.tg.position.x=wx(fe.x);h.tg.position.z=wz(fe.y);h.tg.scale.setScalar(.38+Math.sin(tt*8)*.03);}
 const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:hr>.25?0xf1a43c:0xe74c3c);}}
+// ---------- spell looks (logic: heroCast()/spells() in js/09-game.js) ----------
+// falling arrows and oil streams are short-lived meshes in SPA, moved by spellAnim(); i: 0 a Rain of Arrows volley (p = the spell), 1 Boiling Oil (p.tiles), 2 Reinforcements arrive (p = the squad)
+const SPA=[];
+function spellFx(i,p){if(i==0){if(p.v==1){fx(p.x,p.y,0xd8cbb0,.2,HAB[0].r/60,.5,.04,true);snd('horn');}snd('rain');setTimeout(()=>snd('h_arrow'),280);
+for(let k=0;k<22;k++){const a=rnd(0,2*PI),d=Math.sqrt(Math.random())*HAB[0].r,x=p.x+Math.cos(a)*d,y=p.y+Math.sin(a)*d,m=mkBullet('arrow'),t0=rnd(0,.15);m.scale.setScalar(1.4);
+m.visible=false;SPA.push({k:'arw',m,x,y,t:-t0,d:.35,dx:-.9,dz:-.5});}}
+if(i==1){snd('oil');snd('boom');for(const q of p.tiles){const m=L1(new THREE.Mesh(geo('cyl'),new THREE.MeshBasicMaterial({color:new THREE.Color(0xc86414).convertSRGBToLinear(),transparent:true,opacity:.95})));m.position.set(wx(q.x),1.4,wz(q.y));m.scale.set(.12,2.8,.12);sc.add(m);
+SPA.push({k:'oil',m,x:q.x,y:q.y,t:0,d:.55});setTimeout(()=>{burst(q.x,q.y,0xc86414,16,1.8,.1);burst(q.x,q.y,0xffb040,10,1.4,.1);fx(q.x,q.y,0x8a4a14,.3,1.1,.8,.03,true);for(let j=0;j<3;j++)fx(q.x+rnd(-20,20),q.y+rnd(-20,20),0xd8d0c8,.1,.6,1.2,.4+j*.25);},420);}}
+if(i==2){snd('reinf');for(const d of p.sol){fx(d.x,d.y,0xffe6a0,.1,.9,.6,.05,true);fx(d.x,d.y,0xfff2c0,.15,.5,.5,.8);burst(d.x,d.y,P.gd,12,1.3,.4);burst(d.x,d.y,0xd8cbb0,8,1,.1);}}}
+function spellAnim(dt){for(let i=SPA.length-1;i>=0;i--){const a=SPA[i];a.t+=dt;if(a.k=='arw'){if(a.t<0)continue;const f=Math.min(1,a.t/a.d);a.m.visible=true;
+a.m.position.set(wx(a.x)-a.dx*(1-f)*1.6,.25+2.6*(1-f),wz(a.y)-a.dz*(1-f)*1.6);a.m.lookAt(wx(a.x),0,wz(a.y));if(f>=1){sc.remove(a.m);SPA.splice(i,1);burst(a.x,a.y,0xd8cbb0,2,.5,.05);}}
+else{const f=a.t/a.d;a.m.scale.set(.12*(1-f*.6),2.8*(1-f),.12*(1-f*.6));a.m.position.y=1.4*(1-f)+.05;if(f>=1){sc.remove(a.m);a.m.material.dispose();SPA.splice(i,1);}}}}
+// a squad's time is up (or it fell): a puff of dust where each soldier stood
+function squadEnd(t){if(t.sg)sc.remove(t.sg);for(const d of t.sol)if(d.hp>0){burst(d.x,d.y,0xd8cbb0,8,1,.3);fx(d.x,d.y,0xffe6a0,.1,.6,.4,.05,true);}}
 // each hit lands with a bright spark and a flash on the enemy
 function heroHit(h,e){const y=.55;burst(e.x,e.y,0xfff2c0,7,1.3,y);fx(e.x,e.y,0xffffff,.08,.45,.18,y);}
 function heroLvl(h){snd('upgrade');popText(h.x,h.y,'Level '+h.lv+'!','#ffe08a');burst(h.x,h.y,P.gd,16,1.5,.6);fx(h.x,h.y,0xffd24a,.2,1.2,.6,.1,true);}
-// ability looks: -1 the hero falls, 0 Shield Bash, 1 Lance Charge, 2 Rallying Cry, 3 Divine Smite; near = the enemies it hit
+// hero looks: -1 he falls, 3 Divine Smite (near = the enemies it hit)
 function heroFx(i,h,near){if(i<0){snd('die_sol');burst(h.x,h.y,0xc8ccd4,12,1.2,.5);burst(h.x,h.y,0x7a4a2a,8,1,.3);return;}
-if(i==0){snd('block');snd('boom');fx(h.x,h.y,0xdfe6ee,.2,HAB[0].r/60,.4,.08,true);burst(h.x,h.y,0xdfe6ee,12,1.4,.3);}
-if(i==1){snd('roar');fx(h.x,h.y,0xe9c98a,.2,HAB[1].r/60,.45,.06,true);for(const e of near)burst(e.x,e.y,0xd8cbb0,6,1,.2);h.sw=1;}
-if(i==2){snd('horn');fx(h.x,h.y,0xffd24a,.2,HAB[2].r/60,.7,.06,true);burst(h.x,h.y,P.gd,14,1.3,1.2);for(const t of g.tw)if(t.cry>0)burst(t.x,t.y,P.gd,6,1,.8);}
 if(i==3){snd('f_storm');snd('boom');fx(h.x,h.y,0xfff2c0,.3,HAB[3].r/60,.6,.08,true);fx(h.x,h.y,0xffffff,.2,1.6,.35,.6);for(const e of near){const y=e.fy||.45;bolt(e.x,e.y,4.5,e.x,e.y,y,true);burst(e.x,e.y,0xfff2c0,8,1.2,y);}}}
 // Plague spreading from a dying enemy: a purple ring as wide as its reach
 function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x8a4ab0,10,1,.3);}
@@ -494,7 +505,7 @@ function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.use
 function zoneAnim(dt){for(const z of g.zn){const k=clamp(z.t,0,1);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*k*(z.k=='fire'?.85+.15*Math.sin(tt*9+m.id):1);});
 z.fl.forEach((f,i)=>{const b=f.userData.b;if(b)f.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});if(z.sp){z.sp.rotation.y-=dt*.8;z.sp.position.y=Math.sin(tt*2)*.03;}}}
 // banners: +damage to towers in range; War Drums also add attack speed (t.hs), a Blessed Standard sets t.bls (tbr() in js/09-game.js)
-function buffs(){for(const t of g.tw){t.buff=1;t.hs=t.cry>0?1.35:1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
+function buffs(){for(const t of g.tw){t.buff=1;t.hs=1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
 // br = the tower's upgrade branch: Crossbow Nest bolts, Fire Pots (a glowing clay pot), the Boulder (twice the size), Archmage/Time Warden orbs
 function mkBullet(k,br){const bi=br?BRN[k].indexOf(br):-1;
 if(k=='arrow'&&bi==1){const a=new THREE.Group();part(a,'box',0x5a3a1e,.035,.035,.24,0,0,0);part(a,'cone',0x9aa3b0,.05,.08,.05,0,0,.15).rotation.x=PI/2;part(a,'box',0x2b3342,.06,.012,.05,0,0,-.1);part(a,'box',0x2b3342,.012,.06,.05,0,0,-.1);sc.add(a);return a;}
