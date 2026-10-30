@@ -9,7 +9,7 @@ const seaK=(x,z)=>TH.sea?sm(1.6,3.2,-ZF*z-HZ)*sm(0,3,cDist(x,z)):0;
 const gh=(x,z)=>{const k=seaK(x,z);return -.15+sm(0,9,Math.max(Math.abs(x)-HX-1.63,Math.abs(z)-HZ-1.43,0))*sm(0,3,cDist(x,z))*(nz(x,z)*1.1+1.3)*TH.hl*(1-k)-4*k;};
 // the far side of the board (away from the default camera) gets most of the scenery; ZF flips z when the camera looks from the north
 const ZF=CAM0.az?-1:1,rzf=(a,b)=>ZF*rnd(a,b);
-const flames=[],flags=[],emit=[],smoke=[],trees=[],clouds=[],mists=[],keepOut=[],ripples=[],RIPG=new THREE.RingGeometry(.85,1,28).rotateX(-PI/2);let mill,KEEP,KEEP0;
+const flames=[],flags=[],emit=[],smoke=[],trees=[],clouds=[],mists=[],keepOut=[],ripples=[],RIPG=new THREE.RingGeometry(.85,1,28).rotateX(-PI/2);let mill,KEEP,KEEP0,GOKG,GD1,GD2,GD3,GDS=0,GDI=false;const GFL=[],GSM=[];
 const ST=new THREE.Group();sc.add(ST);
 const RKM=TH.rc?PBR(TX.rock,TH.rc):M.rock;
 // barren lands (theme gt:'dirt') use bare earth instead of grass for the ground and the board
@@ -172,8 +172,25 @@ flags.push(flag(g,0,h+H2+.03,0,roof,Math.max(.9,r*1.8)));return g;}
 twr(X0,Z0,.58,2.4,P.bl);twr(X1,Z0,.58,2.4,P.rd);twr(X0,Z1,.58,2.4,P.rd);twr(X1,Z1,.58,2.4,P.bl);twr(10.5,Z0,.42,1.9,P.rd,[.4]);twr(10.5,Z1,.42,1.9,P.bl,[.4]);twr(X1,2.5,.45,2.0,P.bl,[.4,.75]);twr(X0,1.55,.45,2.2,P.rd);twr(X0,3.45,.45,2.2,P.rd);
 cwall(X0,Z0,X0,1.55,WH);cwall(X0,3.45,X0,Z1,WH);cwall(X0,Z0,X1,Z0,WH);cwall(X0,Z1,X1,Z1,WH);cwall(X1,Z0,X1,Z1,WH);
 part(CG,'box',P.st,.56,.4,1.9,X0,1.45,2.5);part(CG,'box',P.st3,.64,.1,2.0,X0,1.7,2.5);part(CG,'box',P.st2,.6,.22,.3,X0,1.2,2.5);
-for(let i=0;i<7;i++)part(CG,'box',0x4a4a5a,.04,.5,.04,X0-.14,.92,2.1+i*.133);for(let j=0;j<3;j++)part(CG,'box',0x4a4a5a,.04,.04,.9,X0-.14,.78+j*.16,2.5);
-part(CG,'box',P.wd,.45,.9,.06,X0+.4,.45,2.12).rotation.y=-.9;part(CG,'box',P.wd,.45,.9,.06,X0+.4,.45,2.88).rotation.y=.9;
+// the portcullis and the doors are their own group (GOK), swapped for broken ones by gate damage (gateDmg() below)
+const GOK=new THREE.Group();GOK.userData.keep=true;CG.add(GOK);for(let i=0;i<7;i++)part(GOK,'box',0x4a4a5a,.04,.5,.04,X0-.14,.92,2.1+i*.133);for(let j=0;j<3;j++)part(GOK,'box',0x4a4a5a,.04,.04,.9,X0-.14,.78+j*.16,2.5);
+part(GOK,'box',P.wd,.45,.9,.06,X0+.4,.45,2.12).rotation.y=-.9;part(GOK,'box',P.wd,.45,.9,.06,X0+.4,.45,2.88).rotation.y=.9;bake(GOK);
+// gate damage as lives drop (castle coordinates; shown by gateDmg()): GD1 cracks in the gatehouse and its towers plus fallen stones, GD2 the splintered gate –
+// a broken portcullis, one door hanging, one flat on the bridge, splinters everywhere – and GD3 fires, scorch marks and smoke (flames in GFL, smoke puffs in GSM)
+{const gc=(G,x,y,z,n)=>{let p=[z,y],a=-PI/2+rnd(-.5,.5);for(let i=0;i<n;i++){const L=rnd(.05,.11);a+=rnd(-.8,.8);a=clamp(a,-PI+.35,-.35);const q=[p[0]+Math.cos(a)*L,p[1]+Math.sin(a)*L];
+part(G,'box',0x1c1612,.014,L,.016,x,(p[1]+q[1])/2,(p[0]+q[0])/2).rotation.x=PI/2-a;if(i==2&&n>4)gc(G,x,q[1],q[0],3);p=q;}};
+GD1=new THREE.Group();GD2=new THREE.Group();GD3=new THREE.Group();for(const G of[GD1,GD2,GD3]){G.userData.keep=true;G.visible=false;CG.add(G);}
+for(const[y,z,n]of[[1.62,2.0,6],[1.6,2.85,7],[1.55,2.45,4],[1.3,2.3,3]])gc(GD1,X0-.29,y,z,n);
+for(const[z,f]of[[1.55,.5],[3.45,.35],[1.55,.8]]){const r=.45*(1-.22*f);gc(GD1,X0-r-.012,2.2*f,z,5);}
+for(let i=0;i<7;i++){const s=rnd(.06,.12);part(GD1,'box',[P.st2,P.st3,P.st][i%3],s,s*.8,s,rnd(7.45,7.95),.15+s*.4,rnd(1.75,3.25)).rotation.set(rnd(0,1),rnd(0,3),rnd(0,1));}
+for(let i=0;i<7;i++){if(i==1||i==4)continue;const b=part(GD2,'box',0x4a4a5a,.04,.5,.04,X0-.14,.92-(i%3==2?.22:0),2.1+i*.133);b.rotation.x=rnd(-.3,.3);}
+part(GD2,'box',0x4a4a5a,.04,.04,.9,X0-.14,1.1,2.5).rotation.x=.2;for(const z of[2.3,2.75])part(GD2,'box',0x4a4a5a,.04,.04,.5,7.7,.18,z).rotation.y=rnd(-.8,.8);
+const dh=part(GD2,'box',P.wd,.45,.9,.06,X0+.28,.5,2.16);dh.rotation.set(0,-.45,.38);const df=part(GD2,'box',P.wd,.45,.06,.9,7.72,.2,2.72);df.rotation.set(0,.35,.06);
+for(let i=0;i<16;i++)part(GD2,'box',i%2?P.wd:P.wd2,.022,.022,rnd(.07,.2),rnd(7.25,8.45),.17,rnd(1.95,3.05)).rotation.set(rnd(-.2,.2),rnd(0,PI),0);
+for(const[y,z,w,h]of[[1.45,2.25,.5,.32],[1.5,2.85,.4,.28],[.6,2.2,.3,.5]])part(GD3,'box',0x17120e,.012,h,w,X0-.292,y,z);
+for(const[x,y,z,s]of[[X0,1.72,2.05,1.7],[X0,1.72,2.95,1.5],[X0+.28,.55,2.2,1.2],[7.72,.24,2.72,1.5],[X0-.05,2.32,1.55,1.2]])flame(GD3,x,y,z,s,GFL,.8);
+for(let i=0;i<7;i++){const m=new THREE.Mesh(geo('sph'),new THREE.MeshBasicMaterial({color:0x2e2a28,transparent:true,opacity:0,depthWrite:false}));m.userData.keep=true;m.castShadow=false;GD3.add(m);GSM.push({m,ph:i/7,z:rnd(2.05,2.95)});}
+for(const G of[GD1,GD2])bake(G);bake(GD3);GOKG=GOK;}
 part(CG,'box',P.wd,1.3,.06,.9,7.55,.07,2.5);rod(CG,X0,1.6,2.0,7.0,.12,2.0,.02,0x5a5a68);rod(CG,X0,1.6,3.0,7.0,.12,3.0,.02,0x5a5a68);torch(CG,X0-.62,.8,1.9);torch(CG,X0-.62,.8,3.1);
 part(CG,'box',P.st2,X1-X0-.5,.1,Z1-Z0-.5,(X0+X1)/2,0,(Z0+Z1)/2);
 const K=twr(11.9,2.5,.82,3.8,P.rd,[.25,.45,.65,.85]);KEEP=K;K.userData.keep=true;part(K,'cyl',P.st3,.98,.08,.98,0,2.6,0);for(let i=0;i<16;i++){const an=i/16*2*PI;part(K,'cyl',P.wd,.015,.14,.015,.95*Math.sin(an),2.69,.95*Math.cos(an));}
@@ -449,3 +466,10 @@ covM.visible=on||!!sh;if(!covM.visible)return;
 RC.forEach(([c,r],i)=>{const x=c*S+S/2,y=r*S+S/2,inR=t=>Math.hypot(t.x-x,t.y-y)<=t.r,n=on?tw.filter(inR).length:0,show=road.has(c+','+r)&&(on||inR(sh));
 _cm.makeScale(show?1:0,1,show?1:0).setPosition(cx(c),0,cz(r));covM.setMatrixAt(i,_cm);covM.setColorAt(i,_cc.setHex(on?COVC[Math.min(n,5)]:sh.col));});
 covM.instanceMatrix.needsUpdate=true;covM.instanceColor.needsUpdate=true;}
+// gate damage: the stage follows the lives left (above 75% none, then cracks, the splintered gate, fires); called from ui(), so a repair heals it too.
+// Getting worse throws dust and splinters (not when a saved run loads already damaged); gateAnim() (from sync()) flickers the fires and lifts the smoke.
+function gateDmg(){const f=g.lives/maxL(),st=f>.75?0:f>.5?1:f>.25?2:3;if(st===GDS&&GDI)return;
+if(GDI&&st>GDS){const q=CW(7.85,2.5),x=q.x*S+W*S/2,y=q.z*S+H*S/2;burst(x,y,0x8a8070,16,1.6,.6);if(st>=2)burst(x,y,P.wd,12,1.6,.5);fx(x,y,0xc8b48a,.2,1.6,.6,.1,true);snd('h_cannon');shake(.3);}
+GDS=st;GDI=true;GD1.visible=st>=1;GOKG.visible=st<2;GD2.visible=st>=2;GD3.visible=st>=3;}
+function gateAnim(dt){if(GDS<3)return;GFL.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.35*Math.sin(tt*15+i*2)),b.z);});
+for(const o of GSM){const p=(tt*.22+o.ph)%1;o.m.position.set(7.95-p*.5+Math.sin(p*6+o.ph*9)*.08,1.8+p*1.7,o.z);o.m.scale.setScalar(.08+p*.3);o.m.material.opacity=.45*(1-p)*Math.min(1,p*5);}}

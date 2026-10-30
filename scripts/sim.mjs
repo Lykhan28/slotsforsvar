@@ -30,7 +30,7 @@ Options:
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
   --early          call every wave early ("Call wave early" button) and collect the full early bonus;
                    without it each wave starts the moment the last one ends, with no bonus
-  --no-hero        play without the hero (Sir Roland); the spells still work
+  --no-hero        play without the hero (Sir Kirkevang); the spells still work
   --no-cast        never use the spells or Divine Smite (by default the sim casts them like a player would:
                    Rain of Arrows on the biggest crowd of 4+, Boiling Oil with 3+ enemies at the gate,
                    Reinforcements in front of the leading enemy on foot when 4+ are on the board,

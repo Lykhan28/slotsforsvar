@@ -227,7 +227,7 @@ Give each enemy type more varied deaths: knights drop their shield and topple, w
 Add a build animation (scaffolding and dust as the tower rises, then crew pop in) and an upgrade animation. Make the crewmen react: cheer on kills, flinch when the gate is hit.
 ```
 
-- [ ] **41. Gate damage and story**
+- [x] **41. Gate damage and story**
 ```text
 Show gate damage as lives drop (cracks, then a splintered gate, then fires). Add a short narrator line before each level and after winning, written in natural English, shown as a parchment card.
 ```

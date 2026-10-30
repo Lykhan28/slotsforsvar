@@ -56,7 +56,7 @@ const PERKS=[
 {id:'smith',ic:'🔨',n:'Master Smiths',mx:2,c:[3,4],v:.05,d:'Tower upgrades cost 5% less'},
 {id:'gold',ic:'💰',n:'War Chest',mx:3,c:[2,3,4],v:20,d:'Start every level with +20 gold'},
 {id:'wall',ic:'🧱',n:'Stonemasons',mx:2,c:[3,5],v:1,d:'+1 life (and one more for the Repair gate)'},
-{id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Roland gets +10% health and damage'},
+{id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Kirkevang gets +10% health and damage'},
 {id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:.06,d:'Spell cooldowns are 6% shorter'}];
 const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'arch',cannon:'siege',ballista:'siege',frost:'arc',storm:'arc',alch:'arc'};
 const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1)*crysM(t.c,t.r),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r)*darkM(t),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)*coldM(t)/(t.oc>0?MECH.bolt.f:1)};};
@@ -130,7 +130,7 @@ function repair(){if(g.over||g.lives>=maxL())return false;const c=repCost();if(g
 // move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
 function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
 // ---------- Hero ----------
-// Sir Roland, a knight on horseback (g.hero). He starts on the road cell nearest the gate; a click on the road sends him there (heroGo). He rides straight
+// Sir Kirkevang, a knight on horseback (g.hero). He starts on the road cell nearest the gate; a click on the road sends him there (heroGo). He rides straight
 // across the board, and once he has arrived he fights like a Barracks soldier: he runs at the nearest ground enemy within HERO.eng of his spot (unblocked ones
 // first, then the one closest to the castle), blocks it (e.bk) and trades blows (he shrugs off HERO.arm of every hit). Flyers and faded Ghosts are ignored.
 // He earns xp from every enemy that dies within HERO.xr of him (its gold value) and levels up to HERO.mx (+35% health, +30% damage a level). At 0 health he
@@ -138,7 +138,7 @@ function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1
 // Looks: heroSync()/heroFx() in js/07-enemies.js (stubbed in the sim)
 const HERO={sp:110,eng:75,rg:26,hp:300,d:20,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
 // abilities: three spells on cooldowns (castable anywhere during a wave, hero or not; aim = click a spot on the board after picking it, road = a road cell)
-// and Sir Roland's own Divine Smite (once a wave, centred on him)
+// and Sir Kirkevang's own Divine Smite (once a wave, centred on him)
 const HAB=[{n:'Rain of Arrows',ic:'🏹',cd:20,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
 {n:'Boiling Oil',ic:'🛢️',cd:30,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
 {n:'Reinforcements',ic:'⚔️',cd:35,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for 15 s, blocking anything on foot except bosses.'},
@@ -372,4 +372,4 @@ for(let i=txts.length-1;i>=0;i--){const q=txts[i];q.t+=dt;if(q.t>=1){sc.remove(q
 for(let i=bolts.length-1;i>=0;i--){const q=bolts[i];q.t+=dt;if(q.t>.18){sc.remove(q.g);bolts.splice(i,1);}else if(dt>0)q.g.visible=Math.random()>.15;}fl(flames,0);flags.forEach((f,i)=>f.rotation.y=Math.sin(tt*3*FS+i*1.7)*.35*(FS>1?1.5:1));
 smoke.forEach(s=>{const p=(tt*.2+s.ph)%1;s.m.position.set(s.e[0]+p*.35+Math.sin(p*7+s.ph*9)*.04,s.e[1]+p*1.1,s.e[2]);s.m.scale.setScalar(.04+p*.17);s.m.material.opacity=.5*(1-p);});
 trees.forEach(t=>t.rotation.z=Math.sin(tt*1.2+t.userData.ph)*.03);clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>34)c.position.x=-34;});
-gls.forEach((l,i)=>l.intensity=.65+.2*Math.sin(tt*13+i*2));cl.intensity=.65+.2*Math.sin(tt*11+1);if(mill)mill.rotation.z+=dt*.7;moteAnim(dt);}
+gls.forEach((l,i)=>l.intensity=.65+.2*Math.sin(tt*13+i*2));cl.intensity=.65+.2*Math.sin(tt*11+1);if(mill)mill.rotation.z+=dt*.7;moteAnim(dt);gateAnim(dt);}

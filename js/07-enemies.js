@@ -523,7 +523,7 @@ function rallyHide(){if(RFL&&!(g.sel&&g.sel.sol))RFL.visible=false;}
 // a soldier falls: a puff of dust and a clank (it respawns at the tower)
 function solDie(t,d){snd('die_sol');burst(d.x,d.y,0x9aa3b0,8,1,.4);burst(d.x,d.y,0xd8cbb0,6,.8,.2);}
 // ---------- the hero's looks (logic: heroUpd()/heroCast() in js/09-game.js) ----------
-// Sir Roland: a bay horse in a blue caparison with gold trim (legs on pivots L0..L3, tail TL, the whole body on BD so it can bob), and a knight in silver
+// Sir Kirkevang: a bay horse in a blue caparison with gold trim (legs on pivots L0..L3, tail TL, the whole body on BD so it can bob), and a knight in silver
 // plate with a gold circlet, a red plume and cape, a blue kite shield and a sword on its pivot SW (the chibi soldier from js/05-towers.js, scaled up)
 let HTPL=null;
 function heroTpl(){if(HTPL)return HTPL;const G=new THREE.Group(),B=piv(G,'BD',0,0,0),hc=0x7a4a2a,dk=0x3a2416,hf=0x2a2018;

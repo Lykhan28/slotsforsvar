@@ -96,7 +96,7 @@ return h+'<div class="chips">'+c.join('')+'</div>';}
 // the hero in the inspector (during a wave with nothing selected): level, health, damage, xp and his abilities; ai = a hovered ability tile
 function heroHTML(ai){const h=g.hero,s=hst(h),nx=h.lv<HERO.mx?HERO.xp[h.lv]:null,sm=x=>' <small>'+x+'</small>';
 if(ai!=null){const a=HAB[ai];return '<div class="ih"><div class="iic">'+a.ic+'</div><div class="ihn"><b>'+a.n+'</b><span class="tag">'+(a.ult?'Once a wave':'Every '+a.cd+'s')+' · key '+(ai+1)+(a.aim?' · then click':'')+'</span></div></div><p class="ds">'+a.ds+'</p>';}
-return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Roland</b><span class="tag">Hero · level '+h.lv+'</span></div></div>'+
+return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Kirkevang</b><span class="tag">Hero · level '+h.lv+'</span></div></div>'+
 '<div class="sts">'+row('Health',h.hp>0?Math.ceil(h.hp)+sm('of '+Math.round(h.max)):'Fallen'+sm('back in '+Math.ceil(h.rs)+'s'))+row('Damage',fmt(s.d)+sm('a swing · '+HERO.f+'s'))+row('Experience',nx?h.xp+sm('of '+nx):'Max level')+'</div>'+
 '<div class="chips"><span class="chip">🛡️ Blocks enemies on foot</span><span class="chip">🚩 Click the road to send him</span><span class="chip">Abilities: keys 1–4</span></div>';}
 // boss health bar across the top of the view while a boss is on the board
@@ -108,7 +108,15 @@ let evT=0;function evMsg(ic,t,d){const el=$('evt');el.innerHTML='<span class="ei
 let banW=0;function waveBan(){const el=$('wban'),bs=[...new Set(waveMix(g.wave).filter(t=>E[t].bs))],nm=waveName(g.wave),fin=!INF&&g.wave>=MAXW;
 el.className='';el.innerHTML=bs.length?'<em>Wave '+g.wave+'</em><b>Boss incoming</b><i>'+bs.map(t=>BST[t][0]).join(' & ')+'</i>':'<em>'+(fin?'Wave '+g.wave:nm||'&nbsp;')+'</em><b>'+(fin?'Final wave':'Wave '+g.wave)+'</b>'+(fin&&nm?'<i>'+nm+'</i>':'');
 void el.offsetWidth;el.className='on'+(bs.length?' boss':'');if(bs.length)shake(.5);}
-function ui(){bossBar();if(g.run&&g.wave!==banW){banW=g.wave;waveBan();}if(evT&&(performance.now()>evT||g.over)){evT=0;$('evt').classList.remove('on');}const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
+// narrator card (#sty): STORY[LVN][0] when a level starts fresh (once a page load: menu closed, wave 0, nothing built, not endless),
+// [1] after a win, before the end screen (#ov waits while it is open); a click or Space/Enter/Esc closes it
+const STY={open:false,pre:false};
+function storyShow(i){const s=STORY[LVN];if(!s)return;$('sty').innerHTML='<div class="parch"><small>'+(i?'Victory':'Chapter '+(LVN+1))+'</small><h2>'+LV.n+'</h2><p>'+s[i]+'</p><em>Click to continue</em></div>';$('sty').classList.add('on');STY.open=true;}
+function storyDone(){if(!STY.open)return;STY.open=false;$('sty').classList.remove('on');ui();}
+$('sty').onclick=storyDone;
+addEventListener('keydown',e=>{if(!STY.open||MENU.open)return;e.stopImmediatePropagation();if([' ','Enter','Escape'].includes(e.key)){e.preventDefault();storyDone();}},true);
+function ui(){bossBar();gateDmg();if(!STY.pre&&!MENU.open&&!INF&&!g.over&&!g.run&&!g.wave&&!g.tw.length){STY.pre=true;storyShow(0);}
+if(g.over&&g.won&&!INF&&!g.sty&&performance.now()-(g.overT||0)>2200){g.sty=1;storyShow(1);}if(g.run&&g.wave!==banW){banW=g.wave;waveBan();}if(evT&&(performance.now()>evT||g.over)){evT=0;$('evt').classList.remove('on');}const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;
 // Repair gate: shown while a life is missing, greyed out when you can't afford it
 {const b=$('rep'),c=repCost(),show=g.lives<maxL()&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
@@ -134,7 +142,7 @@ if(g.run&&g.aim!=null)setH($('info'),'<div class="ih"><div class="iic">'+HAB[g.a
 else if(g.run&&!s&&g.hero&&(hovA!=null||performance.now()>=offMsg))setH($('info'),heroHTML(hovA));else if(!s&&performance.now()<offMsg)setH($('info'),'<div class="ih"><div class="ihn"><b>'+offT[0]+'</b></div></div><p class="ds">'+offT[1]+'</p>');else setH($('info'),infoHTML(k,s));
 if(s){const bp=brPick(s);setH($('up'),bp?'Choose a path ↑':s.l>=3?'Max level':'Upgrade '+COIN+upCost(s));$('up').disabled=bp||s.l>=3||g.gold<upCost(s);const u=canUndo(s);setH($('sell'),(u?'Undo ':'Sell ')+COIN+sellVal(s));$('sell').title=u?'Undo (S or Ctrl+Z) – full refund until the wave starts':'Sell (S) – 60% back';$('sell').disabled=!!g.run;if(g.run)$('sell').title='Towers can only be sold between waves';}
 document.body.classList.toggle('over',!!g.over);document.body.classList.toggle('wave',!!g.run&&!g.over);habUI();
-const sov=g.over&&performance.now()-(g.overT||0)>2200;$('ov').style.display=sov?'flex':'none';
+const sov=g.over&&performance.now()-(g.overT||0)>2200&&!STY.open;$('ov').style.display=sov?'flex':'none';
 const last=LVN>=LEVELS.length-1,oh=g.won?'<span class="k" style="--ac:var(--ok)">'+(last?'Victory · the final level':'Victory · level '+(LVN+1)+' of '+LEVELS.length)+' · '+DF.n+'</span><h2>'+(last?'The kingdom is saved!':'The castle is saved!')+'</h2>'+starH(g.stN||1)+'<small class="stt">'+(g.stB&&g.stN>g.stB?'<b>New best!</b> ':'')+starT(DF)+'</small><p>'+(last?'Even the Dread Wastes couldn’t break you. All '+MAXW+' waves held back, with '+g.lives+' lives to spare.':'All '+MAXW+' waves held back, with '+g.lives+' lives to spare.')+'</p>'+
 (last?'<button class="btn go" id="again"><span class="t">Restart level</span></button><button class="btn" id="inf">∞ Endless mode</button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="inf">∞ Endless mode</button><button class="btn" id="again">Restart level</button>')
 :INF?'<span class="k" style="--ac:var(--bad)">Endless · '+DF.n+'</span><h2>The castle has fallen</h2><p>You held out for '+(g.wave-1)+' wave'+(g.wave==2?'':'s')+' before wave '+g.wave+' broke through.</p><small class="stt">'+(g.rec?'<b>New record!</b> ':'')+'Best on '+DF.n+': '+(BEST[DF.k][LVN]||0)+' waves</small><button class="btn go" id="again"><span class="t">Try again</span></button>'
@@ -145,13 +153,13 @@ TK.forEach((k,i)=>{const b=document.createElement('button');b.className='tile'+(
 b.innerHTML='<i class="hk">'+(i+1)+'</i><span class="ic">'+T[k].ic+'</span><span class="nm">'+T[k].n+'</span><b class="co">'+COIN+T[k].c+'</b>';b.onclick=()=>pick(k);
 b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=()=>{hov=null;ui();};$('towers').appendChild(b);});
 // the hero bar: his card (click it to look at him) and four ability tiles (click or keys 1–4 during a wave)
-const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Roland – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult?'Once a wave':a.cd+'s')+'</b><span class="cdv"></span></button>').join('');
+const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Kirkevang – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult?'Once a wave':a.cd+'s')+'</b><span class="cdv"></span></button>').join('');
 HAB.forEach((a,i)=>{const b=$('a_'+i);b.onclick=()=>cast(i);b.onpointerenter=e=>{if(e.pointerType=='mouse'){hovA=i;ui();}};b.onpointerleave=()=>{hovA=null;ui();};});
 $('hcard').onclick=()=>{const h=g.hero;if(!h)return;cine=null;tx=wx(h.hp>0?h.x:heroHome().x);tz=wz(h.hp>0?h.y:heroHome().y);setCam();};
 // an aimed spell (Rain of Arrows, Reinforcements) first waits for a click on the board (g.aim; again or right-click/Esc cancels), the rest go off at once
 function cast(i){const a=HAB[i];if(!a||!g.run)return;if(a.aim){if(g.aim===i)g.aim=null;else if(g.scd[i]<=0){g.aim=i;g.sel=null;selRng();}else snd('click');ui();return;}if(heroCast(i))ui();else snd('click');}
 function habUI(){const h=g.hero;if(!h||!g.run)return;const dead=h.hp<=0,c=$('hcard'),nx=h.lv<HERO.mx?HERO.xp[h.lv]:0,p0=h.lv>1?HERO.xp[h.lv-1]:0;c.classList.toggle('dead',dead);
-setH(c,'<b>Sir Roland</b><small>Level '+h.lv+(dead?' · back in '+Math.ceil(h.rs)+'s':'')+'</small><span class="hb"><i style="width:'+(dead?0:100*h.hp/h.max).toFixed(1)+'%"></i></span><span class="hb xp"><i style="width:'+(nx?100*(h.xp-p0)/(nx-p0):100).toFixed(1)+'%"></i></span>');
+setH(c,'<b>Sir Kirkevang</b><small>Level '+h.lv+(dead?' · back in '+Math.ceil(h.rs)+'s':'')+'</small><span class="hb"><i style="width:'+(dead?0:100*h.hp/h.max).toFixed(1)+'%"></i></span><span class="hb xp"><i style="width:'+(nx?100*(h.xp-p0)/(nx-p0):100).toFixed(1)+'%"></i></span>');
 HAB.forEach((a,i)=>{const b=$('a_'+i),cd=a.ult?0:g.scd[i],used=a.ult&&!h.ult;b.classList.toggle('used',!!(used||a.ult&&dead));b.classList.toggle('on',g.aim===i);const v=b.lastChild;v.style.setProperty('--p',a.ult?(used?1:0):(cd/a.cd).toFixed(3));setH(v,cd>0?String(Math.ceil(cd)):used?'✓':'');});}
 // pause and speed: the HUD buttons, P and F; starting a wave also resumes
 function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}

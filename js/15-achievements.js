@@ -22,7 +22,7 @@ const endBest=()=>Math.max(0,...DIFS.flatMap(d=>BEST[d.k].map(x=>x|0))),ACH=[
 {id:'bosses',ic:'🗡️',n:'Monster Hunter',d:'Defeat the Dragon, the Goblin King, the Siege Ram and the Necromancer.',pr:()=>[AST.boss.length,4]},
 {id:'end30',ic:'♾️',n:'Unbreakable',d:'Survive 30 waves in Endless mode.',pr:()=>[endBest(),30]},
 {id:'end40',ic:'🌑',n:'The Long Night',d:'Survive 40 waves in Endless mode.',pr:()=>[endBest(),40]},
-{id:'hero',ic:'🐴',n:'Knight Commander',d:'Raise Sir Roland to level 5.'},
+{id:'hero',ic:'🐴',n:'Knight Commander',d:'Raise Sir Kirkevang to level 5.'},
 {id:'spells',ic:'📜',n:'Battle Mage',d:'Cast 50 spells.',pr:()=>[AST.spells,50]},
 {id:'arsenal',ic:'🏗️',n:'Full Arsenal',d:'Have all nine kinds of tower on the board at once.'},
 {id:'mason',ic:'🧱',n:'Patch It Up',d:'Repair the gate five times in one level.'},
