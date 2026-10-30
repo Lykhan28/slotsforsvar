@@ -76,7 +76,7 @@ zones(dt);mech(dt);spells(dt);soldiers(dt);heroUpd(dt);
 for(const e of g.en){const bm=bogM(e);let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*bm*dt;if(e.rum&&e.hp>0&&e.hp*2<e.max){m*=e.rum;if(!e.rmd){e.rmd=1;rumFx(e);}}if(e.bk&&held(e))m=0;if(g.rk&&rockHeld(e))m=0;if(bm<1&&m>0&&Math.random()<dt*2.5)burst(e.x,e.y,0x6a7448,2,.5,.05);e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
-if(e.seg>=e.R.length){e.hp=-1;if(e.mir)e.gone=1;else{e.leak=1;snd('leak');g.lives-=e.lv||1;if(e.plu){const v=Math.min(g.gold,e.plu);g.gold-=v;plunderFx(e,v);}}}}
+if(e.seg>=e.R.length){e.hp=-1;if(e.mir)e.gone=1;else{e.leak=1;snd('leak');gateHit(e);g.lives-=e.lv||1;if(e.plu){const v=Math.min(g.gold,e.plu);g.gold-=v;plunderFx(e,v);}}}}
 buffs();for(const t of g.tw){if(t.stun>0){t.stun-=dt;continue;}if(T[t.k].sup||T[t.k].inc||T[t.k].bar)continue;t.cd-=dt;t.rec=Math.max(0,(t.rec||0)-dt*2.5);const s=stat(t),tm=tmode(t),br=tbr(t);let best=null,bp=-Infinity;
 // a Wizard skips enemies it can't banish yet; a Time Warden skips enemies already in a time field
 for(const e of g.en){if(e.hp<=0||e.out||(t.k=='frost'&&(br&&br.tz?e.tf<1:e.bn>0))||(e.fy&&!T[t.k].air)||dmul(e,t.k,br)<=0)continue;if(Math.hypot(e.x-t.x,e.y-t.y)<=s.r){const p=tscore(t,e,tm);if(p>bp){bp=p;best=e;}}}
@@ -352,7 +352,7 @@ const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
 for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);burnAnim(dt);mechAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
-for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
+for(const t of g.tw){const q=t.rec||0,rd=rdt===undefined?dt:rdt;if(t.ba)towerAnim(t,rd);else if(t.age<.4){t.age+=rd;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}crewAnim(t,dt,rd);
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;
 if(t.k=='frost'){t.head.rotation.y+=dt*1.5;t.head.position.y=t.hy+Math.sin(tt*2+t.c)*.04;}
 if(t.arm){t.arm.rotation.x=-.8+Math.sin(q*PI)*1.5;t.ball.visible=q<.05;}

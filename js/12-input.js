@@ -19,7 +19,7 @@ if(onB(k.c,k.r)&&heroGo(k.c*S+S/2,k.r*S+S/2)){g.sel=null;heroMark(k.c*S+S/2,k.r*
 // while a wave runs no towers can be built (upgrades still can)
 g.sel=null;if(g.run){if(free(k.c,k.r)){offMsg=performance.now()+2500;offT=['Wave in progress','⚔️ Towers can only be built between waves – command your hero instead. You can still upgrade towers.'];}}
 else if(burnAt(k.c,k.r)){offMsg=performance.now()+2500;offT=['Burning ground','🔥 This ground is on fire – nothing can be built here until it burns out.'];snd('click');}
-else if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');burst(t.x,t.y,0xf7f2e6,8,1,.1);}
+else if(free(k.c,k.r)&&g.gold>=T[g.build].c&&(!T[g.build].bar||nearRoad(k.c,k.r))){g.gold-=T[g.build].c;const t=addTw(g.build,k.c,k.r,1,T[g.build].c);if(!g.run)t.bw=g.wave;snd('build');towerAnimStart(t,'build');}
 selRng();ui();}
 function hover(ev){if(ev.pointerType!='mouse')return;
 // aiming a spell: its ring follows the pointer (red where it can't go)

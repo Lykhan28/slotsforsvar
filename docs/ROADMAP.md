@@ -222,7 +222,7 @@ Do a juice pass on combat: camera shake on catapult hits and boss deaths (with a
 Give each enemy type more varied deaths: knights drop their shield and topple, wolves throw their rider who keeps running, goblins tumble, the dragon crashes down. Follow the rig name rules in CLAUDE.md.
 ```
 
-- [ ] **40. Build animations and crew**
+- [x] **40. Build animations and crew**
 ```text
 Add a build animation (scaffolding and dust as the tower rises, then crew pop in) and an upgrade animation. Make the crewmen react: cheer on kills, flinch when the gate is hit.
 ```

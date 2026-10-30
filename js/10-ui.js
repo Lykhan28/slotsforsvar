@@ -174,7 +174,7 @@ const undo=()=>sellTw(g.tw.filter(canUndo).pop());
 // upgrade the tower one level; br = the branch picked for level 3 (needed for towers with branches; a level-3 tower without one gets it for free)
 function upTw(t,br){if(!t||g.over)return;const bp=brPick(t);if(bp!=(br!=null)||br!=null&&!BRN[t.k][br])return;
 if(t.l==3){if(!bp)return;t.br=br;}else{const c=upCost(t);if(g.gold<c)return;g.gold-=c;t.inv+=c;t.l++;if(br!=null)t.br=br;}
-buildTower(t);snd('upgrade');burst(t.x,t.y,P.gd,14,1.4,.4);selRng();ui();}
+buildTower(t);snd('upgrade');burst(t.x,t.y,P.gd,14,1.4,.4);towerAnimStart(t,'up');selRng();ui();}
 $('up').onclick=()=>upTw(g.sel);
 $('sell').onclick=()=>sellTw(g.sel);
 // minimap

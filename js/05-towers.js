@@ -9,7 +9,7 @@ function seg(p,c,a,b,r){const d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];return eBone(p,c
 function ring(p,c,r,y,th,e,x,z){const m=eM(p,TORL,c,x||0,y,z||0,PI/2,0,0,e);m.scale.set(r,r,th||r);return m;}
 // a little crewman: tunic colour tun, hood colour hat (0x9aa3b0 = an iron kettle hat instead); bow=true draws a bow with an arrow nocked and a quiver on the back,
 // bow=2 a tall longbow, bow=3 a crossbow held level (no quiver), bow=4 a Barracks soldier: a sword in the right hand on its own pivot 'SW' (swung by solSync()) and a round shield of colour sh
-function chibi(h,x,z,tun,hat,bow,sh){const xb=bow==3,sd=bow==4;if(sd)bow=false;const sk=0xffd9b0,lt=0x45301d,dk=0x2a1a10,G=new THREE.Group();G.position.set(x,0,z);h.add(G);
+function chibi(h,x,z,tun,hat,bow,sh){const xb=bow==3,sd=bow==4;if(sd)bow=false;const sk=0xffd9b0,lt=0x45301d,dk=0x2a1a10,G=new THREE.Group();G.position.set(x,0,z);G.userData.cr=1;h.add(G);
 for(const k of[-1,1]){eM(G,capG(.016,.019,.075,8),0x3a3a48,k*.026,.115,0);eM(G,rboxG(.036,.032,.064,.012),lt,k*.026,.017,.008);}
 eM(G,lathG([[0,.095],[.058,.1],[.054,.15],[.047,.2],[.038,.245],[0,.256]],12),tun,0,0,0);eM(G,rboxG(.05,.1,.008,.003),hat,0,.18,.046,-.1);
 ring(G,lt,.053,.14,.06);eM(G,rboxG(.018,.016,.008,.003),0xffc93c,0,.14,.055);
@@ -53,7 +53,7 @@ eM(B,memG('bn'+ek([w,h]),[[-w/2,0],[w/2,0],[w/2,-h],[0,-h*.8],[-w/2,-h]]),matDS(
 eM(B,shpG('crest',[[0,.05],[.035,.02],[.03,-.04],[0,-.06],[-.03,-.04],[-.035,.02]],.006,.002),P.gd,0,-h*.42,.012);}
 // b = the level-3 upgrade branch (t.br, BRN in js/01-config.js): 0 or 1, -1 for none; each branch changes the model
 function buildTower(t){if(t.m)sc.remove(t.m);const g=new THREE.Group(),l=t.l,hs=1+.2*(l-1),h=new THREE.Group(),ac=[P.rd,P.bl,P.gd][l-1],grp=[],b=l>=3&&t.br!=null?t.br:-1;
-t.arm=t.flag=t.stf=t.ball=t.rcl=t.spin=null;t.aura=null;t.fl=[];t.aimG=h;h.userData.keep=true;g.position.set(wx(t.x),0,wz(t.y));blob(g,.62);plinth(g);
+t.arm=t.flag=t.stf=t.ball=t.rcl=t.spin=null;t.aura=null;t.fl=[];t.crew=[];t.aimG=h;h.userData.keep=true;g.position.set(wx(t.x),0,wz(t.y));blob(g,.62);plinth(g);
 if(t.k=='arrow'){// archers: a stone tower with a level-coloured band, slits, ivy, a barrel of spare arrows and shields hung on the merlons
 const a=.8*hs,y=BH+a,R=shaft(g,.36,a,P.st,1);part(g,'cyl',ac,.33,.06,.33,0,BH+a*.55,0);for(const an of[PI/2,-PI/2,PI,PI*.25])slit(g,R,a,an==PI*.25?.32:.78,an);door(g,.36);
 parapet(g,.34,y,8);torch(g,-.37,BH+a*.35,.1,t.fl);barrel(g,.2,y+.08,-.16,1);for(let i=0;i<6;i++){const x=.2+rnd(-.025,.025),z=-.16+rnd(-.025,.025);eCy(g,P.wd2,.005,.16,x,y+.22,z);eM(g,rboxG(.004,.03,.014,.0015),i%2?P.rd:0xf2f2f2,x,y+.28,z);}
@@ -87,7 +87,7 @@ eSp(wiz,sk,.065,.068,.065,0,.28,0);eCnD(wiz,0xf2f2f2,.05,.13,0,.205,.055,0,-1,.2
 eSp(wiz,0xf0c090,.014,.016,.016,0,.275,.065);eM(wiz,lathG([[.0,.325],[.14,.325],[.13,.34],[0,.345]],16),brm,0,0,0);horn(wiz,hat,0,.33,0,.08,.32,4,PI,0,-.25,0);ring(wiz,0xffc93c,.075,.355,.08);
 const stf=new THREE.Group();stf.position.set(.1,.15,.04);stf.userData.keep=true;eCy(stf,P.wd2,.012,.34,0,.1,.05);eM(stf,eg('oct',()=>new THREE.OctahedronGeometry(1)),cr,0,.3,.05,0,0,0,cre).scale.set(.045,.065,.045);
 for(let i=0;i<3;i++)eCnD(stf,P.wd2,.01,.06,.025*Math.sin(i*2.1),.26,.05+.025*Math.cos(i*2.1),Math.sin(i*2.1),1.4,Math.cos(i*2.1));eSp(stf,sk,.02,.02,.02,0,0,.05);
-wiz.add(stf);t.stf=stf;g.add(wiz);t.aimG=wiz;grp.push(wiz,stf);
+wiz.add(stf);t.stf=stf;g.add(wiz);t.aimG=wiz;grp.push(wiz,stf);wiz.userData.y0=wiz.position.y;t.crew.push(wiz);
 h.position.y=y+.62;
 // the floating focus: a crystal (the Archmage's is bigger, with a third ring), or for the Time Warden an hourglass in a bronze frame with gold discs for satellites
 if(b==1){for(const k of[-1,1]){part(h,'cone',cr,.085,.12,.085,0,k*.065,0,cre).rotation.x=k<0?0:PI;part(h,'cyl',rg,.11,.025,.11,0,k*.14,0,rge);}for(let i=0;i<3;i++){const an=i/3*2*PI;part(h,'cyl',0x8a5a1e,.012,.28,.012,.1*Math.sin(an),0,.1*Math.cos(an));}}
@@ -211,4 +211,37 @@ if(b==0){ball.position.set(0,-.06,.66);arm.add(ball);eM(ball,lathG([[0,0],[.045,
 if(l>=2)t.flag=flag(g,-.32,BH+.1,.3,P.rd,.8);}
 for(let i=0;i<l-1;i++)ring(g,P.gd,.46,.07+i*.05,.25,0x885500);
 if(l==3)part(h,'sph',P.gd,.06,.06,.06,0,t.k=='frost'?.3:.5,0,0x886600);
-if(t.flag)grp.push(t.flag);g.add(h);bakeE(g);bakeE(h);grp.forEach(bakeE);t.head=h;t.hy=h.position.y;t.m=g;t.age=0;g.scale.setScalar(.01);sc.add(g);}
+if(t.flag)grp.push(t.flag);g.add(h);
+// the crewmen of each parent move into one group 'CRW' (baked on its own, in t.crew) so they can pop in, cheer and flinch together
+const cs=[],cm=new Map();g.traverse(o=>{if(o.userData.cr)cs.push(o);});for(const o of cs){let C=cm.get(o.parent);if(!C){C=new THREE.Group();C.name='CRW';C.userData.keep=true;C.userData.y0=0;o.parent.add(C);cm.set(o.parent,C);grp.push(C);t.crew.push(C);}C.add(o);}
+bakeE(g);bakeE(h);grp.forEach(bakeE);t.head=h;t.hy=h.position.y;t.m=g;t.age=0;g.scale.setScalar(.01);sc.add(g);}
+// ---------- build / upgrade animation and crew reactions (run from sync() in js/09-game.js) ----------
+// t.ba = {k:'build'|'up', t, d, H, sf}: set by towerAnimStart() from tap() (js/12-input.js) and upTw() (js/10-ui.js); towers rebuilt by loadRun() just pop in (t.age).
+// Build: scaffolding goes up, the tower rises out of the ground in a cloud of dust, the scaffolding drops away and the crew pops in and cheers.
+// Upgrade: a quick scaffold, the tower squashes and springs up while gold sparkles rise, then the crew pops back in and cheers.
+// The scaffold lives in t.m (offset against the tower's rise), so selling or reset() clears it. All of it runs on real time (works in the break and while paused).
+function scaffold(H){const G=new THREE.Group(),R=.42;for(const[x,z]of[[-R,-R],[R,-R],[-R,R],[R,R]])eCy(G,P.wd2,.022,H,x,H/2,z);
+for(let y=.32;y<H-.05;y+=.36)for(const k of[-1,1]){part(G,'box',P.wd,.9,.024,.07,0,y,k*R);part(G,'box',P.wd,.07,.024,.9,k*R,y,0);}
+for(const k of[-1,1]){const L=Math.hypot(2*R,Math.min(H,.7));eCy(G,P.wd2,.012,L,0,Math.min(H,.7)/2+.05,k*R,0,0,k*Math.atan2(2*R,Math.min(H,.7)));}
+G.traverse(o=>{if(o.isMesh)o.castShadow=false;});return G;}
+function towerAnimStart(t,k){t.age=1;t.m.scale.setScalar(1);const H=t.head.position.y+.45,sf=scaffold(H);sf.scale.y=.01;t.m.add(sf);
+t.ba={k,t:0,d:k=='build'?1.6:1,H,sf};t.cp=-1;for(const C of t.crew)C.scale.setScalar(.01);
+if(k=='up'){fx(t.x,t.y,P.gd,.3,1,.6,.1,true);}else{burst(t.x,t.y,0xb8a888,12,1.3,.1);}}
+function towerAnim(t,dt){const a=t.ba;a.t+=dt;const p=Math.min(1,a.t/a.d),m=t.m,sf=a.sf;
+if(a.k=='build'){const r=clamp((p-.1)/.65,0,1),ry=1-Math.pow(1-r,3);m.position.y=-(a.H+.15)*(1-ry);m.scale.set(1,1-.07*Math.sin(clamp((p-.75)/.12,0,1)*PI),1);
+sf.position.y=-m.position.y;sf.scale.y=Math.max(.01,Math.min(1,p/.15)*(1-clamp((p-.75)/.12,0,1)));
+if(dt>0&&r>0&&r<1&&Math.random()<dt*22)burst(t.x+rnd(-25,25),t.y+rnd(-25,25),0xb8a888,2,1,.05);
+if(p>=.75&&!a.dp){a.dp=1;burst(t.x,t.y,0xc8b898,14,1.5,.15);}if(p>=.82&&t.cp<0){t.cp=0;t.cj=.9;t.cjd=.3;}}
+else{const q=.2*Math.exp(-5*p)*Math.cos(13*p);m.scale.set(1+q*.5,1-q,1+q*.5);sf.scale.y=Math.max(.01,Math.min(1,p/.1)*(1-clamp((p-.45)/.15,0,1)));
+if(dt>0&&p<.6&&Math.random()<dt*30)burst(t.x+rnd(-20,20),t.y+rnd(-20,20),P.gd,1,.5,rnd(.2,a.H));if(p>=.45&&t.cp<0){t.cp=0;t.cj=.9;t.cjd=.15;}}
+if(p>=1){m.position.y=0;m.scale.setScalar(1);m.remove(sf);t.ba=null;if(t.cp<0)t.cp=0;}}
+// crew: t.cp = pop-in clock (<0 hidden, undefined done), t.cj = cheer (two hops; t.cjd delay), t.cf = flinch (duck and shake; t.cfd delay), t.ccd = cheer cooldown
+function crewAnim(t,dt,rdt){if(!t.crew.length)return;t.ccd=(t.ccd||0)-dt;let s=1,y=0,sy=1,rz=0,act=false;
+if(t.cp!==undefined){if(t.cp<0)s=.01;else{t.cp+=rdt;s=back(Math.min(1,t.cp/.35));if(t.cp>=.35)t.cp=undefined;}act=true;}
+if(t.cj>0){if(t.cjd>0)t.cjd-=dt;else{t.cj-=dt;const u=1-t.cj/.9;y+=Math.abs(Math.sin(u*2*PI))*.13*(1-u*.3);rz+=Math.sin(u*4*PI)*.12;}act=true;}
+if(t.cf>0){if(t.cfd>0)t.cfd-=dt;else{t.cf-=dt;const k=Math.sin(PI*(1-t.cf/.6));y-=.05*k;sy-=.25*k;rz+=Math.sin(tt*55)*.07*k;}act=true;}
+if(!act&&!t.cr0)return;t.cr0=act;for(const C of t.crew){C.position.y=C.userData.y0+y;C.scale.set(s*(2-sy)*.5+s*.5,s*sy,s*(2-sy)*.5+s*.5);C.rotation.z=rz;}}
+// a kill: crews of towers in range cheer (at most every 2 s); a boss kill makes every crew cheer
+function crewCheer(e){for(const t of g.tw){if(!t.crew||!t.crew.length)continue;const bs=E[e.type].bs;if(!bs&&(t.ccd>0||t.cj>0||Math.hypot(t.x-e.x,t.y-e.y)>(stat(t).r||180)))continue;t.cj=.9;t.cjd=rnd(0,.15);t.ccd=bs?0:2;}}
+// an enemy got through the gate: every crew ducks, the ones nearest the gate first
+function gateHit(e){for(const t of g.tw){t.cf=.6;t.cfd=Math.hypot(t.x-e.x,t.y-e.y)/900;}}
