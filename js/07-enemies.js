@@ -493,6 +493,8 @@ a.m.position.set(wx(a.x)-a.dx*(1-f)*1.6,.25+2.6*(1-f),wz(a.y)-a.dz*(1-f)*1.6);a.
 else{const f=a.t/a.d;a.m.scale.set(.12*(1-f*.6),2.8*(1-f),.12*(1-f*.6));a.m.position.y=1.4*(1-f)+.05;if(f>=1){sc.remove(a.m);a.m.material.dispose();SPA.splice(i,1);}}}}
 // a squad's time is up (or it fell): a puff of dust where each soldier stood
 function squadEnd(t){if(t.sg)sc.remove(t.sg);for(const d of t.sol)if(d.hp>0){burst(d.x,d.y,0xd8cbb0,8,1,.3);fx(d.x,d.y,0xffe6a0,.1,.6,.4,.05,true);}}
+// the gate is repaired: hammer blows, sparks and timber dust at the gate and a floating "+1 ♥"
+function repFx(c){snd('build');setTimeout(()=>snd('h_barracks'),140);setTimeout(()=>snd('h_barracks'),300);const q=heroHome();burst(q.x,q.y,0xffd27a,10,1.2,.8);burst(q.x,q.y,0xc9a26a,8,1,.3);fx(q.x,q.y,0xff7a7a,.1,.8,.5,.05,true);popText(q.x,q.y,'+1 ♥','#ff8a8a');}
 // each hit lands with a bright spark and a flash on the enemy
 function heroHit(h,e){const y=.55;burst(e.x,e.y,0xfff2c0,7,1.3,y);fx(e.x,e.y,0xffffff,.08,.45,.18,y);}
 function heroLvl(h){snd('upgrade');popText(h.x,h.y,'Level '+h.lv+'!','#ffe08a');burst(h.x,h.y,P.gd,16,1.5,.6);fx(h.x,h.y,0xffd24a,.2,1.2,.6,.1,true);}

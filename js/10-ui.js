@@ -94,7 +94,9 @@ return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Rolan
 function bossBar(){const e=g.en.find(o=>o.bs&&o.hp>0),el=$('bb');el.classList.toggle('on',!!e&&!g.over);if(!e)return;
 setH(el.firstChild,'<span class="bbn">'+FOE[e.type][0]+' '+BST[e.type][0]+'</span><span class="bbv">'+(e.lv>1?'💔 '+e.lv+' lives at the gate':'')+'</span>');el.lastChild.firstChild.style.width=(100*Math.max(0,e.hp)/e.max).toFixed(1)+'%';}
 function ui(){bossBar();const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
-$('gold').textContent=g.gold;$('lives').textContent=g.lives;$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
+$('gold').textContent=g.gold;$('lives').textContent=g.lives;
+// Repair gate: shown while a life is missing, greyed out when you can't afford it
+{const b=$('rep'),c=repCost(),show=g.lives<MAXL&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
 setH($('wave'),'<small>Wave </small>'+g.wave+' / '+MAXW);$('wbar').style.width=((g.wave-(g.run?left/w:0))/MAXW*100)+'%';
 // in the break: "Call wave N early" with the bonus for the time left (and the auto-start countdown), then plain "Start wave N" once the time is up
 const bl=brkLeft(),eb=earlyBonus(),foes=nm=>{const nb={};for(const t of nm)if(E[t].bs)nb[t]=(nb[t]||0)+1;
@@ -143,7 +145,7 @@ $('info').onclick=e=>{if(!e.target.closest)return;const b=e.target.closest('[dat
 // coverage map: C or the grid button; the legend matches COVC in js/06-scenery.js
 function covTog(){COV.on=!COV.on;$('cv').classList.toggle('on',COV.on);$('covl').classList.toggle('on',COV.on);covUpd();}
 $('covl').querySelector('.sw').innerHTML=COVC.map((c,i)=>'<i style="background:#'+new THREE.Color(c).getHexString()+'">'+(i<5?i:'5+')+'</i>').join('');$('cv').onclick=covTog;
-$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);};
+$('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);};
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};
 // a tower placed in this break (t.bw) can be undone for everything spent on it, upgrades too, until the wave starts; otherwise selling gives 60% back
@@ -173,5 +175,5 @@ const vw=2.17*dist/20,vh=1.5*dist/20;mq.strokeStyle='#fff';mq.lineWidth=1.5;mq.s
 function mmGo(e){const r=MM.getBoundingClientRect(),x=((e.clientX-r.left)/r.width*MM.width-MB.ox)/MB.k,z=((e.clientY-r.top)/r.height*MM.height-MB.oz)/MB.k;tx=clamp(x,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(z,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}
 MM.addEventListener('pointerdown',e=>{MM.setPointerCapture(e.pointerId);mmGo(e);});MM.addEventListener('pointermove',e=>{if(e.buttons)mmGo(e);});
 addEventListener('keydown',e=>{const k=e.key;if(e.repeat)return;if((e.ctrlKey||e.metaKey)&&(k=='z'||k=='Z')){e.preventDefault();undo();return;}if(e.ctrlKey||e.metaKey||e.altKey)return;
-if(g.run&&k>='1'&&k<='4')cast(+k-1);else if(!g.run&&k>='1'&&k<='9'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if((k=='u'||k=='U')&&g.sel)upTw(g.sel);else if((k=='b'||k=='B'||k=='n'||k=='N')&&brPick(g.sel))upTw(g.sel,k=='b'||k=='B'?0:1);else if((k=='s'||k=='S')&&g.sel)sellTw(g.sel);else if(k=='z'||k=='Z')undo();else if(k=='c'||k=='C')covTog();else if((k=='t'||k=='T')&&g.sel)setTm(g.sel,TGK[(TGK.indexOf(tmode(g.sel))+1)%TGK.length]);else if(k=='Escape'&&g.aim!=null){g.aim=null;selRng();ui();}else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
+if(g.run&&k>='1'&&k<='4')cast(+k-1);else if(!g.run&&k>='1'&&k<='9'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if((k=='u'||k=='U')&&g.sel)upTw(g.sel);else if((k=='b'||k=='B'||k=='n'||k=='N')&&brPick(g.sel))upTw(g.sel,k=='b'||k=='B'?0:1);else if((k=='s'||k=='S')&&g.sel)sellTw(g.sel);else if(k=='z'||k=='Z')undo();else if(k=='c'||k=='C')covTog();else if(k=='r'||k=='R')$('rep').onclick();else if((k=='t'||k=='T')&&g.sel)setTm(g.sel,TGK[(TGK.indexOf(tmode(g.sel))+1)%TGK.length]);else if(k=='Escape'&&g.aim!=null){g.aim=null;selRng();ui();}else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
 else if(k=='q'||k=='Q'){az-=.3;setCam();}else if(k=='e'||k=='E'){az+=.3;setCam();}});

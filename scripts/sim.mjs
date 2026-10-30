@@ -44,6 +44,7 @@ and the steps after it wait too):
                    Without a branch they get a plain level 3, as before branches – not possible in the game, kept for comparisons
   sell c,r         sell the tower on c,r (60% back; a full refund if it was built in this same break, like Undo in the game)
   target c,r MODE  set the targeting of the tower on c,r: first last strong fast close (free, done at once)
+  repair           repair the gate: buy back a life (waits for the gold; skipped at full lives)
   hero c,r         send the hero to road cell c,r (free, done at once, also mid-wave)
   rally c,r C,R    move the rally point of the Barracks on c,r to road cell C,R (within its range; free, done at once)
   wave N           wait until the break before wave N`;
@@ -94,7 +95,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
@@ -169,6 +170,7 @@ if (opt.waves) {
 const parsed = steps.map((s, n) => {
   const ry = String(s).trim().match(/^rally\s+(\d+)\s*,\s*(\d+)\s+(\d+)\s*,\s*(\d+)$/);
   if (ry) return { k: 'rally', c: +ry[1], r: +ry[2], rc: +ry[3], rr: +ry[4], s };
+  if (String(s).trim() == 'repair') return { k: 'repair', s };
   const hy = String(s).trim().match(/^hero\s+(\d+)\s*,\s*(\d+)$/);
   if (hy) return { k: 'hero', c: +hy[1], r: +hy[2], s };
   const m = String(s).trim().match(/^(\w+)\s+(\d+)(?:\s*,\s*(\d+))?(?:\s+(\w+))?$/);
@@ -199,6 +201,12 @@ function doSteps(inBreak) {
     if (st.k == 'wave') { if (inBreak && G.wave + 1 >= st.wave) { pc++; continue; } return; }
     // towers are built and sold only between waves (as in the game); upgrades, targeting, rally and hero orders work mid-wave
     if (G.run && st.k != 'up' && st.k != 'target' && st.k != 'rally' && st.k != 'hero') return;
+    if (st.k == 'repair') {
+      // same as repair() in js/09-game.js; lives in the sim may be padded by --keep-going
+      if (lives() >= run('MAXL')) { warn.push(`"${st.s}": already at full lives – skipped`); pc++; continue; }
+      const c = run('repCost')(); if (G.gold < c) return;
+      G.gold -= c; G.lives++; G.rep++; spent += c; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++; continue;
+    }
     if (st.k == 'hero') {
       // same rule as tap() in js/12-input.js: any road cell
       if (!run('onB')(st.c, st.r)) { warn.push(`"${st.s}": not a road cell on the board – skipped`); pc++; continue; }

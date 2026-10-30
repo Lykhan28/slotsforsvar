@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
 function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
@@ -94,6 +94,9 @@ for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 pushBack(e,m);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
+// Repair gate: buy back one life (up to MAXL); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
+const MAXL=20,REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
+function repair(){if(g.over||g.lives>=MAXL)return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);return true;}
 // move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
 function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
 // ---------- Hero ----------
