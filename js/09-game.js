@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:LV.gold,lives:20,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+g={gold:Math.round(LV.gold*DF.gold),lives:DF.li,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // wave w's spawn queue [{t: seconds after the wave starts, type, p: road}] from the level's wave table (LV.wv, format in js/01-config.js);
 // throws on a typo so a bad table fails loudly (npm run sim -- --waves N checks every wave)
 function waveQ(w){const s=LV.wv[w-1]||'',c=s.indexOf(':'),q=[];let t=0,i=0,gap=0;
@@ -18,7 +18,7 @@ const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&g.wave<MAXW?Math.max(0,BRK-g.brk):0
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);ui();}
 // each breach has its own road (PATHS); the wave alternates between them
-function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
+function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=30*Math.pow(1.2,g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
@@ -95,7 +95,7 @@ function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd(
 pushBack(e,m);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
 // Repair gate: buy back one life (up to MAXL); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
-const MAXL=20,REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
+const MAXL=DF.li,REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
 function repair(){if(g.over||g.lives>=MAXL)return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);return true;}
 // move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
 function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
@@ -154,7 +154,7 @@ return true;}
 // spell numbers: damage as a share of a goblin's health this wave (gob()), so they stay useful all game: Rain of Arrows rn volleys of rain each,
 // Boiling Oil oil at once then burn a second; Reinforcements: rn soldiers (Barracks level 1/2/3 from waves 1/8/15) for rt s
 const SPN={rain:.22,vol:4,oil:.9,burn:.25,rn:2,rt:15};
-const gob=()=>30*Math.pow(1.2,g.wave)*LV.hp;
+const gob=()=>30*Math.pow(1.2,g.wave)*LV.hp*DF.hp;
 // the three on-board road cells nearest the gate (Boiling Oil): the hero's home cell and the next two along the road
 let GTL=null;
 function gateTiles(){if(GTL)return GTL;const h=heroHome(),c0=Math.floor(h.x/S),r0=Math.floor(h.y/S),seen=new Set([c0+','+r0]),q=[[c0,r0]];GTL=[];

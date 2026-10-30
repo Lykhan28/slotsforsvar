@@ -174,6 +174,10 @@ body.wave #hab{display:grid}body.wave #towers{display:none}
 @keyframes star{from{transform:scale(0) rotate(-40deg);opacity:0}}
 .ovbox .stt{font-size:12px;color:var(--ink3);margin-bottom:4px}.ovbox .stt b{color:var(--gold2)}
 .mst{margin:-4px 0 10px;font-size:12px;color:var(--ink3)}
+.dfs{display:flex;gap:4px;width:100%;padding:4px;margin-bottom:8px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.2)}
+.dfb{flex:1;height:34px;border:0;border-radius:10px;background:none;color:var(--ink2);font:700 13px var(--disp);letter-spacing:.06em;cursor:pointer;transition:background .15s,color .15s}
+.dfb:hover{color:var(--ink);background:rgba(255,224,160,.08)}.dfb.on{color:var(--gold2);background:rgba(240,199,112,.16);box-shadow:inset 0 0 0 1px rgba(240,199,112,.45)}
+#m_dd{margin:0 0 4px;color:var(--ink2);line-height:1.35}
 .ovbox .btn{flex:none;height:46px;padding:0 28px;font-size:15px}
 body.over #panel{opacity:0;transform:translateY(20px);pointer-events:none}body.over #panel>*{pointer-events:none}
 

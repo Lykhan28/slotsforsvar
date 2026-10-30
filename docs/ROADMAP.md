@@ -143,7 +143,7 @@ Let the player click enemies to throw a rock for small damage (with a short cool
 Award 1–3 stars per level based on lives left (show the thresholds), show them in the level picker and on the end screen, and save them in PROG.
 ```
 
-- [ ] **25. Difficulty**
+- [x] **25. Difficulty**
 ```text
 Add Easy/Normal/Hard difficulty chosen before starting a level (enemy health, gold and lives). Stars and progress are tracked per difficulty.
 ```

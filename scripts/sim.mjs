@@ -21,6 +21,7 @@ const HELP = `Castle Defense balance simulator
 Options:
   --level N        level 1-8 (overrides the layout file)
   --build "..."    add one build step (repeatable, appended after the file's steps)
+  --diff D         difficulty easy|normal|hard (default easy, the original game; DIFS in js/01-config.js)
   --hp X           try another enemy health multiplier for the level (instead of its hp in LEVELS)
   --gold N         try another starting gold for the level
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
@@ -57,6 +58,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a == '--level') opt.level = +next();
   else if (a == '--map') opt.map = +next();
   else if (a == '--waves') opt.waves = +next();
+  else if (a == '--diff') opt.diff = next();
   else if (a == '--hp') opt.hp = +next();
   else if (a == '--gold') opt.gold = +next();
   else if (a == '--build') opt.build.push(next());
@@ -92,7 +94,7 @@ const noop = () => {};
 let seed = opt.seed >>> 0 || 1;
 const ctx = vm.createContext({
   console, performance, URLSearchParams,
-  location: { search: '?level=' + level }, localStorage: { getItem: () => null, setItem: noop },
+  location: { search: '?level=' + level + '&diff=' + (opt.diff || 'easy') }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
   sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop,
@@ -160,7 +162,7 @@ if (opt.waves) {
   for (let w = 1; w <= MAXW; w++) {
     let q; try { q = wq(w); } catch (e) { die(e.message); }
     const m = {}; for (const o of q) m[o.type] = (m[o.type] || 0) + 1;
-    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = 30 * Math.pow(1.2, w) * LV.hp * u, gd = q.reduce((a, o) => a + E[o.type].rw, 0);
+    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = 30 * Math.pow(1.2, w) * LV.hp * run('DF.hp') * u, gd = q.reduce((a, o) => a + E[o.type].rw, 0);
     console.log(`${String(w).padStart(4)}  ${wn(w).slice(0, 20).padEnd(20)}  ${mixS(m).padEnd(31)} ${String(q.length).padStart(5)} ${u.toFixed(1).padStart(6)} ${String(Math.round(hp)).padStart(7)} ${String(gd).padStart(5)} ${((q.at(-1)?.t || 0).toFixed(1) + 's').padStart(7)}`);
   }
   process.exit(0);
@@ -189,7 +191,7 @@ const parsed = steps.map((s, n) => {
 run('reset()');
 if (opt.noHero) run('g.hero=null');
 const g = () => run('g');
-const LIFE0 = 20, PAD = opt.keep ? 1e6 : 0;   // --keep-going: give the castle a huge buffer and subtract it again when reporting
+const LIFE0 = run('DF.li'), PAD = opt.keep ? 1e6 : 0;   // --keep-going: give the castle a huge buffer and subtract it again when reporting
 g().lives += PAD;
 const lives = () => g().lives - PAD;
 let pc = 0, spent = 0, earnedBase = 0;
@@ -306,7 +308,7 @@ if (opt.json) { console.log(JSON.stringify(result, null, 2)); process.exit(0); }
 
 // ---------- report ----------
 const pad = (v, n) => String(v).padStart(n);
-console.log(`Level ${level}: ${LV.n}   start gold ${LV.gold}, enemy health ×${LV.hp}${opt.keep ? '   (--keep-going: defeat ignored)' : ''}`);
+console.log(`Level ${level}: ${LV.n}   ${run('DF.n')}: start gold ${Math.round(LV.gold * run('DF.gold'))}, enemy health ×${+(LV.hp * run('DF.hp')).toFixed(3)}, ${LIFE0} lives${opt.keep ? '   (--keep-going: defeat ignored)' : ''}`);
 console.log('\nwave  enemies         gold before  income  spent  gold after  lives  lost  towers   time  leaked');
 for (const r of waves) console.log(`${pad(r.wave, 4)}  ${mixS(r.mix).padEnd(15)} ${pad(r.goldStart, 11)} ${pad('+' + r.income, 7)} ${pad(r.spent ? -r.spent : 0, 6)} ${pad(r.goldEnd, 10)} ${pad(r.lifeEnd, 6)} ${pad(r.lost || '', 5)} ${pad(r.towers, 7)} ${pad(r.seconds + 's', 6)}  ${mixS(r.leaked)}`);
 console.log('\n' + boardMap(G.tw));
