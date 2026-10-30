@@ -153,7 +153,7 @@ Add Easy/Normal/Hard difficulty chosen before starting a level (enemy health, go
 Add an Endless mode for any won level: waves keep coming past 20 with rising difficulty and new mixes. Track a local highscore (waves survived) per level and show it in the level picker.
 ```
 
-- [ ] **27. Royal Armoury**
+- [x] **27. Royal Armoury**
 ```text
 Add a "Royal Armoury" menu page where stars buy permanent perks (e.g. +5% archer damage, +20 start gold, +1 life, cheaper upgrades). Perks can be reset for a refund. Keep the bonuses modest so the game stays challenging.
 ```

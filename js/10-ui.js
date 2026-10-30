@@ -96,7 +96,7 @@ setH(el.firstChild,'<span class="bbn">'+FOE[e.type][0]+' '+BST[e.type][0]+'</spa
 function ui(){bossBar();const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;
 // Repair gate: shown while a life is missing, greyed out when you can't afford it
-{const b=$('rep'),c=repCost(),show=g.lives<MAXL&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
+{const b=$('rep'),c=repCost(),show=g.lives<maxL()&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);
 // Endless: the counter shows the highscore instead of "/ 20" and the bar fills towards it (then past it, it stays full)
 {const hb=INF?BEST[DF.k][LVN]||0:0,top=INF?Math.max(MAXW,hb):MAXW;setH($('wave'),'<small>Wave </small>'+g.wave+(INF?'<small> · best '+hb+'</small>':' / '+MAXW));$('wbar').style.width=Math.min(100,(g.wave-(g.run?left/w:0))/top*100)+'%';}
 // in the break: "Call wave N early" with the bonus for the time left (and the auto-start countdown), then plain "Start wave N" once the time is up

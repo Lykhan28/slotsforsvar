@@ -24,6 +24,7 @@ Options:
   --diff D         difficulty easy|normal|hard (default easy, the original game; DIFS in js/01-config.js)
   --endless        Endless mode: waves go on past 20 (made up by endWave()) until defeat (at most 100);
                    with --waves N it prints waves 1-40
+  --perks "a:3,b:2" Royal Armoury perks by id and rank (PERKS in js/09-game.js, e.g. arch:3,gold:2; 'all' = every perk at max)
   --hp X           try another enemy health multiplier for the level (instead of its hp in LEVELS)
   --gold N         try another starting gold for the level
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
@@ -62,6 +63,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a == '--waves') opt.waves = +next();
   else if (a == '--diff') opt.diff = next();
   else if (a == '--endless') opt.endless = true;
+  else if (a == '--perks') opt.perks = next();
   else if (a == '--hp') opt.hp = +next();
   else if (a == '--gold') opt.gold = +next();
   else if (a == '--build') opt.build.push(next());
@@ -134,6 +136,7 @@ vm.runInContext(extractLine(input, /^const free=.*$/m, 'const free', 'js/12-inpu
 const run = code => vm.runInContext(code, ctx);
 if (opt.hp) run(`LV.hp=${opt.hp}`);
 if (opt.endless) run('INF=true');
+if (opt.perks) run(opt.perks == 'all' ? 'for(const p of PERKS)PK[p.id]=p.mx' : `Object.assign(PK,${JSON.stringify(Object.fromEntries(opt.perks.split(',').map(x => x.split(':')).map(([k, v]) => [k, +v])))})`);
 if (opt.gold) run(`LV.gold=${opt.gold}`);
 const LV = run('LV'), T = run('T'), BRN = run('BRN'), W = run('W'), H = run('H'), MAXW = run('MAXW');
 // one letter per enemy type, as in the wave tables (WC in js/01-config.js)
@@ -195,7 +198,7 @@ const parsed = steps.map((s, n) => {
 run('reset()');
 if (opt.noHero) run('g.hero=null');
 const g = () => run('g');
-const LIFE0 = run('DF.li'), PAD = opt.keep ? 1e6 : 0;   // --keep-going: give the castle a huge buffer and subtract it again when reporting
+const LIFE0 = run('maxL()'), PAD = opt.keep ? 1e6 : 0;   // --keep-going: give the castle a huge buffer and subtract it again when reporting
 g().lives += PAD;
 const lives = () => g().lives - PAD;
 let pc = 0, spent = 0, earnedBase = 0;
@@ -209,7 +212,7 @@ function doSteps(inBreak) {
     if (G.run && st.k != 'up' && st.k != 'target' && st.k != 'rally' && st.k != 'hero') return;
     if (st.k == 'repair') {
       // same as repair() in js/09-game.js; lives in the sim may be padded by --keep-going
-      if (lives() >= run('MAXL')) { warn.push(`"${st.s}": already at full lives – skipped`); pc++; continue; }
+      if (lives() >= run('maxL()')) { warn.push(`"${st.s}": already at full lives – skipped`); pc++; continue; }
       const c = run('repCost')(); if (G.gold < c) return;
       G.gold -= c; G.lives++; G.rep++; spent += c; log.push({ wave: G.wave, t: G.wt, s: st.s, cost: c }); pc++; continue;
     }

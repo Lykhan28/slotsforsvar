@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:Math.round(LV.gold*DF.gold),lives:DF.li,wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+g={gold:Math.round(LV.gold*DF.gold)+pkv('gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
 // Endless mode (INF, set by js/14-menu.js at load for a level already won on this difficulty; the sim's --endless): no victory after MAXW, the waves go on.
 // Past MAXW endWave(w) makes each wave up in the table format, seeded by level and wave so it is the same every time (save/reload, sim): 3–6 groups
 // drawn from the level's own enemies (every non-boss type from wave MAXW+EWV.all on), EWV.n0 + EWV.dn per wave enemies, a boss every 5th wave from the
@@ -45,7 +45,21 @@ const tmode=t=>t.tm||T[t.k].tm||'first';
 const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m=='fast'?e.s+prog(e)*1e-6:-Math.hypot(e.x-t.x,e.y-t.y);
 // the upgrade branch a level-3 tower took (BRN in js/01-config.js), or null
 const brn=t=>t.l>=3&&t.br!=null&&BRN[t.k]?BRN[t.k][t.br]:null;
-const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1),r:T[t.k].r+10*(t.l-1)+(b&&b.rg||0),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
+// Royal Armoury perks (bought with stars in the menu, js/14-menu.js): PERKS = [id, icon, name, ranks, star cost per rank, what one rank does]; PK[id] = ranks owned
+// (loaded by js/14-menu.js from localStorage sfperk; always empty in the sim unless --perks). pk(id) = ranks. Effects: tower damage in stat() (PKD = tower type → perk, v per rank),
+// soldiers' health in solHp(), upgrade price in upCost(), starting gold and lives in reset()/maxL(), the hero in hst(), spell cooldowns in heroCast(). Keep them modest.
+const PERKS=[
+{id:'arch',ic:'🏹',n:"Fletchers' Guild",mx:3,c:[2,3,4],v:.05,d:'Archers deal +5% damage'},
+{id:'siege',ic:'🪨',n:'Siege Workshop',mx:3,c:[2,3,4],v:.05,d:'Catapults and Ballistas deal +5% damage'},
+{id:'arc',ic:'🔮',n:'Arcane Library',mx:3,c:[2,3,4],v:.05,d:'Wizards, Storm Towers and Alchemists deal +5% damage'},
+{id:'drill',ic:'⚔️',n:'Drill Yard',mx:2,c:[2,3],v:.1,d:'Barracks soldiers get +10% health'},
+{id:'smith',ic:'🔨',n:'Master Smiths',mx:2,c:[3,4],v:.05,d:'Tower upgrades cost 5% less'},
+{id:'gold',ic:'💰',n:'War Chest',mx:3,c:[2,3,4],v:20,d:'Start every level with +20 gold'},
+{id:'wall',ic:'🧱',n:'Stonemasons',mx:2,c:[3,5],v:1,d:'+1 life (and one more for the Repair gate)'},
+{id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Roland gets +10% health and damage'},
+{id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:.06,d:'Spell cooldowns are 6% shorter'}];
+const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'arch',cannon:'siege',ballista:'siege',frost:'arc',storm:'arc',alch:'arc'};
+const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1),r:T[t.k].r+10*(t.l-1)+(b&&b.rg||0),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
 // the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
 const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 // damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista and Crossbow Nest pierce physical armour);
@@ -54,7 +68,7 @@ const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;if(t=='phys'&&e.ac>0)return 1+ACID;return t=='phys'&&(T[k].pr||b&&b.pr)?1:1-(e.rs[t]||0)*(b&&b.hr&&e.rs[t]<1?0:1);};
 // Shieldbearer: an Archer arrow or Ballista bolt flying at its front (within ~70° of head-on; dx,dy = the shot's travel direction) loses e.shd of its damage
 const shBlk=(e,k,dx,dy)=>{if(!e.shd||(k!='arrow'&&k!='ballista'))return 1;const L=Math.hypot(dx,dy);return L>0&&-(dx*Math.sin(e.dir)+dy*Math.cos(e.dir))/L>.34?1-e.shd:1;};
-const upCost=t=>Math.round(T[t.k].c*.8*t.l);
+const upCost=t=>Math.round(T[t.k].c*.8*t.l*(1-pkv('smith')));
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&(INF||g.wave<MAXW)&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
@@ -110,9 +124,9 @@ for(const o of g.en){if(o===e||o.hp<=0||o.hp>=o.max||Math.hypot(o.x-e.x,o.y-e.y)
 function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd('banish');fx(e.x,e.y,0xb58cff,.1,.9,.4,.1,true);burst(e.x,e.y,0xb58cff,14,1.3,.4);
 pushBack(e,m);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
-// Repair gate: buy back one life (up to MAXL); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
-const MAXL=DF.li,REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
-function repair(){if(g.over||g.lives>=MAXL)return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);return true;}
+// Repair gate: buy back one life (up to maxL(), the difficulty's lives plus the Stonemasons perk); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
+const maxL=()=>DF.li+pkv('wall'),REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
+function repair(){if(g.over||g.lives>=maxL())return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);return true;}
 // move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
 function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
 // ---------- Hero ----------
@@ -129,7 +143,7 @@ const HAB=[{n:'Rain of Arrows',ic:'🏹',cd:20,r:90,aim:1,ds:'Click a spot: four
 {n:'Boiling Oil',ic:'🛢️',cd:30,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
 {n:'Reinforcements',ic:'⚔️',cd:35,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for 15 s, blocking anything on foot except bosses.'},
 {n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a wave: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
-const hst=h=>({hp:HERO.hp*(1+.35*(h.lv-1)),d:HERO.d*(1+.3*(h.lv-1))});
+const hst=h=>({hp:HERO.hp*(1+.35*(h.lv-1))*(1+pkv('hero')),d:HERO.d*(1+.3*(h.lv-1))*(1+pkv('hero'))});
 // where he starts and respawns: the road cell nearest the gate
 function heroHome(){const gx=GATE.x*S+W*S/2,gy=GATE.z*S+H*S/2;let bd=Infinity,b=null;for(const k of road){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2,d=Math.hypot(x-gx,y-gy);if(onB(c,r)&&d<bd){bd=d;b={x,y};}}return b;}
 // the hero only goes to road cells on the board (not the breach or gate outside the wall)
@@ -160,7 +174,7 @@ for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm'
 if(g.scd[i]>0)return false;
 if(a.aim&&!(x>=0&&x<W*S&&y>=0&&y<H*S))return false;
 if(a.road){const c=Math.floor(x/S),r=Math.floor(y/S);if(!onB(c,r))return false;x=c*S+S/2;y=r*S+S/2;}
-g.scd[i]=a.cd;
+g.scd[i]=a.cd*(1-pkv('spell'));
 if(i==0)g.sp.push({k:'rain',x,y,t:0,v:0});
 if(i==1){const d=SPN.oil*gob();for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
 addZone({k:'fire',x:q.x,y:q.y,r:a.r,t:4,d0:4,d:d*SPN.burn,sl:1});}for(const e of g.en)e.oil=0;spellFx(1,{tiles:gateTiles()});}
@@ -189,7 +203,7 @@ for(const t of g.rf){t.tmp-=dt;if(t.tmp<=0||t.sol.every(d=>d.hp<=0)){barGone(t);
 // Flyers, faded Ghosts and bosses are ignored – bosses can't be blocked by a Barracks (the hero can). Soldier damage comes from stat() (level, banners) and goes through dmul() like any physical hit. Models: solSync() in js/07-enemies.js
 const BAR={n:3,hp:80,rsp:8,sp:75,eng:60,rg:22,reg:.08,ecd:1,near:90};
 // soldier health and count, respawn time and the share of enemy damage taken – the level-3 branch (BRN.barracks) changes them
-const solHp=t=>BAR.hp*(1+.5*(t.l-1))*((brn(t)||{}).shp||1),solN=t=>(brn(t)||{}).sn||BAR.n,solRs=t=>BAR.rsp*(t.l>=3?.75:1)*((brn(t)||{}).rsf||1),solArm=t=>1-((brn(t)||{}).arm||0);
+const solHp=t=>BAR.hp*(1+.5*(t.l-1))*((brn(t)||{}).shp||1)*(1+pkv('drill')),solN=t=>(brn(t)||{}).sn||BAR.n,solRs=t=>BAR.rsp*(t.l>=3?.75:1)*((brn(t)||{}).rsf||1),solArm=t=>1-((brn(t)||{}).arm||0);
 // enemy melee damage per hit on a soldier: grows with the wave; big enemies hit harder, bosses much harder
 const edmg=e=>4*Math.pow(1.12,g.wave)*(e.bs?3:Math.sqrt(e.h));
 // can a Barracks go on cell c,r: a road cell next to it

@@ -11,8 +11,8 @@ function gfxSet(k){GFX[k]=!GFX[k];try{localStorage.setItem('sfgfx',JSON.stringif
 // levels and stars, tracked per difficulty (DIFS in js/01-config.js): PROG[k] = {n: levels won (level i is unlocked when i <= n), st: best stars per level (0 = won before stars existed)}.
 // Saved in localStorage sfprog as {easy:{n,st},normal:…,hard:…}; older saves ({n,st} or a bare number) were played like Easy. A win also counts on every easier difficulty (lvWon).
 // Switching level or difficulty reloads the page, because the whole scene is built once at load (js/01-config.js picks LVN and DFN)
-// stars for a win by lives left, relative to the difficulty's lives (STAR): 90%+ = 3, 50%+ = 2, any win = 1 – Easy 18/10, Normal 14/8, Hard 9/5. lvWon() puts this win's stars in g.stN and the earlier best in g.stB (end screen)
-const STAR=d=>[Math.ceil(d.li*.9),Math.ceil(d.li*.5)],stars=l=>{const s=STAR(DF);return l>=s[0]?3:l>=s[1]?2:1;},starH=n=>'<span class="stars">'+[0,1,2].map(i=>'<i'+(i<n?' class="on"':'')+'>★</i>').join('')+'</span>',starT=d=>{const s=STAR(d);return'★★★ '+s[0]+'+ lives left · ★★ '+s[1]+'+ · ★ any win';};
+// stars for a win by lives left, relative to the difficulty's lives plus the Stonemasons perk (STAR): 90%+ = 3, 50%+ = 2, any win = 1 – Easy 18/10, Normal 14/8, Hard 9/5. lvWon() puts this win's stars in g.stN and the earlier best in g.stB (end screen)
+const STAR=d=>{const l=d.li+pkv('wall');return[Math.ceil(l*.9),Math.ceil(l*.5)];},stars=l=>{const s=STAR(DF);return l>=s[0]?3:l>=s[1]?2:1;},starH=n=>'<span class="stars">'+[0,1,2].map(i=>'<i'+(i<n?' class="on"':'')+'>★</i>').join('')+'</span>',starT=d=>{const s=STAR(d);return'★★★ '+s[0]+'+ lives left · ★★ '+s[1]+'+ · ★ any win';};
 const PROG={};for(const d of DIFS)PROG[d.k]={n:0,st:[]};
 try{let d=JSON.parse(localStorage.getItem('sfprog'));if(typeof d=='number')d={easy:{n:d}};else if(d&&'n' in d)d={easy:d};if(d)for(const k in PROG)if(d[k]){PROG[k].n=d[k].n|0;if(Array.isArray(d[k].st))PROG[k].st=d[k].st.map(x=>Math.min(3,Math.max(0,x|0)));}}catch(e){}
 function lvWon(){g.stB=PROG[DF.k].st[LVN]||0;g.stN=stars(g.lives);for(let i=0;i<=DFN;i++){const p=PROG[DIFS[i].k];p.n=Math.max(p.n,LVN+1);p.st[LVN]=Math.max(p.st[LVN]||0,g.stN);}try{localStorage.setItem('sfprog',JSON.stringify(PROG));}catch(e){}}
@@ -34,6 +34,19 @@ e.innerHTML='<b>∞</b><small>'+(hb?'best '+hb:'Endless')+'</small>';e.title='En
 el.appendChild(rw);});
 $('m_st').textContent=starT(D);const c=el.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});}
 $('m_df').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b&&+b.dataset.d!==MENU.df){MENU.df=+b.dataset.d;snd('click');mLevels();}};
+// Royal Armoury: stars buy perk ranks (PERKS/PK in js/09-game.js), saved in localStorage sfperk as {id: ranks}. Stars = every star in PROG on every difficulty
+// (a win on a harder difficulty is also counted on the easier ones, so it pays more); spent = the cost of every rank owned. Reset refunds them all.
+try{const d=JSON.parse(localStorage.getItem('sfperk'));if(d)for(const p of PERKS)if(d[p.id])PK[p.id]=clamp(d[p.id]|0,0,p.mx);}catch(e){}
+const pkSave=()=>{try{localStorage.setItem('sfperk',JSON.stringify(PK));}catch(e){}},starsAll=()=>DIFS.reduce((a,d)=>a+PROG[d.k].st.reduce((x,y)=>x+(y|0),0),0),
+starsSpent=()=>PERKS.reduce((a,p)=>a+p.c.slice(0,pk(p.id)).reduce((x,y)=>x+y,0),0),pkTxt=(p,r)=>{const v=r*p.v;return p.id=='gold'?'+'+v+' gold':p.id=='wall'?'+'+v+' '+(v==1?'life':'lives'):(p.id=='smith'||p.id=='spell'?'−':'+')+Math.round(v*100)+'%';};
+function mArm(){const tot=starsAll(),av=tot-starsSpent(),sp=tot-av;
+setH($('m_an'),'<span class="ast">★ '+av+'</span> to spend · '+tot+' earned ('+DIFS.map(d=>d.n+' '+PROG[d.k].st.reduce((x,y)=>x+(y|0),0)).join(' · ')+'). Stars won on a harder difficulty count on the easier ones too. Gold and lives perks apply from the next level you start.');
+const el=$('m_al');el.innerHTML='';for(const p of PERKS){const r=pk(p.id),mx=r>=p.mx,c=p.c[r],d=document.createElement('div');d.className='prk'+(r?' own':'');
+d.innerHTML='<span class="pic">'+p.ic+'</span><span class="pt"><b>'+p.n+'</b><small>'+p.d+(p.mx>1?' per rank':'')+'.</small><span class="pip">'+Array.from({length:p.mx},(_,i)=>'<i'+(i<r?' class="on"':'')+'></i>').join('')+(r?'<em>'+pkTxt(p,r)+'</em>':'')+'</span></span>'+
+'<button class="btn pby"'+(mx||av<c?' disabled':'')+'>'+(mx?'Max':'★ '+c)+'</button>';
+d.lastChild.onclick=()=>{if(mx||starsAll()-starsSpent()<c)return;PK[p.id]=r+1;pkSave();snd('coin');mArm();ui();};el.appendChild(d);}
+const rb=$('m_ar');rb.disabled=!sp;rb.classList.remove('warn');rb.textContent=sp?'Reset perks (refund ★ '+sp+')':'Reset perks';}
+$('m_ar').onclick=()=>{const b=$('m_ar');if(b.classList.contains('warn')){for(const k in PK)delete PK[k];pkSave();snd('click');mArm();ui();}else{b.classList.add('warn');b.textContent='Refund every perk? Click again';}};
 // a level picked in the menu starts right after the reload
 function menuStart(){let go=false;try{go=sessionStorage.getItem('sfgo')=='1';sessionStorage.removeItem('sfgo');}catch(e){}if(go){MENU.open=false;$('menu').style.display='none';}else menuOpen();}
 $('lvl').textContent='Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'');
@@ -45,12 +58,12 @@ function savedRun(i,di=DFN,inf=INF){try{const d=JSON.parse(localStorage.getItem(
 function saveRun(){if(g.over){if(runS!==null){runS=null;try{localStorage.removeItem(RUNK);}catch(e){}}return;}
 if(g.run||!(g.wave>0||g.tw.length))return;const s=JSON.stringify({v:1,gold:g.gold,lives:g.lives,rep:g.rep,wave:g.wave,spd:g.spd,tw:g.tw.map(t=>[t.k,t.c,t.r,t.l,t.inv,t.tm||null,t.bw===g.wave?1:0,t.br!=null?t.br:null,t.rp?[t.rp.x,t.rp.y]:null]),hero:g.hero?[g.hero.lv,g.hero.xp,g.hero.tx,g.hero.ty]:null});
 if(s===runS)return;runS=s;try{localStorage.setItem(RUNK,s);}catch(e){}}
-function loadRun(){const d=savedRun(LVN);if(!d||inGame())return;g.gold=Math.max(0,+d.gold||0);g.lives=Math.min(DF.li,d.lives);g.rep=Math.max(0,d.rep|0);g.wave=d.wave|0;g.spd=[1,2,3].includes(d.spd)?d.spd:1;
+function loadRun(){const d=savedRun(LVN);if(!d||inGame())return;g.gold=Math.max(0,+d.gold||0);g.lives=Math.min(maxL(),d.lives);g.rep=Math.max(0,d.rep|0);g.wave=d.wave|0;g.spd=[1,2,3].includes(d.spd)?d.spd:1;
 for(const[k,c,r,l,inv,tm,nu,br,rp]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,r,clamp(l|0,1,3),+inv||T[k].c,BRN[k]&&BRN[k][br]?br:null);if(TGM[tm])t.tm=tm;if(nu)t.bw=g.wave;if(t.rp&&Array.isArray(rp))setRally(t,+rp[0],+rp[1]);}
 // the hero keeps his level, xp and post between waves
 if(Array.isArray(d.hero)&&g.hero){const h=g.hero,[lv,xp,x,y]=d.hero;h.lv=clamp(lv|0,1,HERO.mx);h.xp=Math.max(0,+xp||0);if(onB(Math.floor(x/S),Math.floor(y/S))){h.x=h.tx=+x;h.y=h.ty=+y;}h.hp=h.max=hst(h).hp;}ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
-function mPage(p){MENU.pg=p;for(const k of['main','levels','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
+function mPage(p){MENU.pg=p;for(const k of['main','levels','armoury','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
 $('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');
 const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');}
 function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}
@@ -79,7 +92,7 @@ function menuBack(){MENU.quit=false;loadRun();if(AU.m)AU.m.gain.setTargetAtTime(
 $('m_play').onclick=()=>{if(g.over)reset();menuClose();};
 // Restart level asks for a second click, so a misclick doesn't throw the run away
 $('m_rs').onclick=()=>{const b=$('m_rs');if(b.classList.contains('warn'))restartLevel();else{b.classList.add('warn');b.textContent='Lose this run? Click again';}};
-$('m_lv').onclick=()=>mPage('levels');$('m_bst').onclick=()=>mPage('bestiary');$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
+$('m_lv').onclick=()=>mPage('levels');$('m_arm').onclick=()=>mPage('armoury');$('m_bst').onclick=()=>mPage('bestiary');$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
 document.querySelectorAll('#menu [data-back]').forEach(b=>b.onclick=()=>mPage('main'));
 $('mn').onclick=menuOpen;
 // while the menu is open, game hotkeys are off; Esc goes back a page or resumes a game in progress

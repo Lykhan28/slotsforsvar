@@ -92,7 +92,7 @@ const LVN=(()=>{let n=0;try{n=+new URLSearchParams(location.search).get('level')
 const LV=LEVELS[LVN],TH=THEMES[LV.th],W=LV.w,H=LV.h;
 // difficulty, picked at load like the level (chosen in the level picker): ?diff=easy|normal|hard, else localStorage sfdif. A new player starts on Normal,
 // one who already has progress or a saved run (made before difficulties existed, which played like Easy) on Easy.
-// hp = enemy health ×, gold = starting gold ×, li = lives (also the Repair gate's cap MAXL). Easy is the original game – keep it at 1/1/20 so the sim reference runs stay valid
+// hp = enemy health ×, gold = starting gold ×, li = lives (also the Repair gate's cap, maxL() in js/09-game.js). Easy is the original game – keep it at 1/1/20 so the sim reference runs stay valid
 const DIFS=[{k:'easy',n:'Easy',hp:1,gold:1,li:20},{k:'normal',n:'Normal',hp:1.3,gold:.9,li:15},{k:'hard',n:'Hard',hp:1.75,gold:.8,li:10}];
 const DFN=(()=>{let k=null;try{k=new URLSearchParams(location.search).get('diff')||localStorage.getItem('sfdif');if(!k)k=localStorage.getItem('sfprog')!=null||Object.keys(localStorage).some(k=>/^sfrun\d+$/.test(k))?'easy':'normal';}catch(e){}const i=DIFS.findIndex(d=>d.k==k);return i<0?1:i;})();
 const DF=DIFS[DFN];
