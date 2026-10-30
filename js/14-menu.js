@@ -63,7 +63,9 @@ for(const[k,c,r,l,inv,tm,nu,br,rp]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,
 // the hero keeps his level, xp and post between waves
 if(Array.isArray(d.hero)&&g.hero){const h=g.hero,[lv,xp,x,y]=d.hero;h.lv=clamp(lv|0,1,HERO.mx);h.xp=Math.max(0,+xp||0);if(onB(Math.floor(x/S),Math.floor(y/S))){h.x=h.tx=+x;h.y=h.ty=+y;}h.hp=h.max=hst(h).hp;}
 // Emberwood: cells still burning in the break (whole seconds left; they no longer spread)
-if(LV.mc=='fire'&&Array.isArray(d.fire))for(const[c,r,t]of d.fire)if(free(c,r)&&+t>0)ignite(c,r,Math.min(+t,MECH.fire.bt),0);ui();}
+if(LV.mc=='fire'&&Array.isArray(d.fire))for(const[c,r,t]of d.fire)if(free(c,r)&&+t>0)ignite(c,r,Math.min(+t,MECH.fire.bt),0);
+// Ashfall: a run past the collapse wave has the shortcut open
+if(LV.ru&&g.wave>=LV.ru.w)ruinOpen(true,true);ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
 function mPage(p){MENU.pg=p;for(const k of['main','levels','armoury','achievements','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='achievements')mAch();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
 $('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');

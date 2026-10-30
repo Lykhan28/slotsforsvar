@@ -180,7 +180,7 @@ Add a Daily Challenge: a level and set of modifiers seeded from today's date, so
 Give levels 2–4 their own gameplay mechanic: Darkwood (fog that shrinks tower range near the trees), Emberwood (burning tiles that spread and temporarily block building), Mirefen (swamp tiles that slow enemies). Show the mechanic in the level picker description.
 ```
 
-- [ ] **32. Level mechanics, part 2**
+- [x] **32. Level mechanics, part 2**
 ```text
 Give levels 5–8 their own mechanic: Ashfall (collapsing ruins that open shortcuts), Barrow Moor (graves that spawn skeletons mid-road), Scorched Badlands (lava eruptions damaging an area), Dread Wastes (darkness phases that reduce range unless towers are lit).
 ```

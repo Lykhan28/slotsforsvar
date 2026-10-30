@@ -513,12 +513,37 @@ const disc=(c,r,o,yy,add)=>{const m=L1(new THREE.Mesh(eg('zd',()=>new THREE.Circ
 m.rotation.x=-PI/2;m.position.y=yy;m.scale.setScalar(r);m.userData.o=o;G.add(m);return m;};
 disc(0x120e0a,.47,.75,.004);disc(0xff5a10,.38,.28,.01,1);disc(0xffb040,.18,.18,.02,1);
 for(let i=0;i<6;i++){const a=i/6*2*PI+rnd(0,1),d=i?rnd(.14,.3):0;flame(G,d*Math.sin(a),0,d*Math.cos(a),i?rnd(1.3,2):2.6,f.fl,.45);}
-burst(x,y,0xff8a1f,8,1,.2);updPads();return G;}
+burst(x,y,0xff8a1f,8,1,.2);updPads();if(g.run&&!MSEEN.fire){MSEEN.fire=1;evMsg(MECH.fire.ic,'Wildfire!','Embers have set the ground alight. Nothing can be built there until the fire dies down.');}return G;}
 function burnEnd(f){sc.remove(f.m);f.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});fx(f.c*S+S/2,f.r*S+S/2,0x5a5450,.15,.6,1,.3);updPads();}
 function burnAnim(dt){for(const f of g.fire){f.a+=dt;const k=clamp(f.a/.5,0,1)*clamp(f.t/2,0,1);
 f.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.opacity=m.userData.o*(m.position.y<.005?Math.max(k,.3):k*(.85+.15*Math.sin(tt*9+m.id)));});
 f.fl.forEach((o,i)=>{const b=o.userData.b;if(b)o.scale.set(b.x*k,b.y*k*(1+.3*Math.sin(tt*14+i*2)),b.z*k);});
 if(dt>0&&Math.random()<dt*1.5*k)fx(f.c*S+S/2,f.r*S+S/2,0x4a4442,.08,.4,1.4,.5+Math.random()*.4);}}
+// the other mechanics' looks (logic in js/09-game.js, props in js/06-scenery.js); MSEEN = which ones have shown their event banner (evMsg, js/10-ui.js) since the page loaded
+const MSEEN={};
+// Ashfall: the ruined houses topple outwards and sink into the rubble lane; now = set at once (reset, a loaded run)
+let RUF=-1;
+function ruinFx(on,now){if(!RUC.size)return;RUB.visible=on;if(!on||now){RUF=-1;RUW.visible=!on;RUW.children.forEach(p=>{p.rotation.x=0;p.position.y=0;});return;}
+RUF=0;RUW.visible=true;snd('crumble');for(const k of RUC){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2;fx(x,y,0x9a948a,.2,1.1,1.6,.3);burst(x,y,0x8a847a,12,1.2,.3);}
+evMsg(MECH.ruin.ic,'The ruins collapse!','A shortcut has opened through the town – every other enemy on foot will take it.');}
+// Barrow Moor: stage 0 = a grave starts to glow (graveAnim pulses GVG while g.gw is set), 1 = skeletons sk climb out in a burst of earth
+function graveFx(q,st,sk){if(!st)return;snd('raise');fx(q.x,q.y,0x7dff6a,.1,.9,.6,.05,true);burst(q.x,q.y,0x3a3028,14,1.2,.2);burst(q.x,q.y,0x9cff6a,8,1.2,.4);for(const o of sk)o.age=.08;
+if(!MSEEN.grave){MSEEN.grave=1;evMsg(MECH.grave.ic,'The dead are rising','Skeletons climb out of the graves beside the road.');}}
+// Scorched Badlands: stage 0 = a vent rumbles (a ring spreads to the blast radius; mechAnim spits embers and glows while g.ew is set), 1 = it erupts
+let LVG=null;
+function eruptFx(v,st){const M=MECH.lava;if(!st){snd('rumble');fx(v.x,v.y,0xff5a10,.2,M.r/60,M.wt,.05,true);return;}
+snd('erupt');fx(v.x,v.y,0xff9a3a,.3,1.5,.6,.35);fx(v.x,v.y,0xff5a10,.3,M.r/60*1.1,.7,.06,true);burst(v.x,v.y,0xff7a1a,22,2.2,.3);burst(v.x,v.y,0x2a1a14,12,1.6,.3);burst(v.x,v.y,0xffd27a,10,2.8,.4);
+if(!MSEEN.lava){MSEEN.lava=1;evMsg(M.ic,'Eruption!','The lava pools blow from time to time – burning enemies nearby and stunning towers right next to them.');}}
+// Dread Wastes: darkness falls (banner, sound); darkAnim() fades the light down/up over 1.5 s (DKK), lights the lava circles and puts a warm glow over every lit tower.
+// It leaves the lights alone once the game is over (the ending scenes own them)
+let DKK=0;
+function darkFx(){snd('dark');evMsg(MECH.dark.ic,'Darkness falls','Towers lose 40% range unless a lava pool or a Banner Tower lights them.');}
+function mechAnim(dt){ruinAnim(dt);
+if(GVG.length)GVG.forEach((s,i)=>{const on=!!g.gw&&g.gw.i==i;s.visible=on;if(on)s.scale.setScalar(1+.5*Math.abs(Math.sin(tt*7)));});
+if(VENT.length){const w=g.ew;if(w&&!LVG)LVG=glow(sc,0,.3,0,1.6,0xff6a20);if(LVG){LVG.visible=!!w;if(w){LVG.position.set(wx(w.v.x),.3,wz(w.v.y));LVG.scale.setScalar(1.2+.8*(1-w.t/MECH.lava.wt)+.2*Math.sin(tt*20));if(dt>0&&Math.random()<dt*10)burst(w.v.x,w.v.y,0xff8a2a,1,1,.2);}}}
+if(LV.mc=='dark'){DKK=clamp(DKK+(g.dk>0&&!g.over?1:-1)*dt/1.5,0,1);LMPM.opacity=.04+.14*DKK;if(!g.over){R.toneMappingExposure=EXPO*(1-.45*DKK);sun.intensity=SUN0*(1-.75*DKK);}
+for(const t of g.tw){const lit=DKK>0&&!T[t.k].sup&&!T[t.k].inc&&litAt(t.c,t.r);if(lit&&!t.lg)t.lg=glow(t.m,0,t.head.position.y+.4,0,1,0xffa040);if(t.lg){t.lg.visible=lit;if(lit)t.lg.scale.setScalar(1.3*DKK*(1+.08*Math.sin(tt*9+t.c)));}}}}
+function ruinAnim(dt){if(RUF<0)return;RUF+=dt;const k=Math.min(1,RUF/1.1);RUW.children.forEach(p=>{p.rotation.x=p.userData.fx*k*k*1.5;p.position.y=-.4*clamp(RUF-1.1,0,1);});if(RUF>2.2){RUW.visible=false;RUF=-1;}}
 // banners: +damage to towers in range; War Drums also add attack speed (t.hs), a Blessed Standard sets t.bls (tbr() in js/09-game.js)
 function buffs(){for(const t of g.tw){t.buff=1;t.hs=1;t.bls=0;}for(const s of g.tw)if(T[s.k].sup&&!(s.stun>0)){const r=stat(s).r,b=brn(s);for(const t of g.tw)if(t!==s&&Math.hypot(t.x-s.x,t.y-s.y)<=r){t.buff+=.2+.1*(s.l-1);if(b&&b.hs)t.hs+=b.hs;if(b&&b.hr)t.bls=1;}}}
 // br = the tower's upgrade branch: Crossbow Nest bolts, Fire Pots (a glowing clay pot), the Boulder (twice the size), Archmage/Time Warden orbs

@@ -278,7 +278,7 @@ for(let i=0;i<TH.tr;i++){const x=rnd(-HX-9.8,HX+9.8),z=rzf(-HZ-7.8,HZ+5.8),k=TH.
 for(let i=0;i<TH.bu;i++){const x=rnd(-HX-7.8,HX+7.8),z=rzf(-HZ-6.8,HZ+4.8);if(!okSpot(x,z,-.4))continue;bush(x,z,rnd(.7,1.3),i%3==0&&TH.fl.length>2?[0xffffff,0xffd93c,0xff6b6b]:null);}
 for(let i=0;i<TH.rk;i++){const x=rnd(-HX-7.8,HX+7.8),z=rzf(-HZ-6.8,HZ+4.8);if(!okSpot(x,z,-.4))continue;const s2=rnd(.15,.4),m=part(ST,'oct',RKM,s2,s2*rnd(.5,.9),s2*rnd(.7,1.1),x,gh(x,z)+s2*.2,z);m.rotation.set(rnd(0,.5),rnd(0,6),rnd(0,.4));}
 // blocked cells on the board: something nobody can build on, matching the land
-for(const k of blk){const[c,r]=k.split(',').map(Number),x=cx(c),z=cz(r),g=groupAt(x,z,0),t=LV.th,alt=(c+r)%2;
+for(const k of blk){if(RUC.has(k))continue;const[c,r]=k.split(',').map(Number),x=cx(c),z=cz(r),g=groupAt(x,z,0),t=LV.th,alt=(c+r)%2;
 if(t=='darkwood'){if(alt){part(g,'tap',0x5a3a1e,.32,.45,.32,0,.22,0);part(g,'cyl',0xb89a6a,.25,.02,.25,0,.455,0);for(let i=0;i<5;i++){const a=i*1.25;rod(g,Math.sin(a)*.2,.15,Math.cos(a)*.2,Math.sin(a)*.45,.0,Math.cos(a)*.45,.06,0x5a3a1e);}for(let i=0;i<4;i++)mushroom(g,rnd(-.35,.35),rnd(-.35,.35),rnd(1,1.6),0x6ac8d8,0x5ae0ff);}
 else{for(let i=0;i<3;i++){const s2=[.38,.24,.18][i],m=part(g,'oct',RKM,s2,s2*.75,s2,rnd(-.2,.2),s2*.35,rnd(-.2,.2));m.rotation.set(rnd(0,.5),rnd(0,6),0);}part(g,'sph',folMat(0x3a6a30),.3,.08,.28,0,.33,0);mushroom(g,.3,.2,1.3,0xb8442e);}}
 else if(t=='burning'){for(let i=0;i<5;i++){const b=part(g,'cyl',0x1c1714,.06,rnd(.6,.9),.06,rnd(-.15,.15),.08+i*.03,rnd(-.15,.15));b.rotation.set(PI/2,0,rnd(0,PI));}fire(g,0,.05,0,1.3);}
@@ -289,6 +289,19 @@ else if(t=='moor'){part(g,'sph',0x3a3028,.4,.12,.4,0,0,0);grave(g,0,-.15,ZF<0?PI
 else if(t=='badlands'||t=='hell'&&alt){pool(x,z,.4,LAVA,.03);for(let i=0;i<10;i++){const a=i/10*PI*2,s2=rnd(.08,.15),m=part(g,'oct',t=='hell'?OBS:SPIRE,s2,s2*.7,s2,Math.sin(a)*.44,s2*.3,Math.cos(a)*.44);m.rotation.set(rnd(0,3),rnd(0,6),0);}glow(g,0,.2,0,1.1,0xff6a20);g.updateWorldMatrix(true,false);emit.push([x,.3,z]);}
 else if(t=='hell'){spikes(g,0,0,1.1);skull(g,.25,0,.25,1.3);}
 else{for(let i=0;i<3;i++){const s2=[.38,.26,.16][i],m=part(g,'oct',RKM,s2,s2*.75,s2,rnd(-.2,.2),s2*.35,rnd(-.2,.2));m.rotation.set(rnd(0,.5),rnd(0,6),0);}}}
+// level mechanics' props (logic in js/09-game.js, looks in js/07-enemies.js). Ashfall's shortcut (RUC): its ruined houses are pivots in an unbaked group RUW that ruinFx() topples,
+// over a rubble lane RUB (baked, hidden until they fall). Barrow Moor: an open grave beside the road at each LV.gv cell, with a green glow (GVG) that shows while it's about to open.
+// Dread Wastes: a faint warm circle round each lava pool (LAMP) marks the ground it lights; darkAnim() brightens them (LMPM) in the dark
+const RUW=new THREE.Group(),RUB=new THREE.Group(),GVG=[],LMPM=new THREE.MeshBasicMaterial({color:new THREE.Color(0xff9a40).convertSRGBToLinear(),transparent:true,opacity:.05,depthWrite:false,blending:THREE.AdditiveBlending});
+if(RUC.size){sc.add(RUW,RUB);for(const k of RUC){const[c,r]=k.split(',').map(Number),x=cx(c),z=cz(r);
+for(let i=0;i<3;i++){const p=new THREE.Group(),h=rnd(.45,.8),w=rnd(.35,.6),a=rnd(0,6);p.position.set(x+rnd(-.2,.2),0,z+rnd(-.2,.2));p.rotation.order='YXZ';p.rotation.y=a;p.userData.fx=i%2?1:-1;
+part(p,'box',[P.st2,P.st,0x8a847a][i],w,h,.12,0,h/2,0);part(p,'box',0x2a2522,w*1.01,.05,.125,0,h-.02,0);if(i==1){const b=part(p,'box',0x1c1816,.06,.06,.8,.1,h*.6,0);b.rotation.set(.3,.8,0);}RUW.add(p);}
+part(RUB,'cyl',0x3a3430,.5,.01,.5,x,.005,z).castShadow=false;for(let i=0;i<12;i++){const s2=rnd(.06,.16),m=part(RUB,'oct',[P.st,P.st2,0x3a3430][i%3],s2,s2*.4,s2,x+rnd(-.42,.42),s2*.15,z+rnd(-.42,.42));m.rotation.set(rnd(0,.4),rnd(0,6),0);}}
+RUW.traverse(o=>{if(o.isMesh)L1(o);});bake(RUB);RUB.visible=false;}
+for(const[c,r]of LV.gv||[]){const x=cx(c),z=cz(r),h=road.has((c-1)+','+r)||road.has((c+1)+','+r),s=h?(road.has(c+','+(r+1))?-1:1):(road.has((c+1)+','+r)?-1:1),ox=h?0:s*.54,oz=h?s*.54:0;
+const q=groupAt(x+ox,z+oz,0);grave(q,0,0,Math.atan2(-ox,-oz),1.25);part(q,'sph',0x2a2018,.32,.07,.2,-ox*.3,0,-oz*.3).castShadow=false;
+const sl=part(ST,'box',0x1e1814,h?.34:.5,.015,h?.5:.34,x+ox*.2,.008,z+oz*.2);sl.castShadow=false;const gl=glow(sc,x,.35,z,1.3,0x7dff6a);gl.visible=false;GVG.push(gl);}
+for(const[c,r]of LAMP){const m=L1(new THREE.Mesh(eg('lmp',()=>new THREE.CircleGeometry(1,40).rotateX(-PI/2)),LMPM));m.position.set(cx(c),.03,cz(r));m.scale.setScalar(MECH.dark.lr/S+.3);sc.add(m);}
 for(let i=0;i<TH.cl[0];i++){const c=new THREE.Group();c.position.set(rnd(-30,30),rnd(7,10),ZF*rnd(-26,-12));c.userData.v=rnd(.15,.4);for(let j=0;j<4;j++)part(c,'sph',0xffffff,rnd(.9,1.6),rnd(.6,1),rnd(.8,1.3),j*1.1-1.6,rnd(0,.4),rnd(-.3,.3));c.traverse(o=>{if(o.isMesh){o.castShadow=false;L1(o);o.material=new THREE.MeshBasicMaterial({color:TH.cl[1]});}});sc.add(c);clouds.push(c);}
 const SMKM=TH.smk||0xffffff;for(const e of emit)for(let i=0;i<5;i++){const m=new THREE.Mesh(geo('sph'),new THREE.MeshBasicMaterial({color:SMKM,transparent:true,opacity:.5,depthWrite:false}));L1(m);sc.add(m);smoke.push({m,e,ph:i/5});}
 bake(ST);bake(KEEP);KEEP0={x:KEEP.position.x,y:KEEP.position.y,z:KEEP.position.z};
@@ -314,7 +327,7 @@ function selRng(){updPads();COV.pv=null;if(g.sel){const t=g.sel;showRng(wx(t.x),
 // road coverage overlay: one tinted square per road cell on the board (a cell counts as reached when its centre is in range).
 // Placing (COV.pv, set by hover) or selecting a tower tints the cells it reaches; the coverage map (COV.on, C key) colours every
 // road cell by how many attacking towers reach it, counting the tower being placed. Black-ish = nothing reaches it.
-const RC=[...road].map(k=>k.split(',').map(Number)).filter(([c,r])=>c>=0&&c<W&&r>=0&&r<H),COV={on:false,pv:null,key:''},
+const RC=[...road,...RUC].map(k=>k.split(',').map(Number)).filter(([c,r])=>c>=0&&c<W&&r>=0&&r<H),COV={on:false,pv:null,key:''},
 COVC=[0x0a0a0c,0x3f7fd0,0x3fb36a,0xe2c040,0xe57d30,0xd83c30],_cm=new THREE.Matrix4(),_cc=new THREE.Color();
 const covM=L1(new THREE.InstancedMesh(new THREE.PlaneGeometry(.9,.9).rotateX(-PI/2),new THREE.MeshBasicMaterial({map:(()=>{const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d');
 q.fillStyle='#fff';q.beginPath();q.moveTo(16,4);q.arcTo(60,4,60,60,12);q.arcTo(60,60,4,60,12);q.arcTo(4,60,4,4,12);q.arcTo(4,4,60,4,12);q.fill();const t=new THREE.CanvasTexture(c);return t;})(),transparent:true,opacity:.6,depthWrite:false,toneMapped:false}),RC.length));
@@ -322,8 +335,8 @@ covM.position.y=.035;covM.frustumCulled=false;covM.visible=false;rng.renderOrder
 // the coverage map counts attacking towers; a Barracks only tints its rally range while placed or selected
 function covUpd(){const a=t=>!T[t.k].sup&&!T[t.k].inc&&!T[t.k].bar,s=g.sel,sh=g.over?null:COV.pv||(s&&(a(s)||T[s.k].bar)?{x:s.x,y:s.y,r:stat(s).r,col:0xf0b840}:null),on=COV.on&&!g.over;
 const tw=on?g.tw.filter(a).map(t=>({x:t.x,y:t.y,r:stat(t).r})):[];if(on&&COV.pv)tw.push(COV.pv);
-const key=on+'|'+(sh?[sh.x,sh.y,sh.r,sh.col]:'')+'|'+tw.map(t=>t.x+','+t.y+','+t.r).join(';');if(key===COV.key)return;COV.key=key;
+const key=on+'|'+g.ru+'|'+(sh?[sh.x,sh.y,sh.r,sh.col]:'')+'|'+tw.map(t=>t.x+','+t.y+','+t.r).join(';');if(key===COV.key)return;COV.key=key;
 covM.visible=on||!!sh;if(!covM.visible)return;
-RC.forEach(([c,r],i)=>{const x=c*S+S/2,y=r*S+S/2,inR=t=>Math.hypot(t.x-x,t.y-y)<=t.r,n=on?tw.filter(inR).length:0,show=on||inR(sh);
+RC.forEach(([c,r],i)=>{const x=c*S+S/2,y=r*S+S/2,inR=t=>Math.hypot(t.x-x,t.y-y)<=t.r,n=on?tw.filter(inR).length:0,show=road.has(c+','+r)&&(on||inR(sh));
 _cm.makeScale(show?1:0,1,show?1:0).setPosition(cx(c),0,cz(r));covM.setMatrixAt(i,_cm);covM.setColorAt(i,_cc.setHex(on?COVC[Math.min(n,5)]:sh.col));});
 covM.instanceMatrix.needsUpdate=true;covM.instanceColor.needsUpdate=true;}

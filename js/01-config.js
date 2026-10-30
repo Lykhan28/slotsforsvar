@@ -2,16 +2,16 @@
 const $=id=>document.getElementById(id),S=60,MAXW=20,PI=Math.PI,rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // ---------- levels ----------
 // w×h board cells; p = one road per breach, as cell waypoints (first point outside the wall = breach, last = castle gate; all roads share the gate); bk = cells nobody can build on
-// th = environment (THEMES below); hp = enemy health multiplier; gold = starting gold; mc = the level's own mechanic (MECH below), bg = Mirefen's bog road cells
+// th = environment (THEMES below); hp = enemy health multiplier; gold = starting gold; mc = the level's own mechanic (MECH below), bg = Mirefen's bog road cells, ru = Ashfall's shortcut, gv = Barrow Moor's graves
 const LEVELS=[
 {n:'Greenmeadow',d:'Peaceful fields on the edge of the kingdom',th:'meadow',w:12,h:8,hp:1,gold:120,p:[[[-1,1],[9,1],[9,3],[2,3],[2,6],[12,6]]],bk:[]},
 {n:'Darkwood',d:'An old forest where little light gets through',th:'darkwood',w:10,h:7,hp:0.95,gold:130,mc:'fog',p:[[[2,-1],[2,4],[6,4],[6,1],[10,1]]],bk:[[4,2],[0,5],[8,3],[4,6]]},
 {n:'Emberwood',d:'The forest is burning and the villages are gone',th:'burning',w:13,h:8,hp:0.9,gold:140,mc:'fire',p:[[[10,8],[10,5],[3,5],[3,2],[8,2],[8,-1]]],bk:[[5,4],[7,3],[1,6],[11,2],[0,1]]},
 {n:'Mirefen',d:'Sunken bogs where nothing solid can be built',th:'marsh',w:14,h:9,hp:0.93,gold:150,mc:'bog',bg:[[2,2],[3,2],[5,4],[5,5],[8,6],[9,6]],p:[[[-1,2],[5,2],[5,6],[11,6],[11,9]]],bk:[[2,4],[3,4],[2,5],[8,3],[9,3],[8,4],[12,2],[13,3],[7,8],[1,7],[0,0]]},
-{n:'Ashfall',d:'The ruins of a town, still smouldering',th:'ruins',w:11,h:7,hp:1.1,gold:160,p:[[[11,5],[7,5],[7,1],[3,1],[3,4],[-1,4]]],bk:[[5,2],[5,3],[9,3],[1,1],[9,0],[5,6],[0,6]]},
-{n:'Barrow Moor',d:'Mist, graves and things that should stay buried',th:'moor',w:15,h:9,hp:0.8,gold:170,p:[[[2,-1],[2,6],[12,6],[12,2],[15,2]]],bk:[[4,3],[5,3],[6,3],[8,4],[9,4],[10,3],[4,7],[7,8],[1,2],[14,5],[8,1],[0,8]]},
-{n:'Scorched Badlands',d:'Cracked earth and rivers of fire. The enemy comes from two sides',th:'badlands',w:12,h:9,hp:0.9,gold:190,p:[[[-1,2],[4,2],[4,6],[9,6],[9,9]],[[7,-1],[7,6],[9,6],[9,9]]],bk:[[1,5],[2,5],[5,4],[6,1],[10,1],[11,7],[2,8],[6,8],[10,4]]},
-{n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:0.88,gold:220,p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]}];
+{n:'Ashfall',d:'The ruins of a town, still smouldering',th:'ruins',w:11,h:7,hp:1.1,gold:160,mc:'ruin',ru:{w:7,t:8,c:[[4,3],[5,3],[6,3]],p:[[11,5],[7,5],[7,3],[3,3],[3,4],[-1,4]]},p:[[[11,5],[7,5],[7,1],[3,1],[3,4],[-1,4]]],bk:[[5,2],[9,3],[1,1],[9,0],[5,6],[0,6]]},
+{n:'Barrow Moor',d:'Mist, graves and things that should stay buried',th:'moor',w:15,h:9,hp:0.8,gold:170,mc:'grave',gv:[[2,3],[5,6],[9,6]],p:[[[2,-1],[2,6],[12,6],[12,2],[15,2]]],bk:[[4,3],[5,3],[6,3],[8,4],[9,4],[10,3],[4,7],[7,8],[1,2],[14,5],[8,1],[0,8]]},
+{n:'Scorched Badlands',d:'Cracked earth and rivers of fire. The enemy comes from two sides',th:'badlands',w:12,h:9,hp:0.9,gold:190,mc:'lava',p:[[[-1,2],[4,2],[4,6],[9,6],[9,9]],[[7,-1],[7,6],[9,6],[9,9]]],bk:[[1,5],[2,5],[5,4],[6,1],[10,1],[11,7],[2,8],[6,8],[10,4]]},
+{n:'The Dread Wastes',d:'A dead land under a burning sky. Two armies, one castle',th:'hell',w:16,h:10,hp:0.88,gold:220,mc:'dark',p:[[[-1,7],[4,7],[4,2],[7,2],[7,-1]],[[16,8],[12,8],[12,4],[9,4],[9,2],[7,2],[7,-1]]],bk:[[1,3],[2,3],[1,4],[6,5],[7,5],[6,6],[14,2],[14,3],[10,7],[9,9],[2,9],[15,0],[0,0],[11,1],[5,0],[13,6]]}];
 // ---------- waves ----------
 // WAVES[level] = its 20 waves, hand-designed (LEVELS[i].wv; read by waveQ() in js/09-game.js). A wave is "Name: group group ...", the name shows in the next-wave preview.
 // A group is <count><letters>[/<gap>][@<road>]: count enemies, cycling through the letters (WC), gap seconds apart (default .8, also the wait after the
@@ -108,11 +108,24 @@ for(let c=Math.min(f(a[0]),f(b[0]));c<=Math.max(f(a[0]),f(b[0]));c++)for(let r=M
 // fog = towers on a FOG cell (the ring of cells along the wall, where the forest crowds in) get rg of their range;
 // fire = during a wave an ember lands on a free cell by the wall or a burning stump every ig s (the first ig0 s in), at most mx fires at once; each burns bt s of game time
 //   (the break too – nothing can be built there meanwhile) and after sp s of wave time spreads once to a free neighbouring cell (never across the road);
-// bog = enemies on foot move at sl of their speed on a bog road cell (LV.bg)
+// bog = enemies on foot move at sl of their speed on a bog road cell (LV.bg);
+// ruin = LV.ru: at wave w, t s in, the ruins on cells c collapse into road and the shortcut road p opens (it shares the main road's start); every other enemy on foot takes it from then on;
+// grave = while a wave is still marching in, every cd s (the first t0 s in) one of the graves by the road (LV.gv, road cells) glows for wt s, then 1 skeleton + 1 per dn waves climb out there;
+// lava = every cd s of a wave (the first t0 s in) a lava vent (every blocked cell) rumbles for wt s, then erupts: dm × a goblin's health (gob()) as fire damage to enemies within r (flyers too),
+//   and towers within r are stunned st s;
+// dark = t0 s into a wave and every cd s after it, darkness falls for du s: towers get rg of their range unless lit – within lr of a lava pool (LAMP) or in a Banner Tower's range (banners carry torches)
 const MECH={fog:{n:'Forest fog',ic:'☁️',d:'Mist creeps in from the trees: towers on the foggy cells along the wall lose a quarter of their range.',rg:.75},
 fire:{n:'Wildfire',ic:'🔥',d:'Embers land on the board during waves and the fire spreads. Nothing can be built on burning ground until it dies down.',ig0:6,ig:9,mx:6,bt:20,sp:5},
-bog:{n:'Sucking bog',ic:'🐸',d:'Stretches of the road are flooded bog: enemies on foot wade through at 60% speed.',sl:.6}};
+bog:{n:'Sucking bog',ic:'🐸',d:'Stretches of the road are flooded bog: enemies on foot wade through at 60% speed.',sl:.6},
+ruin:{n:'Crumbling ruins',ic:'🏚️',d:'In wave 7 the ruined houses in the middle of town collapse and open a shortcut. From then on every other enemy on foot takes it.'},
+grave:{n:'Restless graves',ic:'💀',d:'While a wave marches in, the open graves beside the road glow – and skeletons climb out onto the road.',t0:8,cd:11,wt:1.5,dn:7},
+lava:{n:'Lava vents',ic:'🌋',d:'The lava pools erupt during waves, burning nearby enemies – and stunning towers built right next to them for a few seconds.',t0:6,cd:9,wt:2,r:95,dm:.5,st:3},
+dark:{n:'Falling darkness',ic:'🌑',d:'Darkness falls again and again during waves. Towers lose 40% range in the dark unless they stand by a lava pool or in reach of a Banner Tower.',t0:15,cd:30,du:10,rg:.6,lr:95}};
 const FOG=new Set(),BOGC=new Set((LV.bg||[]).map(b=>b[0]+','+b[1]));
+// Ashfall: the shortcut's ruin cells (blocked until they collapse, then road) and its road SC (with rem like PATHS); Dread Wastes: the lava pools that light towers (the blocked cells drawn as lava, js/06-scenery.js)
+const RUC=new Set((LV.ru?LV.ru.c:[]).map(b=>b[0]+','+b[1]));for(const k of RUC)blk.add(k);
+const SC=LV.ru?LV.ru.p.map(p=>[p[0]*S+S/2,p[1]*S+S/2]):null;if(SC){SC.rem=[0];for(let i=SC.length-2;i>=0;i--)SC.rem.unshift(SC.rem[0]+Math.hypot(SC[i+1][0]-SC[i][0],SC[i+1][1]-SC[i][1]));}
+const LAMP=LV.mc=='dark'?LV.bk.filter(([c,r])=>(c+r)%2):[];
 if(LV.mc=='fog')for(let c=0;c<W;c++)for(let r=0;r<H;r++)if((c==0||r==0||c==W-1||r==H-1)&&!road.has(c+','+r)&&!blk.has(c+','+r))FOG.add(c+','+r);
 const T={arrow:{n:'Archers',ic:'🏹',c:50,r:130,d:10,f:.5,dt:'phys',air:1},cannon:{n:'Catapult',ic:'🪨',c:100,r:110,d:30,f:1.4,dt:'phys',sp:55,bs:260,arc:1},frost:{n:'Wizard',ic:'🔮',c:110,r:115,d:8,f:3,dt:'magic',air:1},
 ballista:{n:'Ballista',ic:'🎯',c:125,r:190,d:66,f:2.2,dt:'phys',pr:1,air:1,bs:520,tm:'strong'},storm:{n:'Storm Tower',ic:'⚡',c:150,r:105,d:16,f:1,dt:'light',air:1,ch:5},alch:{n:'Alchemist',ic:'🧪',c:90,r:115,d:7.8,f:1.1,dt:'fire',bs:240,arc:1},

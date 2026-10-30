@@ -82,6 +82,8 @@ if(atk&&!t&&!tp.bar)c.unshift('<span class="chip">Targets: '+TGM[tm][0]+'</span>
 if(!t&&BRN[k])c.push('<span class="chip hi" title="Pick one when upgrading to level 3">Level 3: '+BRN[k].map(b=>b.n).join(' or ')+'</span>');
 if(atk)c.push(tp.air?'<span class="chip" title="Can shoot flying enemies">🦇 Hits flyers</span>':'<span class="chip lo" title="Can’t hit flying enemies">Ground only</span>');
 if(atk)c.unshift('<span class="chip dty" title="Damage type">'+DTY[tp.dt][1]+' '+DTY[tp.dt][0]+(tp.pr||br&&br.pr?' · pierces armour':tp.dt=='light'?' · ignores armour':'')+'</span>');
+if(t&&LV.mc=='dark'&&!tp.sup&&!tp.inc)c.unshift(litAt(t.c,t.r)?'<span class="chip" title="'+MECH.dark.d+'">🔥 Lit · keeps its range in the dark</span>':'<span class="chip lo" title="'+MECH.dark.d+'">🌑 Unlit · −'+Math.round((1-MECH.dark.rg)*100)+'% range in the dark</span>');
+if(t&&VENT.some(v=>Math.hypot(v.x-t.x,v.y-t.y)<=MECH.lava.r))c.unshift('<span class="chip lo" title="'+MECH.lava.d+'">🌋 Next to a lava pool · eruptions stun it</span>');
 if(t&&fogM(t.c,t.r)<1&&!tp.inc)c.unshift('<span class="chip lo" title="'+MECH.fog.d+'">'+MECH.fog.ic+' In the fog · −'+Math.round((1-MECH.fog.rg)*100)+'% range</span>');
 if(t&&t.stun>0)c.unshift('<span class="chip lo">💥 Stunned · '+Math.ceil(t.stun)+'s</span>');
 if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from banners</span>');
@@ -95,7 +97,9 @@ return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Rolan
 // boss health bar across the top of the view while a boss is on the board
 function bossBar(){const e=g.en.find(o=>o.bs&&o.hp>0),el=$('bb');el.classList.toggle('on',!!e&&!g.over);if(!e)return;
 setH(el.firstChild,'<span class="bbn">'+FOE[e.type][0]+' '+BST[e.type][0]+'</span><span class="bbv">'+(e.lv>1?'💔 '+e.lv+' lives at the gate':'')+'</span>');el.lastChild.firstChild.style.width=(100*Math.max(0,e.hp)/e.max).toFixed(1)+'%';}
-function ui(){bossBar();const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
+// level-mechanic events (js/07-enemies.js): a banner over the board for a few seconds (#evt); ui() hides it again
+let evT=0;function evMsg(ic,t,d){const el=$('evt');el.innerHTML='<span class="ei">'+ic+'</span><span class="et"><b>'+t+'</b><em>'+d+'</em></span>';el.classList.add('on');evT=performance.now()+4500;}
+function ui(){bossBar();if(evT&&(performance.now()>evT||g.over)){evT=0;$('evt').classList.remove('on');}const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;
 // Repair gate: shown while a life is missing, greyed out when you can't afford it
 {const b=$('rep'),c=repCost(),show=g.lives<maxL()&&!g.over;b.classList.toggle('on',show);b.classList.toggle('poor',g.gold<c);b.disabled=g.gold<c;setH(b.lastChild,COIN+c);b.title='Repair the gate: +1 life for '+c+' gold (R) – it gets dearer each time';}$('lives').parentNode.classList.toggle('low',g.lives<=5&&!g.over);

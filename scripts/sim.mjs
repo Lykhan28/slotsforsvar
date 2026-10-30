@@ -102,7 +102,7 @@ const ctx = vm.createContext({
   location: { search: '?level=' + level + '&diff=' + (opt.diff || 'easy') }, localStorage: { getItem: () => null, setItem: noop },
   document: { getElementById: () => null },
   // rendering, sound and UI hooks called by the game logic
-  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop, burnFx: noop, burnEnd: noop,
+  sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop, burnFx: noop, burnEnd: noop, ruinFx: noop, graveFx: noop, eruptFx: noop, darkFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
   buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
   ui: noop, infRec: noop, ach: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,

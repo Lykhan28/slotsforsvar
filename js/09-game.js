@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[]),...(g.fire||[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:Math.round(LV.gold*DF.gold)+pkv('gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],fire:[],fit:MECH.fire.ig0,scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();selRng();ui();}
+g={gold:Math.round(LV.gold*DF.gold)+pkv('gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],fire:[],fit:MECH.fire.ig0,ru:false,gvt:MECH.grave.t0,evt:MECH.lava.t0,dk:0,dkc:MECH.dark.t0,scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();if(LV.ru)ruinOpen(false,true);selRng();ui();}
 // Endless mode (INF, set by js/14-menu.js at load for a level already won on this difficulty; the sim's --endless): no victory after MAXW, the waves go on.
 // Past MAXW endWave(w) makes each wave up in the table format, seeded by level and wave so it is the same every time (save/reload, sim): 3–6 groups
 // drawn from the level's own enemies (every non-boss type from wave MAXW+EWV.all on), EWV.n0 + EWV.dn per wave enemies, a boss every 5th wave from the
@@ -34,7 +34,7 @@ const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&(INF||g.wave<MAXW)?Math.max(0,BRK-g
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;snd('horn');g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);ui();}
 // each breach has its own road (PATHS); the wave alternates between them
-function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R=(e.fy?FPATHS:PATHS)[pi||0];o.m.scale.setScalar(.01);
+function spawn(type,pi){if(type=='boss')snd('roar');else if(E[type].bs)snd('horn');const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
@@ -59,7 +59,7 @@ const PERKS=[
 {id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Roland gets +10% health and damage'},
 {id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:.06,d:'Spell cooldowns are 6% shorter'}];
 const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'arch',cannon:'siege',ballista:'siege',frost:'arc',storm:'arc',alch:'arc'};
-const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
+const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r)*darkM(t),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)};};
 // the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
 const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 // damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista and Crossbow Nest pierce physical armour);
@@ -72,7 +72,7 @@ const upCost=t=>Math.round(T[t.k].c*.8*t.l*(1-pkv('smith')));
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&(INF||g.wave<MAXW)&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);}}
-zones(dt);fires(dt);spells(dt);soldiers(dt);heroUpd(dt);
+zones(dt);mech(dt);spells(dt);soldiers(dt);heroUpd(dt);
 for(const e of g.en){const bm=bogM(e);let m=e.s*(e.stun>0?0:e.sl>0?(e.slf||.5):1)*e.tf*bm*dt;if(e.bk&&held(e))m=0;if(bm<1&&m>0&&Math.random()<dt*2.5)burst(e.x,e.y,0x6a7448,2,.5,.05);e.sl-=dt;e.stun-=dt;e.bn-=dt;e.ac-=dt;const et=dt*e.tf;if(e.sum){e.smt-=et;if(e.smt<=0){e.smt=KING.cd;summon(e);}}if(e.rz){e.rzt-=et;if(e.rzt<=0){e.rzt=NEC.cd;raise(e);}}if(e.hl){e.hlr-=et;if(e.hlr<=0){e.hlr=HEAL.cd;heal(e);}}if(e.phz){e.pzt-=dt;if(e.pzt<=0){e.out=!e.out;e.pzt=e.out?PHZ.d:PHZ.cd;phzFx(e);}}if(e.pt>0&&!e.out){e.hp-=e.pd*dt;e.pt-=dt;if(Math.random()<dt*5)burst(e.x,e.y,0x7cff4a,1,.3,.5);}
 if(!(e.sap&&sapMove(e,m)))while(m>0&&e.seg<e.R.length){const tx2=e.R[e.seg][0],ty=e.R[e.seg][1],d=Math.hypot(tx2-e.x,ty-e.y);if(d>.01)e.dir=Math.atan2(tx2-e.x,ty-e.y);
 if(d<=m){e.x=tx2;e.y=ty;e.seg++;m-=d;}else{e.x+=(tx2-e.x)/d*m;e.y+=(ty-e.y)/d*m;m=0;}}
@@ -269,9 +269,43 @@ if(g.run){g.fit-=dt;if(g.fit<=0){g.fit=M.ig;const cs=EMB.filter(([c,r])=>free(c,
 for(const f of g.fire)if(f.sp>0){f.sp-=dt;if(f.sp<=0&&g.fire.length<M.mx){const ns=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>[f.c+a,f.r+b]).filter(([c,r])=>free(c,r));if(ns.length){const[c,r]=ns[Math.floor(Math.random()*ns.length)];ignite(c,r);}}}}
 else g.fit=M.ig0;
 for(const f of g.fire){f.t-=dt;if(f.t<=0)burnEnd(f);}if(g.fire.length)g.fire=g.fire.filter(f=>f.t>0);}
+// Ashfall ruins: LV.ru collapses once (g.ru); ruinOpen() turns its cells into road (hero, Barracks, coverage map) and sends every other enemy on foot that hasn't
+// passed the junction yet down the shortcut SC; spawn() does the same for new ones (ruPick). reset() closes it again, loadRun() opens it at once for a run past LV.ru.w.
+// Looks: ruinFx()/ruinAnim() in js/07-enemies.js (stubbed in the sim)
+const ruPick=()=>(g.ruc=(g.ruc|0)+1)%2==0;
+function ruinOpen(on,now){g.ru=on;for(const k of RUC)if(on){road.add(k);blk.delete(k);}else{road.delete(k);blk.add(k);}ruinFx(on,now);if(!on||now)return;
+const R=PATHS[0];let k=1;while(k<SC.length-1&&SC[k][0]==R[k][0]&&SC[k][1]==R[k][1])k++;const J=SC[k],rj=R.rem[k]+Math.hypot(R[k][0]-J[0],R[k][1]-J[1]);
+for(const e of g.en)if(e.R===R&&!e.fy&&e.hp>0&&e.seg<=k&&-prog(e)>rj&&ruPick())e.R=SC;}
+function ruins(){const u=LV.ru;if(!g.ru&&g.run&&(g.wave>u.w||g.wave==u.w&&g.wt>=u.t))ruinOpen(true);}
+// Barrow Moor graves: GVP = the graves' road cells with the road and segment through them. g.gvt counts down while the wave is still marching in (g.q),
+// g.gw = the grave glowing before its skeletons climb out (spread across the road, facing along it). Looks: graveFx(q,stage) in js/07-enemies.js (stubbed in the sim)
+const GVP=(LV.gv||[]).map(([c,r],i)=>{const x=c*S+S/2,y=r*S+S/2;for(let pi=0;pi<PATHS.length;pi++){const R=PATHS[pi];for(let j=0;j<R.length-1;j++){const a=R[j],b=R[j+1];
+if((a[0]==b[0]&&x==a[0]||a[1]==b[1]&&y==a[1])&&x>=Math.min(a[0],b[0])&&x<=Math.max(a[0],b[0])&&y>=Math.min(a[1],b[1])&&y<=Math.max(a[1],b[1])){const L=Math.hypot(b[0]-a[0],b[1]-a[1]);return{i,c,r,x,y,pi,R,seg:j+1,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};}}}
+throw Error(LV.n+': grave '+c+','+r+' is not on a road');});
+function graves(dt){const M=MECH.grave;if(!g.run){g.gvt=M.t0;g.gw=null;return;}
+if(g.gw){g.gw.t-=dt;if(g.gw.t<=0){const q=GVP[g.gw.i],n=1+Math.floor(g.wave/M.dn),sk=[];g.gw=null;
+for(let j=0;j<n;j++){spawn('skel',q.pi);const o=g.en[g.en.length-1],k=(j-(n-1)/2)*15;Object.assign(o,{R:q.R,seg:q.seg,x:q.x-q.uy*k,y:q.y+q.ux*k,dir:Math.atan2(q.ux,q.uy)});o.vis=o.dir;o.px=o.x;o.py=o.y;sk.push(o);}graveFx(q,1,sk);}return;}
+if(!g.q.length)return;g.gvt-=dt;if(g.gvt<=0){g.gvt=M.cd;g.gw={i:Math.floor(Math.random()*GVP.length),t:M.wt};graveFx(GVP[g.gw.i],0);}}
+// Scorched Badlands lava: every blocked cell is a lava pool and can erupt (VENT); g.evt counts down through the wave, g.ew = the vent rumbling before it blows.
+// Fire damage goes through dmul() (Fire Imps shrug it off); stunned towers use the Sapper's t.stun. Looks: eruptFx(v,stage) in js/07-enemies.js (stubbed in the sim)
+const VENT=LV.mc=='lava'?LV.bk.map(([c,r])=>({c,r,x:c*S+S/2,y:r*S+S/2})):[];
+function lava(dt){const M=MECH.lava;if(!g.run){g.evt=M.t0;g.ew=null;return;}
+if(g.ew){g.ew.t-=dt;if(g.ew.t<=0){const v=g.ew.v,d=M.dm*gob();g.ew=null;
+for(const e of g.en)if(e.hp>0&&!e.out&&Math.hypot(e.x-v.x,e.y-v.y)<=M.r){const dd=d*dmul(e,'cannon',FIRE);if(dd>0){e.hp-=dd;hf(e,.3,dd,'cannon');}}
+for(const t of g.tw)if(Math.hypot(t.x-v.x,t.y-v.y)<=M.r)t.stun=Math.max(t.stun||0,M.st);eruptFx(v,1);}return;}
+g.evt-=dt;if(g.evt<=0){g.evt=M.cd;g.ew={v:VENT[Math.floor(Math.random()*VENT.length)],t:M.wt};eruptFx(g.ew.v,0);}}
+// Dread Wastes darkness: g.dkc counts wave time to the next darkness, g.dk = seconds of it left (0 in every break). darkM() cuts an unlit tower's range in stat();
+// litAt(c,r): by a lava pool (LAMP) or in range of a Banner Tower that isn't stunned (a banner's own range never shrinks, so this can't loop).
+// Looks: darkFx() (it falls) and darkAnim() (dimming, lit towers' glow) in js/07-enemies.js
+const litAt=(c,r)=>LAMP.some(([a,b])=>Math.hypot(a-c,b-r)*S<=MECH.dark.lr)||g.tw.some(t=>T[t.k].sup&&!(t.stun>0)&&Math.hypot(t.x-c*S-S/2,t.y-r*S-S/2)<=stat(t).r);
+const darkM=t=>g&&g.dk>0&&t.c!=null&&!T[t.k].sup&&!litAt(t.c,t.r)?MECH.dark.rg:1;
+function dark(dt){const M=MECH.dark;if(!g.run){g.dk=0;g.dkc=M.t0;return;}if(g.dk>0){g.dk-=dt;if(g.dk<=0){g.dk=0;g.dkc=M.cd-M.du;}}else{g.dkc-=dt;if(g.dkc<=0){g.dk=M.du;darkFx();}}}
+// each level's mechanic, run from update() after zones()
+const MECHF={fire:fires,ruin:ruins,grave:graves,lava,dark};
+function mech(dt){const f=MECHF[LV.mc];if(f)f(dt);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
 function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
-for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);burnAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
+for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);burnAnim(dt);mechAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0;if(t.age<.4){t.age+=rdt===undefined?dt:rdt;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}
 if(t.aim!==undefined)t.aimG.rotation.y=t.aim;
