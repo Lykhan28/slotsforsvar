@@ -32,7 +32,7 @@ const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=wvS(w),c=s.indexOf
 const BRK=25;let autoW=false;
 const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&(INF||g.wave<MAXW)?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
-function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
+function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
 // each breach has its own road (PATHS); the wave alternates between them
 function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36,pirate:2*PI/38}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
@@ -47,7 +47,7 @@ const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m==
 const brn=t=>t.l>=3&&t.br!=null&&BRN[t.k]?BRN[t.k][t.br]:null;
 // Royal Armoury perks (bought with stars in the menu, js/14-menu.js): PERKS = [id, icon, name, ranks, star cost per rank, what one rank does]; PK[id] = ranks owned
 // (loaded by js/14-menu.js from localStorage sfperk; always empty in the sim unless --perks). pk(id) = ranks. Effects: tower damage in stat() (PKD = tower type → perk, v per rank),
-// soldiers' health in solHp(), upgrade price in upCost(), starting gold and lives in reset()/maxL(), the hero in hst(), spell cooldowns in spCw(). Keep them modest.
+// soldiers' health in solHp(), upgrade price in upCost(), starting gold and lives in reset()/maxL(), the hero in hst(), spell damage in spells()/heroCast(). Keep them modest.
 const PERKS=[
 {id:'arch',ic:'🏹',n:"Fletchers' Guild",mx:3,c:[2,3,4],v:.05,d:'Archers deal +5% damage'},
 {id:'siege',ic:'🪨',n:'Siege Workshop',mx:3,c:[2,3,4],v:.05,d:'Catapults and Ballistas deal +5% damage'},
@@ -57,7 +57,7 @@ const PERKS=[
 {id:'gold',ic:'💰',n:'War Chest',mx:3,c:[2,3,4],v:20,d:'Start every level with +20 gold'},
 {id:'wall',ic:'🧱',n:'Stonemasons',mx:2,c:[3,5],v:1,d:'+1 life (and one more for the Repair gate)'},
 {id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Kirkevang gets +10% health and damage'},
-{id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:1,d:'Rain of Arrows and Boiling Oil are ready a wave sooner'}];
+{id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:.06,d:'Rain of Arrows and Boiling Oil deal +6% damage'}];
 const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'arch',cannon:'siege',ballista:'siege',frost:'arc',storm:'arc',alch:'arc'};
 const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1)*crysM(t.c,t.r),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r)*darkM(t),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)*coldM(t)/(t.oc>0?MECH.bolt.f:1)};};
 // the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
@@ -134,20 +134,19 @@ function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1
 // across the board, and once he has arrived he fights like a Barracks soldier: he runs at the nearest ground enemy within HERO.eng of his spot (unblocked ones
 // first, then the one closest to the castle), blocks it (e.bk) and trades blows (he shrugs off HERO.arm of every hit). Flyers and faded Ghosts are ignored.
 // He earns xp from every enemy that dies within HERO.xr of him (its gold value) and levels up to HERO.mx (+35% health, +30% damage a level). At 0 health he
-// falls and rides back out from the gate after HERO.rsp s. Abilities: HAB (cooldowns in waves, g.scd; Divine Smite once a run, h.ult), heroCast(i).
+// falls and rides back out from the gate after HERO.rsp s. Abilities: HAB (cooldowns in waves, g.scd; Divine Smite once a wave, h.ult), heroCast(i).
 // Looks: heroSync()/heroFx() in js/07-enemies.js (stubbed in the sim)
 const HERO={sp:110,eng:75,rg:26,hp:300,d:20,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
 // abilities: three spells (castable anywhere during a wave, hero or not; aim = click a spot on the board after picking it, road = a road cell)
-// and Sir Kirkevang's own Divine Smite (once a run, centred on him). cw = cooldown in waves: cast during wave w, ready again from wave w+cw
+// and Sir Kirkevang's own Divine Smite (once a wave, centred on him; h.ult, refilled by startWave()). cw = cooldown in waves: cast during wave w, ready again from wave w+cw
 // (1 = once a wave); g.scd[i] = the wave it is ready from (0 = ready), spRdy(i)/spLeft(i)
-const HAB=[{n:'Rain of Arrows',ic:'🏹',cw:5,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
-{n:'Boiling Oil',ic:'🛢️',cw:7,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
+const HAB=[{n:'Rain of Arrows',ic:'🏹',cw:1,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
+{n:'Boiling Oil',ic:'🛢️',cw:1,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
 {n:'Reinforcements',ic:'⚔️',cw:1,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for 15 s, blocking anything on foot except bosses.'},
-{n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a run: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully. Save it for when it matters.'}];
-// Spellwrights (perk) takes a wave per rank off the longer cooldowns, never below 1
-const spCw=i=>HAB[i].cw>1?Math.max(1,HAB[i].cw-pk('spell')):HAB[i].cw,spLeft=i=>Math.max(0,g.scd[i]-g.wave),spRdy=i=>g.scd[i]<=g.wave;
-// a cooldown label: "5 waves", "Once a wave", "Once a run"
-const cwTxt=a=>a.ult?'Once a run':a.cw==1?'Once a wave':'Every '+spCw(HAB.indexOf(a))+' waves';
+{n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a wave: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
+const spCw=i=>HAB[i].cw,spLeft=i=>Math.max(0,g.scd[i]-g.wave),spRdy=i=>g.scd[i]<=g.wave;
+// a cooldown label: "Once a wave" or "Every N waves"
+const cwTxt=a=>a.ult||a.cw==1?'Once a wave':'Every '+spCw(HAB.indexOf(a))+' waves';
 const hst=h=>({hp:HERO.hp*(1+.35*(h.lv-1))*(1+pkv('hero')),d:HERO.d*(1+.3*(h.lv-1))*(1+pkv('hero'))});
 // where he starts and respawns: the road cell nearest the gate
 function heroHome(){const gx=GATE.x*S+W*S/2,gy=GATE.z*S+H*S/2;let bd=Infinity,b=null;for(const k of road){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2,d=Math.hypot(x-gx,y-gy);if(onB(c,r)&&d<bd){bd=d;b={x,y};}}return b;}
@@ -181,7 +180,7 @@ if(a.aim&&!(x>=0&&x<W*S&&y>=0&&y<H*S))return false;
 if(a.road){const c=Math.floor(x/S),r=Math.floor(y/S);if(!onB(c,r))return false;x=c*S+S/2;y=r*S+S/2;}
 g.scd[i]=g.wave+spCw(i);ach('cast');
 if(i==0)g.sp.push({k:'rain',x,y,t:0,v:0});
-if(i==1){const d=SPN.oil*gob();for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
+if(i==1){const d=SPN.oil*gob()*(1+pkv('spell'));for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
 addZone({k:'fire',x:q.x,y:q.y,r:a.r,t:4,d0:4,d:d*SPN.burn,sl:1});}for(const e of g.en)e.oil=0;spellFx(1,{tiles:gateTiles()});}
 if(i==2){const l=1+(g.wave>=8)+(g.wave>=15),t={k:'barracks',l,br:null,x,y,rp:{x,y},n:SPN.rn,tmp:SPN.rt,sol:[]};
 for(let j=0;j<SPN.rn;j++){const mx=solHp(t);t.sol.push({i:j,x:x+(j?14:-14),y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});}g.rf.push(t);spellFx(2,t);}
@@ -196,7 +195,7 @@ function gateTiles(){if(GTL)return GTL;const h=heroHome(),c0=Math.floor(h.x/S),r
 while(q.length&&GTL.length<3){const[c,r]=q.shift();GTL.push({x:c*S+S/2,y:r*S+S/2});for(const[dc,dr]of[[1,0],[-1,0],[0,1],[0,-1]]){const k=(c+dc)+','+(r+dr);if(!seen.has(k)&&onB(c+dc,r+dr)){seen.add(k);q.push([c+dc,r+dr]);}}}return GTL;}
 // active spells and squads, run from update(): Rain of Arrows drops a volley every 0.4 s, squads count down and leave
 function spells(dt){
-for(const p of g.sp){p.t+=dt;if(p.k=='rain'&&p.t>=.3+p.v*.4&&p.v<SPN.vol){p.v++;const d=SPN.rain*gob();
+for(const p of g.sp){p.t+=dt;if(p.k=='rain'&&p.t>=.3+p.v*.4&&p.v<SPN.vol){p.v++;const d=SPN.rain*gob()*(1+pkv('spell'));
 for(const e of g.en)if(e.hp>0&&!e.out&&Math.hypot(e.x-p.x,e.y-p.y)<=HAB[0].r){const dd=d*dmul(e,'arrow');e.hp-=dd;hf(e,.15,dd,'arrow');}spellFx(0,p);}}
 if(g.sp.length)g.sp=g.sp.filter(p=>p.v<SPN.vol);
 for(const t of g.rf){t.tmp-=dt;if(t.tmp<=0||t.sol.every(d=>d.hp<=0)){barGone(t);squadEnd(t);}}if(g.rf.length)g.rf=g.rf.filter(t=>t.tmp>0&&t.sol.some(d=>d.hp>0));}

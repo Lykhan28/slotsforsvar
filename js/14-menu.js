@@ -126,7 +126,7 @@ $('m_df').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(
 // (a win on a harder difficulty is also counted on the easier ones, so it pays more); spent = the cost of every rank owned. Reset refunds them all.
 try{const d=JSON.parse(localStorage.getItem('sfperk'));if(d)for(const p of PERKS)if(d[p.id])PK[p.id]=clamp(d[p.id]|0,0,p.mx);}catch(e){}
 const pkSave=()=>{try{localStorage.setItem('sfperk',JSON.stringify(PK));}catch(e){}},starsAll=()=>DIFS.reduce((a,d)=>a+PROG[d.k].st.reduce((x,y)=>x+(y|0),0),0),
-starsSpent=()=>PERKS.reduce((a,p)=>a+p.c.slice(0,pk(p.id)).reduce((x,y)=>x+y,0),0),pkTxt=(p,r)=>{const v=r*p.v;return p.id=='gold'?'+'+v+' gold':p.id=='wall'?'+'+v+' '+(v==1?'life':'lives'):p.id=='spell'?'−'+v+' '+(v==1?'wave':'waves'):(p.id=='smith'||p.id=='spell'?'−':'+')+Math.round(v*100)+'%';};
+starsSpent=()=>PERKS.reduce((a,p)=>a+p.c.slice(0,pk(p.id)).reduce((x,y)=>x+y,0),0),pkTxt=(p,r)=>{const v=r*p.v;return p.id=='gold'?'+'+v+' gold':p.id=='wall'?'+'+v+' '+(v==1?'life':'lives'):(p.id=='smith'?'−':'+')+Math.round(v*100)+'%';};
 function mArm(){const tot=starsAll(),av=tot-starsSpent(),sp=tot-av;
 setH($('m_an'),'<span class="ast">★ '+av+'</span> to spend · '+tot+' earned ('+DIFS.map(d=>d.n+' '+PROG[d.k].st.reduce((x,y)=>x+(y|0),0)).join(' · ')+'). Stars won on a harder difficulty count on the easier ones too. Gold and lives perks apply from the next level you start.');
 const el=$('m_al');el.innerHTML='';for(const p of PERKS){const r=pk(p.id),mx=r>=p.mx,c=p.c[r],d=document.createElement('div');d.className='prk'+(r?' own':'');
@@ -144,14 +144,14 @@ const inGame=()=>!g.over&&(g.wave>0||g.tw.length>0);
 const runK=(i,di,inf)=>'sfrun'+i+(di?DIFS[di].k[0]:'')+(inf?'e':''),RUNK=runK(LVN,DFN,INF);let runS='';
 function savedRun(i,di=DFN,inf=INF){try{const d=JSON.parse(localStorage.getItem(runK(i,di,inf)));return d&&d.v===1&&d.wave>=0&&(inf||d.wave<MAXW)&&d.lives>0&&Array.isArray(d.tw)?d:null;}catch(e){return null;}}
 function saveRun(){if(g.over){if(runS!==null){runS=null;try{localStorage.removeItem(RUNK);}catch(e){}}return;}
-if(g.run||!(g.wave>0||g.tw.length))return;const s=JSON.stringify({v:1,gold:g.gold,lives:g.lives,rep:g.rep,wave:g.wave,spd:g.spd,tw:g.tw.map(t=>[t.k,t.c,t.r,t.l,t.inv,t.tm||null,t.bw===g.wave?1:0,t.br!=null?t.br:null,t.rp?[t.rp.x,t.rp.y]:null]),hero:g.hero?[g.hero.lv,g.hero.xp,g.hero.tx,g.hero.ty]:null,sp:[...g.scd,g.hero&&!g.hero.ult?1:0],...(g.fire.length?{fire:g.fire.map(f=>[f.c,f.r,Math.ceil(f.t)])}:{})});
+if(g.run||!(g.wave>0||g.tw.length))return;const s=JSON.stringify({v:1,gold:g.gold,lives:g.lives,rep:g.rep,wave:g.wave,spd:g.spd,tw:g.tw.map(t=>[t.k,t.c,t.r,t.l,t.inv,t.tm||null,t.bw===g.wave?1:0,t.br!=null?t.br:null,t.rp?[t.rp.x,t.rp.y]:null]),hero:g.hero?[g.hero.lv,g.hero.xp,g.hero.tx,g.hero.ty]:null,sp:[...g.scd],...(g.fire.length?{fire:g.fire.map(f=>[f.c,f.r,Math.ceil(f.t)])}:{})});
 if(s===runS)return;runS=s;try{localStorage.setItem(RUNK,s);}catch(e){}}
 function loadRun(){const d=savedRun(LVN);if(!d||inGame())return;g.gold=Math.max(0,+d.gold||0);g.lives=Math.min(maxL(),d.lives);g.rep=Math.max(0,d.rep|0);g.wave=d.wave|0;g.spd=[1,2,3].includes(d.spd)?d.spd:1;
 for(const[k,c,r,l,inv,tm,nu,br,rp]of d.tw)if(T[k]&&free(c,r)){const t=addTw(k,c,r,clamp(l|0,1,3),+inv||T[k].c,BRN[k]&&BRN[k][br]?br:null);if(TGM[tm])t.tm=tm;if(nu)t.bw=g.wave;if(t.rp&&Array.isArray(rp))setRally(t,+rp[0],+rp[1]);}
 // the hero keeps his level, xp and post between waves
 if(Array.isArray(d.hero)&&g.hero){const h=g.hero,[lv,xp,x,y]=d.hero;h.lv=clamp(lv|0,1,HERO.mx);h.xp=Math.max(0,+xp||0);if(onB(Math.floor(x/S),Math.floor(y/S))){h.x=h.tx=+x;h.y=h.ty=+y;}h.hp=h.max=hst(h).hp;}
-// spell cooldowns and Divine Smite (optional field: older saves have every spell ready)
-if(Array.isArray(d.sp)){for(let i=0;i<3;i++)g.scd[i]=Math.max(0,d.sp[i]|0);if(g.hero&&d.sp[3])g.hero.ult=0;}
+// spell cooldowns in waves (optional field: older saves have every spell ready)
+if(Array.isArray(d.sp))for(let i=0;i<3;i++)g.scd[i]=Math.max(0,d.sp[i]|0);
 // Emberwood: cells still burning in the break (whole seconds left; they no longer spread)
 if(LV.mc=='fire'&&Array.isArray(d.fire))for(const[c,r,t]of d.fire)if(free(c,r)&&+t>0)ignite(c,r,Math.min(+t,MECH.fire.bt),0);
 // Ashfall: a run past the collapse wave has the shortcut open

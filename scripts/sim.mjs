@@ -34,7 +34,7 @@ Options:
   --no-cast        never use the spells or Divine Smite (by default the sim casts them like a player would:
                    Rain of Arrows on the biggest crowd of 4+, Boiling Oil with 3+ enemies at the gate,
                    Reinforcements in front of the leading enemy on foot when 4+ are on the board,
-                   Divine Smite (once a run) when a boss is near the hero)
+                   Divine Smite with 6+ enemies or a boss near the hero)
   --json           print the full result as JSON instead of the table
   --dt S           simulation step in seconds (default 1/60)
   --seed N         seed for Math.random (only affects looks in the game, kept for reproducibility)
@@ -278,7 +278,7 @@ function heroAI() {
   if (run('spRdy')(1) && live.filter(e => !e.fy && run('gateTiles')().some(q => Math.hypot(e.x - q.x, e.y - q.y) <= HAB[1].r)).length >= 3) cast(1);
   const foot = live.filter(e => !e.fy && !e.bs && e.x >= 0 && e.x < W * 60 && e.y >= 0 && e.y < H * 60);
   if (run('spRdy')(2) && foot.length >= 4) { const lead = foot.reduce((a, e) => run('prog')(e) > run('prog')(a) ? e : a); const c = Math.floor(lead.x / 60), r = Math.floor(lead.y / 60); if (run('onB')(c, r)) cast(2, c * 60 + 30, r * 60 + 30); }
-  const h = G.hero; if (h && h.hp > 0 && h.ult) { const n = live.filter(e => Math.hypot(e.x - h.x, e.y - h.y) <= HAB[3].r); if (n.some(e => e.bs)) cast(3); }
+  const h = G.hero; if (h && h.hp > 0 && h.ult) { const n = live.filter(e => Math.hypot(e.x - h.x, e.y - h.y) <= HAB[3].r); if (n.length >= 6 || n.some(e => e.bs)) cast(3); }
 }
 const waves = [], gold = [];
 let time = 0, failed = null;
