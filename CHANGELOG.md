@@ -3,6 +3,7 @@
 All changes to Castle Defense, newest first. Each entry says what changed for the player (or the project), not how the code works.
 
 ## 2026-10-30
+- **Hard is winnable again.** The last waves send two bosses at once, and on Hard that was a wall most players couldn't get past. Hard now gives you 15 lives (was 10) and 10% less starting gold instead of 20%, enemies have 50% more health instead of 75%, and bosses a bit less than that, about as tough as on Normal. It's still the hardest way to play – expect close finishes. Frostpeak Hold's enemies are also a little weaker on every difficulty, as its final wave was the one level even Normal players kept losing.
 - **Crossbow Nest reworked.** Its bolts no longer pierce armour; instead a fourth crossbowman joins the tower, so it shoots at four enemies at once (and still hits 30% harder).
 - **Banners boost the Treasury.** A Treasury in a Banner Tower's range now earns more gold, by the same share the banner adds to damage (+20% from a level-1 banner, and banners add up). The Royal Bank's interest and the Bounty Office's bonus go up too, and the Treasury's card shows the boost.
 - **Smoother hero.** Sir Kirkevang no longer twitches back and forth when an enemy comes into reach after you post him somewhere – he rides straight at it and fights.

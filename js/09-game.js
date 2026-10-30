@@ -34,7 +34,7 @@ const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&(INF||g.wave<MAXW)?Math.max(0,BRK-g
 function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
 // each breach has its own road (PATHS); the wave alternates between them
-function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp,o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
+function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp*(e.bs&&DF.bh||1),o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36,pirate:2*PI/38}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);

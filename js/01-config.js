@@ -16,7 +16,7 @@ const LEVELS=[
 {n:'Harvest Vale',d:'Golden fields and orchards – the harvest must not burn',th:'autumn',w:13,h:8,hp:1.45,gold:230,mc:'harvest',hv:[[5,5],[6,5],[5,6],[6,6],[10,1],[11,1],[10,2],[11,2]],p:[[[-1,6],[3,6],[3,1],[8,1],[8,5],[13,5]]],bk:[[5,3],[6,4],[1,2],[10,3],[11,7],[0,0]]},
 {n:'Saltcliff Cove',d:'Sea cliffs where pirate ships wait in the bay',th:'coast',w:14,h:8,hp:1.45,gold:240,mc:'land',ld:[5,4],p:[[[-1,1],[5,1],[5,6],[10,6],[10,3],[14,3]]],bk:[[2,3],[3,4],[7,3],[8,2],[12,6],[13,0],[1,6]]},
 {n:'Sunscorch Dunes',d:'Endless sand and old pillars. Two columns march out of the heat haze',th:'desert',w:13,h:9,hp:1.1,gold:250,mc:'mirage',p:[[[-1,7],[4,7],[4,4],[8,4],[8,6],[13,6]],[[2,-1],[2,2],[10,2],[10,6],[13,6]]],bk:[[6,3],[6,5],[1,4],[12,1],[0,0],[11,8],[2,5]]},
-{n:'Frostpeak Hold',d:'A mountain fortress deep in the snow',th:'snow',w:14,h:9,hp:1.75,gold:260,mc:'cold',p:[[[-1,7],[3,7],[3,4],[11,4],[11,1],[6,1],[6,-1]]],bk:[[5,2],[8,2],[7,6],[1,5],[13,7],[12,0],[0,1],[9,8],[5,5]]},
+{n:'Frostpeak Hold',d:'A mountain fortress deep in the snow',th:'snow',w:14,h:9,hp:1.6,gold:260,mc:'cold',p:[[[-1,7],[3,7],[3,4],[11,4],[11,1],[6,1],[6,-1]]],bk:[[5,2],[8,2],[7,6],[1,5],[13,7],[12,0],[0,1],[9,8],[5,5]]},
 {n:'Crystal Hollow',d:'A glade of singing crystals under a violet sky. Two roads meet at the gate',th:'crystal',w:15,h:9,hp:1.15,gold:270,mc:'crystal',p:[[[-1,1],[5,1],[5,6],[7,6],[7,9]],[[15,3],[10,3],[10,6],[7,6],[7,9]]],bk:[[2,3],[3,4],[8,2],[12,1],[13,6],[1,7],[7,3],[11,8],[4,8]]},
 {n:'Wolfjaw Pass',d:'One narrow road winds between the rocks of the pass',th:'pass',w:16,h:9,hp:1.5,gold:280,mc:'rock',p:[[[-1,4],[2,4],[2,1],[6,1],[6,7],[10,7],[10,2],[13,2],[13,6],[16,6]]],bk:[[0,2],[1,6],[4,3],[4,5],[3,7],[8,0],[8,3],[8,5],[11,5],[12,8],[15,1],[14,4],[0,8],[5,8],[15,8]]},
 {n:'Stormwatch Heights',d:'Wind, rain and lightning on the old standing stones. Two roads, one storm',th:'storm',w:15,h:10,hp:1.3,gold:300,mc:'bolt',p:[[[-1,8],[3,8],[3,5],[8,5],[8,8],[12,8],[12,4],[15,4]],[[5,-1],[5,2],[10,2],[10,4],[15,4]]],bk:[[1,3],[2,4],[6,7],[7,3],[10,6],[13,1],[14,7],[0,0],[11,9],[4,0]]},
@@ -184,8 +184,9 @@ const LVN=(()=>{let n=0;try{n=+new URLSearchParams(location.search).get('level')
 const LV=LEVELS[LVN],TH=THEMES[LV.th],W=LV.w,H=LV.h;
 // difficulty, picked at load like the level (chosen in the level picker): ?diff=easy|normal|hard, else localStorage sfdif. A new player starts on Normal,
 // one who already has progress or a saved run (made before difficulties existed, which played like Easy) on Easy.
-// hp = enemy health ×, gold = starting gold ×, li = lives (also the Repair gate's cap, maxL() in js/09-game.js). Easy is the original game – keep it at 1/1/20 so the sim reference runs stay valid
-const DIFS=[{k:'easy',n:'Easy',hp:1,gold:1,li:20},{k:'normal',n:'Normal',hp:1.3,gold:.9,li:15},{k:'hard',n:'Hard',hp:1.75,gold:.8,li:10}];
+// hp = enemy health ×, gold = starting gold ×, li = lives (also the Repair gate's cap, maxL() in js/09-game.js), bh = bosses' health × on top of hp (default 1; spawn()).
+// Easy is the original game – keep it at 1/1/20 so the sim reference runs stay valid. Hard was 1.75/.8/10 until 2026-10-30: the two-boss final waves made it unwinnable
+const DIFS=[{k:'easy',n:'Easy',hp:1,gold:1,li:20},{k:'normal',n:'Normal',hp:1.3,gold:.9,li:15},{k:'hard',n:'Hard',hp:1.5,gold:.9,li:15,bh:.8}];
 const DFN=(()=>{let k=null;try{k=new URLSearchParams(location.search).get('diff')||localStorage.getItem('sfdif');if(!k)k=localStorage.getItem('sfprog')!=null||Object.keys(localStorage).some(k=>/^sfrun\d+$/.test(k))?'easy':'normal';}catch(e){}const i=DIFS.findIndex(d=>d.k==k);return i<0?1:i;})();
 const DF=DIFS[DFN];
 const PATHS=LV.p.map(q=>q.map(p=>[p[0]*S+S/2,p[1]*S+S/2])),WP=PATHS[0];

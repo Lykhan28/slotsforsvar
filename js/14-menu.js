@@ -35,7 +35,7 @@ function goLevel(i,di=DFN,inf=false){if(i===LVN&&di===DFN&&inf===INF){if(g.over)
 // WMP = node positions in the 1000×620 viewBox (index = level), WMT = per theme the land colour and the icons drawn around it, WIC = the icons (drawn at 0,0, foot at y=0).
 // The land and icons are built once (wMap, cached in WMS); the road progress and nodes (wDyn) and the card of the selected level (MENU.ls, lvCard) are redrawn.
 // A won level's card has the Endless button (.lve) with its highscore. More levels than WMP would need more positions there.
-const dTxt=d=>d.li+' lives'+(d.hp>1?', enemies have '+Math.round((d.hp-1)*100)+'% more health':'')+(d.gold<1?', '+Math.round((1-d.gold)*100)+'% less starting gold':'')+(d.hp==1?' – the relaxed way to play':'')+'.';
+const dTxt=d=>d.li+' lives'+(d.hp>1?', enemies have '+Math.round((d.hp-1)*100)+'% more health'+(d.bh?' (bosses '+Math.round((d.hp*d.bh-1)*100)+'%)':''):'')+(d.gold<1?', '+Math.round((1-d.gold)*100)+'% less starting gold':'')+(d.hp==1?' – the relaxed way to play':'')+'.';
 const WMP=[[95,545],[215,478],[340,540],[465,468],[590,530],[715,462],[840,525],[893,408],[815,328],[668,292],[520,350],[370,285],[222,338],[100,212],[255,118],[440,82]],
 WSH=[[560,0],[560,98],[598,168],[650,192],[722,208],[800,226],[880,222],[940,246],[1000,250],[1000,0]],
 wSea=(x,y)=>{if(x<560)return false;for(let i=1;i<9;i++){const[a,b]=WSH[i],[c,d]=WSH[i+1];if(x>=a&&x<=c)return y<b+(d-b)*(x-a)/(c-a||1)+14;}return false;},

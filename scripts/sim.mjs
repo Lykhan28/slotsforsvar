@@ -169,7 +169,7 @@ if (opt.waves) {
   for (let w = 1; w <= (opt.endless ? 40 : MAXW); w++) {
     let q; try { q = wq(w); } catch (e) { die(e.message); }
     const m = {}; for (const o of q) m[o.type] = (m[o.type] || 0) + 1;
-    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = run('wHP')(w) * LV.hp * run('DF.hp') * u, gd = q.reduce((a, o) => a + E[o.type].rw, 0);
+    const u = q.reduce((a, o) => a + E[o.type].h, 0), hp = run('wHP')(w) * LV.hp * run('DF.hp') * q.reduce((a, o) => a + E[o.type].h * (E[o.type].bs && run('DF.bh') || 1), 0), gd = q.reduce((a, o) => a + E[o.type].rw, 0);
     console.log(`${String(w).padStart(4)}  ${wn(w).slice(0, 20).padEnd(20)}  ${mixS(m).padEnd(31)} ${String(q.length).padStart(5)} ${u.toFixed(1).padStart(6)} ${String(Math.round(hp)).padStart(7)} ${String(gd).padStart(5)} ${((q.at(-1)?.t || 0).toFixed(1) + 's').padStart(7)}`);
   }
   process.exit(0);
