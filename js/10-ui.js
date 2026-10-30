@@ -95,7 +95,7 @@ if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from 
 return h+'<div class="chips">'+c.join('')+'</div>';}
 // the hero in the inspector (during a wave with nothing selected): level, health, damage, xp and his abilities; ai = a hovered ability tile
 function heroHTML(ai){const h=g.hero,s=hst(h),nx=h.lv<HERO.mx?HERO.xp[h.lv]:null,sm=x=>' <small>'+x+'</small>';
-if(ai!=null){const a=HAB[ai];return '<div class="ih"><div class="iic">'+a.ic+'</div><div class="ihn"><b>'+a.n+'</b><span class="tag">'+(a.ult?'Once a wave':'Every '+a.cd+'s')+' · key '+(ai+1)+(a.aim?' · then click':'')+'</span></div></div><p class="ds">'+a.ds+'</p>';}
+if(ai!=null){const a=HAB[ai];return '<div class="ih"><div class="iic">'+a.ic+'</div><div class="ihn"><b>'+a.n+'</b><span class="tag">'+cwTxt(a)+' · key '+(ai+1)+(a.aim?' · then click':'')+'</span></div></div><p class="ds">'+a.ds+'</p>';}
 return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Kirkevang</b><span class="tag">Hero · level '+h.lv+'</span></div></div>'+
 '<div class="sts">'+row('Health',h.hp>0?Math.ceil(h.hp)+sm('of '+Math.round(h.max)):'Fallen'+sm('back in '+Math.ceil(h.rs)+'s'))+row('Damage',fmt(s.d)+sm('a swing · '+HERO.f+'s'))+row('Experience',nx?h.xp+sm('of '+nx):'Max level')+'</div>'+
 '<div class="chips"><span class="chip">🛡️ Blocks enemies on foot</span><span class="chip">🚩 Click the road to send him</span><span class="chip">Abilities: keys 1–4</span></div>';}
@@ -153,7 +153,7 @@ TK.forEach((k,i)=>{const b=document.createElement('button');b.className='tile'+(
 b.innerHTML='<i class="hk">'+(i+1)+'</i><span class="ic">'+T[k].ic+'</span><span class="nm">'+T[k].n+'</span><b class="co">'+COIN+T[k].c+'</b>';b.onclick=()=>pick(k);
 b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=()=>{hov=null;ui();};$('towers').appendChild(b);});
 // the hero bar: his card (click it to look at him) and four ability tiles (click or keys 1–4 during a wave)
-const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Kirkevang – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult?'Once a wave':a.cd+'s')+'</b><span class="cdv"></span></button>').join('');
+const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Kirkevang – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult?'Once a run':a.cw==1?'1 a wave':spCw(i)+' waves')+'</b><span class="cdv"></span></button>').join('');
 HAB.forEach((a,i)=>{const b=$('a_'+i);b.onclick=()=>cast(i);b.onpointerenter=e=>{if(e.pointerType=='mouse'){hovA=i;ui();}};b.onpointerleave=()=>{hovA=null;ui();};});
 $('hcard').onclick=()=>{const h=g.hero;if(!h)return;cine=null;tx=wx(h.hp>0?h.x:heroHome().x);tz=wz(h.hp>0?h.y:heroHome().y);setCam();};
 // long-press (touch/pen only): hold a dock tile, an ability tile, the hero card or a tower on the board (js/12-input.js) for LPMS ms to open the info sheet #lp,
@@ -173,10 +173,10 @@ $('lp').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-tm]'),p=e.
 function lpUI(){if(!LP.on)return;if(g.over||MENU.open||LP.t&&!g.tw.includes(LP.t)||(LP.h||LP.a!=null)&&!g.hero){lpClose();return;}
 const el=$('lp'),k=LP.t?LP.t.k:LP.k;el.style.setProperty('--ac',k?TC2[k]:'var(--gold)');setH(el.firstChild,k?infoHTML(k,LP.t):heroHTML(LP.a));el.classList.add('on');}
 // an aimed spell (Rain of Arrows, Reinforcements) first waits for a click on the board (g.aim; again or right-click/Esc cancels), the rest go off at once
-function cast(i){const a=HAB[i];if(!a||!g.run)return;if(a.aim){if(g.aim===i)g.aim=null;else if(g.scd[i]<=0){g.aim=i;g.sel=null;selRng();}else snd('click');ui();return;}if(heroCast(i))ui();else snd('click');}
+function cast(i){const a=HAB[i];if(!a||!g.run)return;if(a.aim){if(g.aim===i)g.aim=null;else if(spRdy(i)){g.aim=i;g.sel=null;selRng();}else snd('click');ui();return;}if(heroCast(i))ui();else snd('click');}
 function habUI(){const h=g.hero;if(!h||!g.run)return;const dead=h.hp<=0,c=$('hcard'),nx=h.lv<HERO.mx?HERO.xp[h.lv]:0,p0=h.lv>1?HERO.xp[h.lv-1]:0;c.classList.toggle('dead',dead);
 setH(c,'<b>Sir Kirkevang</b><small>Level '+h.lv+(dead?' · back in '+Math.ceil(h.rs)+'s':'')+'</small><span class="hb"><i style="width:'+(dead?0:100*h.hp/h.max).toFixed(1)+'%"></i></span><span class="hb xp"><i style="width:'+(nx?100*(h.xp-p0)/(nx-p0):100).toFixed(1)+'%"></i></span>');
-HAB.forEach((a,i)=>{const b=$('a_'+i),cd=a.ult?0:g.scd[i],used=a.ult&&!h.ult;b.classList.toggle('used',!!(used||a.ult&&dead));b.classList.toggle('on',g.aim===i);const v=b.lastChild;v.style.setProperty('--p',a.ult?(used?1:0):(cd/a.cd).toFixed(3));setH(v,cd>0?String(Math.ceil(cd)):used?'✓':'');});}
+HAB.forEach((a,i)=>{const b=$('a_'+i),cd=a.ult?0:spLeft(i),used=a.ult&&!h.ult;b.classList.toggle('used',!!(used||cd>0||a.ult&&dead));b.classList.toggle('on',g.aim===i);const v=b.lastChild;v.style.setProperty('--p',a.ult?(used?1:0):(cd/spCw(i)).toFixed(3));setH(v,cd>0?String(cd):used?'✓':'');setH(b.querySelector('.co'),a.ult?'Once a run':a.cw==1?'1 a wave':spCw(i)+' waves');b.title=a.n+' ('+(i+1)+')'+(cd>0?' – ready in '+cd+(cd==1?' wave':' waves'):used?' – used this run':'');});}
 // pause and speed: the HUD buttons, P and F; starting a wave also resumes
 function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}
 const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);callEarly();};
