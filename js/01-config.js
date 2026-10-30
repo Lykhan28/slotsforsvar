@@ -239,9 +239,9 @@ const LAMP=LV.mc=='dark'?LV.bk.filter(([c,r])=>(c+r)%2):[];
 // Harvest Vale's fields, Frostpeak Hold's braziers (the blocked cells drawn as rocks, js/06-scenery.js), Crystal Hollow's crystals (every blocked cell)
 const FLD=LV.hv||[],BRZ=LV.mc=='cold'?LV.bk.filter(([c,r])=>!((c+r)%2)):[],CRY=new Set(LV.mc=='crystal'?LV.bk.map(b=>b[0]+','+b[1]):[]);
 if(LV.mc=='fog')for(let c=0;c<W;c++)for(let r=0;r<H;r++)if((c==0||r==0||c==W-1||r==H-1)&&!road.has(c+','+r)&&!blk.has(c+','+r))FOG.add(c+','+r);
-const T={arrow:{n:'Archers',ic:'🏹',c:50,r:130,d:10,f:.5,dt:'phys',air:1},cannon:{n:'Catapult',ic:'🪨',c:100,r:110,d:30,f:1.4,dt:'phys',sp:55,bs:260,arc:1},frost:{n:'Wizard',ic:'🔮',c:110,r:115,d:8,f:3,dt:'magic',air:1},
-ballista:{n:'Ballista',ic:'🎯',c:125,r:190,d:66,f:2.2,dt:'phys',pr:1,air:1,bs:520,tm:'strong'},storm:{n:'Storm Tower',ic:'⚡',c:150,r:105,d:16,f:1,dt:'light',air:1,ch:5},alch:{n:'Alchemist',ic:'🧪',c:90,r:115,d:7.8,f:1.1,dt:'fire',bs:240,arc:1},
-banner:{n:'Banner Tower',ic:'🚩',c:120,r:120,d:0,f:99,sup:1},vault:{n:'Treasury',ic:'💰',c:150,r:40,d:0,f:99,inc:15},
+const T={arrow:{n:'Archers',ic:'🏹',c:60,r:130,d:10,f:.5,dt:'phys',air:1},cannon:{n:'Catapult',ic:'🪨',c:100,r:110,d:30,f:1.4,dt:'phys',sp:55,bs:260,arc:1},frost:{n:'Wizard',ic:'🔮',c:110,r:115,d:8,f:3,dt:'magic',air:1},
+ballista:{n:'Ballista',ic:'🎯',c:125,r:190,d:66,f:2.2,dt:'phys',pr:1,air:1,bs:520,tm:'strong'},storm:{n:'Storm Tower',ic:'⚡',c:120,r:105,d:16,f:1,dt:'light',air:1,ch:5},alch:{n:'Alchemist',ic:'🧪',c:90,r:115,d:15,f:1.1,dt:'fire',bs:240,arc:1},
+banner:{n:'Banner Tower',ic:'🚩',c:120,r:120,d:0,f:99,sup:1},vault:{n:'Treasury',ic:'💰',c:150,r:40,d:0,f:99,inc:20},
 // bar = Barracks: built next to the road, sends BAR.n soldiers to a rally point on the road within r; d/f = each soldier's sword hit and swing time (BAR and soldiers() in js/09-game.js)
 barracks:{n:'Barracks',ic:'⚔️',c:90,r:130,d:7,f:1,dt:'phys',bar:1}};
 // upgrade branches: the level-3 upgrade of these towers is a choice of two (t.br = 0/1; brn(t) in js/09-game.js gives the picked one). Numbers on top of the normal level 3:

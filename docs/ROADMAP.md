@@ -263,7 +263,7 @@ Make the game an installable PWA: manifest, icons, and a service worker that cac
 
 ## Phase 10 – Technical health
 
-- [ ] **47. Full balance pass**
+- [x] **47. Full balance pass**
 ```text
 Use the balance simulator to do a full balance pass over all levels, towers and difficulties. Look for dominant strategies and useless towers, and report findings before changing numbers.
 ```

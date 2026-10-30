@@ -75,15 +75,17 @@ Levels 5–8, lives lost before → after: Easy 0/3/0/0 → 0/3/0/0; Normal 0/5/
 ## Towers (price / range / damage / reload)
 | Tower | Price | Range | Damage | Reload | Special |
 |---|---|---|---|---|---|
-| Archers | 50 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the best ones by its targeting mode) |
+| Archers | 60 | 130 | 10 | 0.5 s | Shoots 1/2/3 targets at level 1/2/3 (the best ones by its targeting mode) |
 | Catapult | 100 | 110 | 30 | 1.4 s | Area damage (radius 55). Slows enemies hit by 20/40/60% for 1 s |
 | Wizard | 110 | 115 | 8 | 3.0 s | Banish: teleports its target (default First) 1/1.5/2 tiles back down the road (bosses only a third as far). A banished enemy is immune to banishing for 4 s, so several Wizards spread out |
 | Ballista | 125 | 190 | 66 | 2.2 s | Targets Strongest by default (the enemy with the most health left). Pierces armour |
-| Storm Tower | 150 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump. Lightning ignores armour |
-| Alchemist | 90 | 115 | 7.8/s | 1.1 s | Poison flask, radius 45, poisons for 3 s |
+| Storm Tower | 120 | 105 | 16 | 1.0 s | Chain lightning hits 5/6/7 targets, stuns for 0.2 s, 8% less damage per jump. Lightning ignores armour |
+| Alchemist | 90 | 115 | 15/s | 1.1 s | Poison flask, radius 45, poisons for 3 s |
 | Banner Tower | 120 | 120 | – | – | +20% damage (+10% per level) to towers in range |
-| Treasury | 150 | – | – | – | 15 gold × level at the end of each wave |
+| Treasury | 150 | – | – | – | 20 gold × level at the end of each wave |
 | Barracks | 90 | 130 (rally) | 7 a swing | 1.0 s | Three soldiers block enemies on foot at a movable rally point (see below) |
+
+**Balance pass (2026-10-30).** Archers used to cost 50, which made them about twice as much damage per gold as anything else: an Archers-only build won every level on Normal and did better than the mixed reference builds on Hard. Archers now cost 60, the Storm Tower 120 (was 150), the Alchemist's poison does 15/s (was 7.8), the Treasury pays 20 × level (was 15) and Rain of Arrows is every 25 s (was 20). Afterwards the mixed builds beat Archers-only on Hard (9 wins against 7), and the Storm Tower is about as good as Archers for the same gold. Still true: the Wizard and Ballista are weak on their own but earn their place in a mix (banishing, killing bosses). The Alchemist is still the weakest damage dealer; it's there for Acid Brew. Upgrades give less damage per gold than building another tower, which is fine because good cells run out. The spells (Rain of Arrows above all) matter more than the hero. How it was measured: single-type builds and same-budget builds per tower, swapping each tower in the reference builds for Archers, and flipping each branch.
 
 ## Upgrade branches (level 3)
 No tower has a plain level 3: when a level-2 one is selected, the inspector shows two cards instead of the Upgrade button (click one, or press B for the first / N for the second). Both paths get the normal level-3 +60% damage and +10 range, plus their own change and a new look. Numbers live in `BRN` in js/01-config.js;
@@ -124,7 +126,7 @@ A knight on horseback who is on every level from the start (`g.hero`). He waits 
 
 | Ability | Use | Effect |
 |---|---|---|
-| Rain of Arrows 🏹 | every 20 s, aimed | four volleys over 2 s on a circle of radius 90: each volley 22% of a goblin's health to everything below, flyers too (physical) – arrows fall from the sky, dust kicks up |
+| Rain of Arrows 🏹 | every 25 s, aimed | four volleys over 2 s on a circle of radius 90: each volley 22% of a goblin's health to everything below, flyers too (physical) – arrows fall from the sky, dust kicks up |
 | Boiling Oil 🛢️ | every 30 s | on the three road tiles nearest the gate (radius 40 each): 90% of a goblin's health as fire at once, then 4 s of burning oil (25%/s) that halves enemies' speed – three streams pour from above, the road bursts into flame and steam |
 | Reinforcements ⚔️ | every 35 s, aimed at a road tile | two soldiers (Barracks soldiers of level 1/2/3 from waves 1/8/15) drop in with a flash and hold that spot for 15 s or until both fall; they block anything on foot except bosses and don't respawn |
 | Divine Smite ⚡ | **once a wave**, the hero's own | every enemy within 160 of him, flyers too: 10× his damage as lightning (ignores armour), stunned 1 s; he is healed fully |

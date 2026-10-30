@@ -139,7 +139,7 @@ function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1
 const HERO={sp:110,eng:75,rg:26,hp:300,d:20,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
 // abilities: three spells on cooldowns (castable anywhere during a wave, hero or not; aim = click a spot on the board after picking it, road = a road cell)
 // and Sir Kirkevang's own Divine Smite (once a wave, centred on him)
-const HAB=[{n:'Rain of Arrows',ic:'🏹',cd:20,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
+const HAB=[{n:'Rain of Arrows',ic:'🏹',cd:25,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
 {n:'Boiling Oil',ic:'🛢️',cd:30,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
 {n:'Reinforcements',ic:'⚔️',cd:35,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for 15 s, blocking anything on foot except bosses.'},
 {n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a wave: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
