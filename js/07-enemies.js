@@ -331,6 +331,16 @@ if(dk=='frost')burst(e.x,e.y,0x9ff7ff,22,1.8,.5);else if(dk=='storm')burst(e.x,e
 if(e.bs){burst(e.x,e.y,0xff8c3a,26,2,.6);fx(e.x,e.y,0xffc060,.3,2.2,.6,.4);}
 // a killed Sapper's bomb just fizzles out; a Troll's goblins leave the basket (trollSplit() spawns them)
 if(e.rig.BM){e.rig.BM.visible=false;burst(e.x,e.y,0xffa040,8,1.1,.9);fx(e.x,e.y,0x555555,.1,.5,.6,.9);}for(const n of['G0','G1'])if(e.rig[n])e.rig[n].visible=false;}
+// health bar colours: green/yellow/red, or in colourblind mode (OPT.cb) sky blue/yellow/pink (Okabe–Ito), which every kind of colour blindness tells apart
+const hpC=hr=>OPT.cb?(hr>.5?0x56b4e9:hr>.25?0xf0e442:0xcc79a7):hr>.5?0x2ecc71:hr>.25?0xf1c40f:0xe74c3c;
+// colourblind mode: a row of status icons over an enemy's health bar (stunned, slowed, poisoned, acid); one cached sprite material per combination (STI).
+// The sprite is a child of e.m like the bar, so killFx() hides it with the other sprites
+const STI={};function stIco(e){const a=[];if(OPT.cb&&e.hp>0){if(e.stun>0)a.push('💫');if(e.sl>0||e.tf<1)a.push('🐌');if(e.pt>0)a.push('☠️');if(e.ac>0)a.push('🧪');}const k=a.join('');
+if(!e.sti){if(!k)return;const s=L1(new THREE.Sprite());s.renderOrder=12;s.center.set(.5,0);s.position.y=e.bar.position.y+.07;e.m.add(s);e.sti=s;}e.sti.visible=!!k;if(!k||e.stk===k)return;e.stk=k;
+if(!STI[k]){const c=document.createElement('canvas'),n=a.length;c.width=56*n;c.height=56;const q=c.getContext('2d');q.textAlign='center';q.textBaseline='middle';q.font='32px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+a.forEach((s,i)=>{q.fillStyle='rgba(16,12,24,.85)';q.beginPath();q.arc(28+56*i,28,26,0,PI*2);q.fill();q.strokeStyle='#fff';q.lineWidth=3;q.stroke();q.fillStyle='#fff';q.fillText(s,28+56*i,30);});
+const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;STI[k]={m:new THREE.SpriteMaterial({map:t,depthTest:false,fog:false,transparent:true,toneMapped:false}),n};}
+e.sti.material=STI[k].m;e.sti.scale.set(.24*STI[k].n,.24,1);}
 function fxStatus(e,dt){const by=BR[e.type][0],br=BR[e.type][1],ty=HT[e.type];
 if(e.stuck)for(let i=e.stuck.length-1;i>=0;i--){const o=e.stuck[i];o.t+=dt;const k=o.t<.15?1+Math.sin(o.t*80)*.12*(1-o.t/.15):o.t>4.5?Math.max(.01,1-(o.t-4.5)*2):1;o.a.scale.setScalar(k*o.sc);if(o.t>5){e.body.remove(o.a);e.stuck.splice(i,1);}}
 if(e.fz>0){e.fz-=dt;if(!e.fzG){const gq=new THREE.Group(),sh=new THREE.Mesh(geo('sph'),ICEM);sh.scale.set(br*1.15,e.type=='boss'?.7:br*1.3,br*1.15);gq.add(sh);
@@ -397,7 +407,7 @@ ro('TO',Math.cos(f)*.04-q*.15);r.TO.position.y=.9-Math.sin(f)*.07;ro('T0',Math.c
 ro('NK',-.1+Math.sin(f-.5)*.05-roar*.35);ro('HD',.1-roar*.3+Math.sin(tt*.9+e.ph)*.04,Math.sin(tt*.7+e.ph)*.15);ro('JW',.1+roar*.75+Math.sin(tt*3)*.02);
 ro('H0',.35+Math.sin(f+1)*.1);ro('K0',.55);ro('H1',.35+Math.sin(f+1.3)*.1);ro('K1',.55);if(r.GL)r.GL.scale.setScalar(.35+roar*.85+Math.sin(tt*9)*.04);}
 fxStatus(e,dt);
-e.ice.visible=e.fz>0;const hr=Math.max(0,e.hp/e.max),hc=hr>.5?0x2ecc71:hr>.25?0xf1c40f:0xe74c3c;e.bar.scale.x=.52*Math.max(hr,.001);e.bar.center.set(.5/Math.max(hr,.001),.5);
+stIco(e);e.ice.visible=e.fz>0;const hr=Math.max(0,e.hp/e.max),hc=hpC(hr);e.bar.scale.x=.52*Math.max(hr,.001);e.bar.center.set(.5/Math.max(hr,.001),.5);
 if(hr<.5&&Math.random()<dt*(hr<.25?9:4))burst(e.x,e.y,hr<.25?{norm:0x8fd957,fast:0xb03a2e,tank:0x888888,boss:0xff6a1a,guard:0x8fd957,shaman:0x8fd957,bat:0x8e2a2a,sapper:0x8fd957,troll:0x6b7a52,ghost:0xcfe6ee,imp:0xff7a2a,king:0x8fd957,ram:0x5a3d22,necro:0x3a2a44,skel:0xd8d0bc,pirate:0x8fd957}[e.type]:0x444444,1,.35,.4+(e.type=='boss'?1:0));
 if(hr<.25)e.body.rotation.z+=Math.sin(tt*9+e.ph)*.07;if(e.bc!==hc){e.bc=hc;e.bar.material.color.setHex(hc);}}
 // ---------- per-type deaths (run by animDying) ----------
@@ -516,7 +526,7 @@ function solSync(t,dt){if(!t.sg){t.sg=new THREE.Group();sc.add(t.sg);}
 const sb=t.l>=3&&t.br!=null?t.br:-1;for(const d of t.sol){if(!d.m||d.ml!==t.l||d.mb!==sb){if(d.m)t.sg.remove(d.m);d.m=solTpl(t.l,sb).clone(true);d.ml=t.l;d.mb=sb;d.swp=d.m.getObjectByName('SW');d.bar=d.m.getObjectByName('bar');d.bb=d.m.getObjectByName('bb');d.bar.material=SF.clone();t.sg.add(d.m);}
 const on=d.hp>0;d.m.visible=on;if(!on)continue;d.m.position.set(wx(d.x),d.mv&&dt>0?Math.abs(Math.sin(tt*13+d.i*2))*.06:0,wz(d.y));d.m.rotation.y=d.dir;
 if(d.sw>0)d.sw=Math.max(0,d.sw-dt*4);d.swp.rotation.x=d.sw>0?Math.sin((1-d.sw)*PI)*1.7:-.15;d.m.children[0].rotation.x=d.hit>0?-.15:0;if(d.hit>0)d.hit-=dt;
-const hr=Math.max(0,d.hp/d.max),full=hr>=.999;d.bar.visible=d.bb.visible=!full;if(!full){d.bar.scale.x=.33*Math.max(hr,.001);d.bar.center.set(.5/Math.max(hr,.001),.5);d.bar.material.color.setHex(hr>.5?0x4aa8ff:hr>.25?0xf1c40f:0xe74c3c);}}
+const hr=Math.max(0,d.hp/d.max),full=hr>=.999;d.bar.visible=d.bb.visible=!full;if(!full){d.bar.scale.x=.33*Math.max(hr,.001);d.bar.center.set(.5/Math.max(hr,.001),.5);d.bar.material.color.setHex(hr>.5?(OPT.cb?0xf2f2f2:0x4aa8ff):hpC(hr));}}
 if(g.sel===t){if(!RFL){RFL=new THREE.Group();flag(RFL,0,0,0,0xffe6a0,.9);ring(RFL,0xffe6a0,.3,.02,.15,0xaa8833);sc.add(RFL);}RFL.visible=true;RFL.position.set(wx(t.rp.x),0,wz(t.rp.y));}}
 // hide the rally flag when no Barracks is selected (called once a frame from sync())
 function rallyHide(){if(RFL&&!(g.sel&&g.sel.sol))RFL.visible=false;}
@@ -561,7 +571,7 @@ if(h.sw>0)h.sw=Math.max(0,h.sw-dt*3);const sk=h.sw>0,q=1-h.sw;r.SW.rotation.x=sk
 r.RD.rotation.x=sk?Math.sin(q*PI)*.32:0;if(sk)r.BD.rotation.x=-Math.sin(q*PI)*.07;r.SL.visible=r.SL2.visible=sk&&q>.38;if(r.SL.visible){const f=(q-.38)/.62;r.SL.material.opacity=Math.min(1,1.4*(1-f));r.SL.scale.setScalar(.85+f*.45);r.SL.rotation.z=-f*1.1;r.SL2.scale.setScalar(.75+f*.4);r.SL2.rotation.z=-.4-f*1.1;}if(h.hit>0)h.hit-=dt;
 const ride=Math.hypot(h.tx-h.x,h.ty-h.y)>2,showR=g.run&&!ride&&!g.over;h.rg.visible=showR;if(showR){h.rg.position.x=wx(h.tx);h.rg.position.z=wz(h.ty);h.rg.scale.setScalar(HERO.eng/60);h.rg.material.color.setHex(h.e?0xffd24a:0xffffff);h.rg.material.color.convertSRGBToLinear();h.rg.material.opacity=h.e?.55:.22;}
 const fe=h.e&&h.e.hp>0?h.e:null;h.tg.visible=!!fe&&!g.over;if(fe){h.tg.position.x=wx(fe.x);h.tg.position.z=wz(fe.y);h.tg.scale.setScalar(.38+Math.sin(tt*8)*.03);}
-const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:hr>.25?0xf1a43c:0xe74c3c);}}
+const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:OPT.cb?(hr>.25?0xe69f00:0xcc79a7):hr>.25?0xf1a43c:0xe74c3c);}}
 // ---------- spell looks (logic: heroCast()/spells() in js/09-game.js) ----------
 // falling arrows and oil streams are short-lived meshes in SPA, moved by spellAnim(); i: 0 a Rain of Arrows volley (p = the spell), 1 Boiling Oil (p.tiles), 2 Reinforcements arrive (p = the squad)
 const SPA=[];

@@ -251,7 +251,7 @@ Add positional audio (sounds fade with distance from the camera target) and more
 Improve the phone experience: bigger touch targets, long-press a tower or dock item to see its info, and make sure every new HUD element fits at ≤700 px. Test with the mobile viewport.
 ```
 
-- [ ] **45. Accessibility and auto-quality**
+- [x] **45. Accessibility and auto-quality**
 ```text
 Add a colourblind-friendly option (patterns/icons on status effects and range circles, adjusted health bar colours) and an auto-quality setting that lowers glow/AO/shadows/resolution when the frame rate stays low.
 ```

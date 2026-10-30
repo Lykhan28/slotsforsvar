@@ -185,7 +185,7 @@ function setTm(t,m){if(!t||T[t.k].sup||T[t.k].inc||!TGM[m])return;t.tm=m;snd('cl
 $('info').onclick=e=>{if(!e.target.closest)return;const b=e.target.closest('[data-tm]'),p=e.target.closest('[data-br]');if(b)setTm(g.sel,b.dataset.tm);if(p)upTw(g.sel,+p.dataset.br);};
 // coverage map: C or the grid button; the legend matches COVC in js/06-scenery.js
 function covTog(){COV.on=!COV.on;$('cv').classList.toggle('on',COV.on);$('covl').classList.toggle('on',COV.on);covUpd();}
-$('covl').querySelector('.sw').innerHTML=COVC.map((c,i)=>'<i style="background:#'+new THREE.Color(c).getHexString()+'">'+(i<5?i:'5+')+'</i>').join('');$('cv').onclick=covTog;
+const covLeg=()=>$('covl').querySelector('.sw').innerHTML=COVC.map((c,i)=>'<i style="background:#'+new THREE.Color(c).getHexString()+'">'+(i<5?i:'5+')+'</i>').join('');covLeg();$('cv').onclick=covTog;
 $('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);else if(e.target.closest('#inf'))goLevel(LVN,DFN,true);};
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};$('help').onclick=()=>{$('help').classList.remove('on');$('hp').classList.remove('on');};

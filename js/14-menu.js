@@ -1,13 +1,22 @@
 // ---------- main menu ----------
 // open: the game is paused behind the menu. quit: render loop stopped and sound muted until "Back to the menu"
 const MENU={open:true,quit:false,pg:'main',df:DFN};
-const GFX={glow:true,shadows:true,sharp:true,ao:!LOWQ};
+const GFX={glow:true,shadows:true,sharp:true,ao:!LOWQ,auto:true};
 try{Object.assign(GFX,JSON.parse(localStorage.getItem('sfgfx')||'{}'));}catch(e){}
-function gfxApply(){if(bloom)bloom.enabled=GFX.glow;if(AO)AO.pass.enabled=GFX.ao;sun.castShadow=GFX.shadows;R.setPixelRatio(GFX.sharp?Math.min(devicePixelRatio,PP?1.75:2):1);resize();}
+// auto quality (GFX.auto): when frames average slower than AQF ms (~36 fps) over 3 s of play, aqTick() (from the render loop) switches off the next effect in AQS
+// (AO, then glow, high resolution, shadows, and last 'low' = 75% resolution) and waits a window before judging again. Only for this visit: AQ.off is never saved,
+// and switching an effect on by hand takes it back off the list. gq(k) = the effect is on now.
+const AQ={off:new Set(),t:0,n:0,w:1},AQS=['ao','glow','sharp','shadows','low'],AQF=28,AQN={ao:'ambient occlusion',glow:'glow',sharp:'high resolution',shadows:'shadows',low:'resolution'};
+const gq=k=>!AQ.off.has(k)&&(k=='low'||GFX[k]);
+function gfxApply(){if(bloom)bloom.enabled=gq('glow');if(AO)AO.pass.enabled=gq('ao');sun.castShadow=gq('shadows');R.setPixelRatio((gq('sharp')?Math.min(devicePixelRatio,PP?1.75:2):1)*(AQ.off.has('low')?.75:1));resize();}
+function aqTick(ms){if(!GFX.auto||MENU.open||document.hidden||ms>250)return;AQ.t+=ms;AQ.n++;if(AQ.t<3000)return;const avg=AQ.t/AQ.n;AQ.t=AQ.n=0;if(AQ.w>0){AQ.w--;return;}if(avg<AQF)return;
+const k=AQS.find(s=>gq(s)&&(s!='ao'||AO)&&(s!='glow'||bloom));if(!k)return;AQ.off.add(k);AQ.w=1;gfxApply();}
 // gameplay settings (localStorage sfopt): auto-start = the next wave starts by itself when the break countdown runs out
-const OPT={auto:false,shake:true};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;
-function optSet(k){OPT[k]=!OPT[k];try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}autoW=!!OPT.auto;ui();}
-function gfxSet(k){GFX[k]=!GFX[k];try{localStorage.setItem('sfgfx',JSON.stringify(GFX));}catch(e){}gfxApply();}
+const OPT={auto:false,shake:true,cb:false};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;
+function optSet(k){OPT[k]=!OPT[k];try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}autoW=!!OPT.auto;if(k=='cb')cbApply();ui();}
+// colourblind mode (OPT.cb): health bar colours (hpC) and status icons (stIco) in js/07-enemies.js are read every frame; the coverage colours, its legend and the range ring are refreshed here
+function cbApply(){covPal();covLeg();if(g)selRng();}
+function gfxSet(k){const lw=k=='sharp'&&AQ.off.delete('low');if(AQ.off.delete(k)||lw){gfxApply();return;}GFX[k]=!GFX[k];if(k=='auto'&&!GFX.auto)AQ.off.clear();try{localStorage.setItem('sfgfx',JSON.stringify(GFX));}catch(e){}gfxApply();}
 // levels and stars, tracked per difficulty (DIFS in js/01-config.js): PROG[k] = {n: levels won (level i is unlocked when i <= n), st: best stars per level (0 = won before stars existed)}.
 // Saved in localStorage sfprog as {easy:{n,st},normal:…,hard:…}; older saves ({n,st} or a bare number) were played like Easy. A win also counts on every easier difficulty (lvWon).
 // Switching level or difficulty reloads the page, because the whole scene is built once at load (js/01-config.js picks LVN and DFN)
@@ -157,9 +166,10 @@ const q=[];for(const t of BSK){const s=SEEN[t],d=document.createElement('div');d
 d.innerHTML='<img alt="">'+'<div class="bt"><b>'+(s?BST[t][0]:'???')+'</b><p>'+(s?BST[t][1]:'Not met yet.')+'</p>'+(s?'<div class="chips">'+foeChips(t)+'</div><small>First met: '+(LEVELS[s[0]-1]?LEVELS[s[0]-1].n:'?')+', wave '+s[1]+'</small>':'')+'</div>';el.appendChild(d);q.push([d.firstChild,t]);}
 const step=()=>{const j=q.shift();if(!j||MENU.pg!='bestiary')return;j[0].src=portrait(j[1]);setTimeout(step,0);};setTimeout(step,0);}
 // settings: [label, current value, toggle]; music/sound reuse the HUD buttons so both stay in sync
-const OPTS=[['Auto-start waves',()=>OPT.auto,()=>optSet('auto')],['Screen shake',()=>OPT.shake,()=>optSet('shake')],['Music',()=>AU.on.m,()=>$('mu').onclick()],['Sound effects',()=>AU.on.s,()=>$('sf').onclick()],...(PP?[['Glow effects',()=>GFX.glow,()=>gfxSet('glow')]]:[]),...(AO?[['Ambient occlusion',()=>GFX.ao,()=>gfxSet('ao')]]:[]),['Shadows',()=>GFX.shadows,()=>gfxSet('shadows')],['High resolution',()=>GFX.sharp,()=>gfxSet('sharp')]];
+const OPTS=[['Auto-start waves',()=>OPT.auto,()=>optSet('auto')],['Screen shake',()=>OPT.shake,()=>optSet('shake')],['Colourblind mode',()=>OPT.cb,()=>optSet('cb')],['Music',()=>AU.on.m,()=>$('mu').onclick()],['Sound effects',()=>AU.on.s,()=>$('sf').onclick()],...(PP?[['Glow effects',()=>gq('glow'),()=>gfxSet('glow')]]:[]),...(AO?[['Ambient occlusion',()=>gq('ao'),()=>gfxSet('ao')]]:[]),['Shadows',()=>gq('shadows'),()=>gfxSet('shadows')],['High resolution',()=>gq('sharp'),()=>gfxSet('sharp')],['Auto quality',()=>GFX.auto,()=>gfxSet('auto')]];
 function mOpts(){const el=$('m_opts');el.innerHTML='';for(const[n,get,flip]of OPTS){const r=document.createElement('div'),b=document.createElement('button');r.className='mopt';r.textContent=n;b.className='wb';
-const lbl=()=>{b.textContent=get()?'On':'Off';b.classList.toggle('off',!get());};b.onclick=()=>{flip();lbl();};lbl();r.appendChild(b);el.appendChild(r);}}
+const lbl=()=>{b.textContent=get()?'On':'Off';b.classList.toggle('off',!get());};b.onclick=()=>{flip();mOpts();};lbl();r.appendChild(b);el.appendChild(r);}
+if(AQ.off.size){const p=document.createElement('p');p.className='mnote';p.textContent='Auto quality has lowered: '+[...AQ.off].map(k=>AQN[k]).join(', ')+'. Turn one back on above to keep it.';el.appendChild(p);}}
 // changelog: CHANGELOG.md fetched and turned into a list (only "## date" headings and "- " bullets are shown)
 let logHTML=null;
 function mdLite(t){const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(https?:\/\/[^\s)<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
@@ -181,4 +191,5 @@ $('mn').onclick=menuOpen;
 // while the menu is open, game hotkeys are off; Esc goes back a page or resumes a game in progress
 addEventListener('keydown',e=>{if(!MENU.open)return;e.stopImmediatePropagation();auInit();if(e.key!='Escape'||e.repeat)return;
 if(MENU.pg=='settings'||MENU.pg=='changelog'||MENU.pg=='levels'||MENU.pg=='bestiary')mPage('main');else if(MENU.pg=='main'&&inGame())menuClose();},true);
-gfxApply();
+
+gfxApply();cbApply();

@@ -3,7 +3,7 @@
 function draw(){cam.position.add(JO);if(comp){if(AO&&AO.pass.enabled)aoDraw();comp.render();}else R.render(sc,cam);cam.position.sub(JO);}
 let last=performance.now(),lu=0,lm=0;
 function loop(now){if(MENU.quit)return;// Quit stops the loop; menuBack() restarts it
-const dt=Math.min(.05,(now-last)/1000);last=now;
+const dt=Math.min(.05,(now-last)/1000);aqTick(now-last);last=now;
 // game speed runs update() g.spd times a frame and scales the animation clock with it; paused freezes both (the end sequence always plays at normal speed)
 // hit-stop (JU.hs, js/08-effects.js): a big kill freezes the game logic for a moment and slows the animation to a crawl
 const hs=JU.hs>0&&!MENU.open&&!g.over,pz=g.pause&&!g.over,gd=MENU.open||g.over?dt:pz?0:dt*g.spd*(hs?.06:1);juice(dt);

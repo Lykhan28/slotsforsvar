@@ -24,12 +24,12 @@ selRng();ui();}
 // f = show the placing preview for a touch too (a long-press on an empty cell, lpBoard())
 function hover(ev,f){if(ev.pointerType!='mouse'&&!f)return;
 // aiming a spell: its ring follows the pointer (red where it can't go)
-if(g.aim!=null){const k=cellAt(ev),a=HAB[g.aim];if(!k){rng.visible=false;return;}if(a.road){const ok=onB(k.c,k.r);showRng(cx(k.c),cz(k.r),.5,ok?0xffd24a:0xff6666);}
-else{const ok=k.c>=0&&k.c<W&&k.r>=0&&k.r<H;showRng(pt.x,pt.z,a.r/60,ok?0xffd24a:0xff6666);}return;}
+if(g.aim!=null){const k=cellAt(ev),a=HAB[g.aim];if(!k){rng.visible=false;return;}if(a.road){const ok=onB(k.c,k.r);showRng(cx(k.c),cz(k.r),.5,ok?0xffd24a:RBAD);}
+else{const ok=k.c>=0&&k.c<W&&k.r>=0&&k.r<H;showRng(pt.x,pt.z,a.r/60,ok?0xffd24a:RBAD);}return;}
 if(g.sel)return;if(g.run){if(rng.visible||COV.pv){rng.visible=false;COV.pv=null;covUpd();}return;}const k=cellAt(ev);
-const tp=T[g.build],ok=k&&(!tp.bar||nearRoad(k.c,k.r)),col=g.gold>=tp.c&&ok?0xffffff:0xff6666;
+const tp=T[g.build],ok=k&&(!tp.bar||nearRoad(k.c,k.r)),col=g.gold>=tp.c&&ok?0xffffff:RBAD;
 // a Barracks must go next to the road: elsewhere its ring shows red
-if(k&&free(k.c,k.r)){const r=tp.r*fogM(k.c,k.r);showRng(cx(k.c),cz(k.r),r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r,col:g.gold>=tp.c&&ok?0xf0b840:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}
+if(k&&free(k.c,k.r)){const r=tp.r*fogM(k.c,k.r);showRng(cx(k.c),cz(k.r),r/60,col);COV.pv=tp.sup||tp.inc?null:{x:k.c*S+S/2,y:k.r*S+S/2,r,col:g.gold>=tp.c&&ok?0xf0b840:OPT.cb?0xcc79a7:0xe04030};}else{rng.visible=false;COV.pv=null;}covUpd();}
 C.addEventListener('pointerleave',()=>{if(COV.pv)selRng();});
 function zoom(f){cine=null;dist=clamp(dist*f,5,Math.max(26,CAM0.dist*1.3));setCam();}
 function pan(dx,dy){cine=null;const k=dist*.0022,s=Math.sin(az),c=Math.cos(az);tx=clamp(tx-(c*dx+s*dy)*k,CAM0.bb.x0-3,CAM0.bb.x1-1);tz=clamp(tz+(s*dx-c*dy)*k,CAM0.bb.z0-2,CAM0.bb.z1+2);setCam();}

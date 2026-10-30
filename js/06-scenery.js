@@ -448,16 +448,24 @@ STM.f=Math.max(0,STM.f-dt*2.8);STM.l.intensity=STM.f*1.8*(.7+.3*Math.random());S
 // range indicator
 const rng=new THREE.Group(),rd1=L1(new THREE.Mesh(new THREE.CircleGeometry(1,48),new THREE.MeshBasicMaterial({transparent:true,opacity:.22,depthWrite:false}))),rd2=L1(new THREE.Mesh(new THREE.RingGeometry(.96,1,64),new THREE.MeshBasicMaterial({transparent:true,opacity:.9,depthWrite:false})));
 rd1.rotation.x=rd2.rotation.x=-PI/2;rng.add(rd1,rd2);rng.position.y=.04;rng.visible=false;sc.add(rng);
-function showRng(x,z,r,col){rng.visible=true;rng.position.x=x;rng.position.z=z;rng.scale.set(r,1,r);rd1.material.color.setHex(col);rd2.material.color.setHex(col);}
+// colourblind mode (OPT.cb): a "can't go here" ring (RBAD) is also dashed (rd3) with a hatched disc (HATCH), so it doesn't rely on red alone
+const RBAD=0xff6666,HATCH=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d');q.fillStyle='rgba(255,255,255,.25)';q.fillRect(0,0,64,64);q.strokeStyle='#fff';q.lineWidth=8;
+for(let i=-64;i<=64;i+=32){q.beginPath();q.moveTo(i,-4);q.lineTo(i+68,64);q.stroke();}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(5,5);return t;})();
+const rd3=L1(new THREE.Mesh((()=>{const p=[],P=(r,a)=>p.push(Math.cos(a)*r,Math.sin(a)*r,0);for(let i=0;i<28;i++)for(let j=0;j<4;j++){const a=(i+j/8)/28*PI*2,b=(i+(j+1)/8)/28*PI*2;P(.93,a);P(1,a);P(1,b);P(.93,a);P(1,b);P(.93,b);}
+const gm=new THREE.BufferGeometry();gm.setAttribute('position',new THREE.Float32BufferAttribute(p,3));return gm;})(),new THREE.MeshBasicMaterial({transparent:true,opacity:.95,depthWrite:false,side:THREE.DoubleSide})));rd3.rotation.x=-PI/2;rd3.visible=false;rng.add(rd3);
+function showRng(x,z,r,col){rng.visible=true;rng.position.x=x;rng.position.z=z;rng.scale.set(r,1,r);rd1.material.color.setHex(col);rd2.material.color.setHex(col);rd3.material.color.setHex(col);
+const h=col===RBAD&&OPT.cb;rd2.visible=!h;rd3.visible=h;if(rd1.material.map!==(h?HATCH:null)){rd1.material.map=h?HATCH:null;rd1.material.opacity=h?.55:.22;rd1.material.needsUpdate=true;}}
 function selRng(){updPads();COV.pv=null;if(g.sel){const t=g.sel;showRng(wx(t.x),wz(t.y),stat(t).r/60,0xffffff);}else rng.visible=false;covUpd();}
 // road coverage overlay: one tinted square per road cell on the board (a cell counts as reached when its centre is in range).
 // Placing (COV.pv, set by hover) or selecting a tower tints the cells it reaches; the coverage map (COV.on, C key) colours every
 // road cell by how many attacking towers reach it, counting the tower being placed. Black-ish = nothing reaches it.
 const RC=[...road,...RUC].map(k=>k.split(',').map(Number)).filter(([c,r])=>c>=0&&c<W&&r>=0&&r<H),COV={on:false,pv:null,key:''},
-COVC=[0x0a0a0c,0x3f7fd0,0x3fb36a,0xe2c040,0xe57d30,0xd83c30],_cm=new THREE.Matrix4(),_cc=new THREE.Color();
+COVC=[0x0a0a0c,0x3f7fd0,0x3fb36a,0xe2c040,0xe57d30,0xd83c30],COV0=COVC.slice(),COVCB=[0x0a0a0c,0x2f4f9a,0x56b4e9,0xf0e442,0xe69f00,0xffffff],_cm=new THREE.Matrix4(),_cc=new THREE.Color();
 const covM=L1(new THREE.InstancedMesh(new THREE.PlaneGeometry(.9,.9).rotateX(-PI/2),new THREE.MeshBasicMaterial({map:(()=>{const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d');
 q.fillStyle='#fff';q.beginPath();q.moveTo(16,4);q.arcTo(60,4,60,60,12);q.arcTo(60,60,4,60,12);q.arcTo(4,60,4,4,12);q.arcTo(4,4,60,4,12);q.fill();const t=new THREE.CanvasTexture(c);return t;})(),transparent:true,opacity:.6,depthWrite:false,toneMapped:false}),RC.length));
 covM.position.y=.035;covM.frustumCulled=false;covM.visible=false;rng.renderOrder=2;for(let i=0;i<RC.length;i++){covM.setMatrixAt(i,_cm.makeScale(0,1,0));covM.setColorAt(i,_cc.set(0xffffff));}sc.add(covM);
+// colourblind mode swaps the coverage colours (COVC, changed in place) for dark blue → sky blue → yellow → orange → white, which also step up in brightness
+function covPal(){COVC.splice(0,COVC.length,...(OPT.cb?COVCB:COV0));COV.key='';if(g)covUpd();}
 // the coverage map counts attacking towers; a Barracks only tints its rally range while placed or selected
 function covUpd(){const a=t=>!T[t.k].sup&&!T[t.k].inc&&!T[t.k].bar,s=g.sel,sh=g.over?null:COV.pv||(s&&(a(s)||T[s.k].bar)?{x:s.x,y:s.y,r:stat(s).r,col:0xf0b840}:null),on=COV.on&&!g.over;
 const tw=on?g.tw.filter(a).map(t=>({x:t.x,y:t.y,r:stat(t).r})):[];if(on&&COV.pv)tw.push(COV.pv);
