@@ -359,7 +359,7 @@ else if(e.stG)e.stG.visible=false;}
 function animEnemy(e,dt){const r=e.rig,t=tt+e.ph,boss=e.type=='boss',mv=Math.hypot(e.x-e.px,e.y-e.py);e.px=e.x;e.py=e.y;e.gp+=mv*e.k;
 e.vis=lerpA(e.vis,e.dir,1-Math.exp(-dt*9));const turn=clamp(Math.atan2(Math.sin(e.dir-e.vis),Math.cos(e.dir-e.vis)),-1,1);
 e.age+=dt;const pop=e.age<.35?back(e.age/.35):1;e.hit=Math.max(0,e.hit-dt);const q=e.hit*4;
-e.m.position.set(wx(e.x),boss?.3+Math.sin(tt*1.6+e.ph)*.07:0,wz(e.y));e.m.scale.set(pop*(1+q*.06),pop*(1-q*.08),pop*(1+q*.06));e.kb=(e.kb||0)*Math.exp(-dt*12);e.fcd=Math.max(0,(e.fcd||0)-dt);e.m.position.x-=Math.sin(e.vis)*e.kb;e.m.position.z-=Math.cos(e.vis)*e.kb;e.body.rotation.y=e.vis;e.body.rotation.z=-turn*(boss?.35:.2);
+e.m.position.set(wx(e.x),boss?.3+Math.sin(tt*1.6+e.ph)*.07:0,wz(e.y));if(e.vo){e.vo.t+=dt;const f=1-sm(0,.7,e.vo.t);e.m.position.x+=e.vo.x/S*f;e.m.position.z+=e.vo.y/S*f;if(f<=0)e.vo=null;}e.m.scale.set(pop*(1+q*.06),pop*(1-q*.08),pop*(1+q*.06));e.kb=(e.kb||0)*Math.exp(-dt*12);e.fcd=Math.max(0,(e.fcd||0)-dt);e.m.position.x-=Math.sin(e.vis)*e.kb;e.m.position.z-=Math.cos(e.vis)*e.kb;e.body.rotation.y=e.vis;e.body.rotation.z=-turn*(boss?.35:.2);
 const s=Math.sin(e.gp),c=Math.cos(e.gp),ro=(n,x,y,z)=>{const o=r[n];if(o){if(x!==undefined)o.rotation.x=x;if(y!==undefined)o.rotation.y=y;if(z!==undefined)o.rotation.z=z;}};
 if(e.type=='norm'){ro('H0',-s*.7);ro('K0',Math.max(0,c)*.9);ro('H1',s*.7);ro('K1',Math.max(0,-c)*.9);ro('S0',s*.55);ro('E0',-.5-Math.max(0,-c)*.3);ro('S1',-s*.45-.35+Math.sin(t*2.6)*.08);ro('E1',-.9);
 ro('TO',.25+s*.03-q*.3,c*.12);r.TO.position.y=.34+Math.cos(2*e.gp)*.012;ro('HD',-.22-s*.03-q*.3,Math.sin(t*.9)*.15-c*.08);ro('R0',0,0,.15+Math.abs(s)*.25);ro('R1',0,0,-.15-Math.abs(s)*.25);}
@@ -573,17 +573,16 @@ const showR=g.run&&!h.go&&!g.over;h.rg.visible=showR;if(showR){h.rg.position.x=w
 const fe=h.e&&h.e.hp>0?h.e:null;h.tg.visible=!!fe&&!g.over;if(fe){h.tg.position.x=wx(fe.x);h.tg.position.z=wz(fe.y);h.tg.scale.setScalar(.38+Math.sin(tt*8)*.03);}
 const hr=Math.max(0,h.hp/h.max),full=hr>=.999;r.bar.visible=r.bb.visible=!full;if(!full){r.bar.scale.x=.46*Math.max(hr,.001);r.bar.center.set(.5/Math.max(hr,.001),.5);r.bar.material.color.setHex(hr>.5?0xffd24a:OPT.cb?(hr>.25?0xe69f00:0xcc79a7):hr>.25?0xf1a43c:0xe74c3c);}}
 // ---------- spell looks (logic: heroCast()/spells() in js/09-game.js) ----------
-// falling arrows and oil streams are short-lived meshes in SPA, moved by spellAnim(); i: 0 a Rain of Arrows volley (p = the spell), 1 Boiling Oil (p.tiles), 2 Reinforcements arrive (p = the squad)
+// falling arrows are short-lived meshes in SPA, moved by spellAnim(); i: 0 a Rain of Arrows volley (p = the spell), 1 Boiling Oil (p.tiles), 2 Reinforcements arrive (p = the squad)
 const SPA=[];
 function spellFx(i,p){if(i==0){if(p.v==1){fx(p.x,p.y,0xd8cbb0,.2,HAB[0].r/60,.5,.04,true);snd('horn');}snd('rain',p.x,p.y,.4);setTimeout(()=>snd('h_arrow',p.x,p.y,.4),280);
 for(let k=0;k<22;k++){const a=rnd(0,2*PI),d=Math.sqrt(Math.random())*HAB[0].r,x=p.x+Math.cos(a)*d,y=p.y+Math.sin(a)*d,m=mkBullet('arrow'),t0=rnd(0,.15);m.scale.setScalar(1.4);
 m.visible=false;SPA.push({k:'arw',m,x,y,t:-t0,d:.35,dx:-.9,dz:-.5});}}
-if(i==1){snd('oil');snd('boom');for(const q of p.tiles){const m=L1(new THREE.Mesh(geo('cyl'),new THREE.MeshBasicMaterial({color:new THREE.Color(0xc86414).convertSRGBToLinear(),transparent:true,opacity:.95})));m.position.set(wx(q.x),1.4,wz(q.y));m.scale.set(.12,2.8,.12);sc.add(m);
-SPA.push({k:'oil',m,x:q.x,y:q.y,t:0,d:.55});setTimeout(()=>{burst(q.x,q.y,0xc86414,16,1.8,.1);burst(q.x,q.y,0xffb040,10,1.4,.1);fx(q.x,q.y,0x8a4a14,.3,1.1,.8,.03,true);for(let j=0;j<3;j++)fx(q.x+rnd(-20,20),q.y+rnd(-20,20),0xd8d0c8,.1,.6,1.2,.4+j*.25);},420);}}
+// Boiling Oil: the two guards on the gate arch tip their cauldrons (gateOil, js/13-ending.js) – the splash and the flames come when the drops land
+if(i==1){snd('oil');gateOil(p.tiles);}
 if(i==2){snd('reinf');for(const d of p.sol){fx(d.x,d.y,0xffe6a0,.1,.9,.6,.05,true);fx(d.x,d.y,0xfff2c0,.15,.5,.5,.8);burst(d.x,d.y,P.gd,12,1.3,.4);burst(d.x,d.y,0xd8cbb0,8,1,.1);}}}
 function spellAnim(dt){for(let i=SPA.length-1;i>=0;i--){const a=SPA[i];a.t+=dt;if(a.k=='arw'){if(a.t<0)continue;const f=Math.min(1,a.t/a.d);a.m.visible=true;
-a.m.position.set(wx(a.x)-a.dx*(1-f)*1.6,.25+2.6*(1-f),wz(a.y)-a.dz*(1-f)*1.6);a.m.lookAt(wx(a.x),0,wz(a.y));if(f>=1){sc.remove(a.m);SPA.splice(i,1);burst(a.x,a.y,0xd8cbb0,2,.5,.05);}}
-else{const f=a.t/a.d;a.m.scale.set(.12*(1-f*.6),2.8*(1-f),.12*(1-f*.6));a.m.position.y=1.4*(1-f)+.05;if(f>=1){sc.remove(a.m);a.m.material.dispose();SPA.splice(i,1);}}}}
+a.m.position.set(wx(a.x)-a.dx*(1-f)*1.6,.25+2.6*(1-f),wz(a.y)-a.dz*(1-f)*1.6);a.m.lookAt(wx(a.x),0,wz(a.y));if(f>=1){sc.remove(a.m);SPA.splice(i,1);burst(a.x,a.y,0xd8cbb0,2,.5,.05);}}}}
 // a squad's time is up (or it fell): a puff of dust where each soldier stood
 function squadEnd(t){if(t.sg)sc.remove(t.sg);for(const d of t.sol)if(d.hp>0){burst(d.x,d.y,0xd8cbb0,8,1,.3);fx(d.x,d.y,0xffe6a0,.1,.6,.4,.05,true);}}
 // the gate is repaired: hammer blows, sparks and timber dust at the gate and a floating "+1 ♥"
@@ -593,7 +592,7 @@ function heroHit(h,e){const y=.55;burst(e.x,e.y,0xfff2c0,7,1.3,y);fx(e.x,e.y,0xf
 function heroLvl(h){snd('upgrade');popText(h.x,h.y,'Level '+h.lv+'!','#ffe08a');burst(h.x,h.y,P.gd,16,1.5,.6);fx(h.x,h.y,0xffd24a,.2,1.2,.6,.1,true);}
 // hero looks: -1 he falls, 3 Divine Smite (near = the enemies it hit)
 function heroFx(i,h,near){if(i<0){snd('die_sol',h.x,h.y,.3);burst(h.x,h.y,0xc8ccd4,12,1.2,.5);burst(h.x,h.y,0x7a4a2a,8,1,.3);return;}
-if(i==3){snd('f_storm',h.x,h.y);snd('boom',h.x,h.y);fx(h.x,h.y,0xfff2c0,.3,HAB[3].r/60,.6,.08,true);fx(h.x,h.y,0xffffff,.2,1.6,.35,.6);for(const e of near){const y=e.fy||.45;bolt(e.x,e.y,4.5,e.x,e.y,y,true);burst(e.x,e.y,0xfff2c0,8,1.2,y);}}}
+if(i==3){snd('f_storm',h.x,h.y);snd('boom',h.x,h.y);fx(h.x,h.y,0xfff2c0,.3,smR()/60,.6,.08,true);fx(h.x,h.y,0xffffff,.2,1.6,.35,.6);for(const e of near){const y=e.fy||.45;bolt(e.x,e.y,4.5,e.x,e.y,y,true);burst(e.x,e.y,0xfff2c0,8,1.2,y);}}}
 // Plague spreading from a dying enemy: a purple ring as wide as its reach
 function plagueFx(e,r){fx(e.x,e.y,0xa06ad0,.2,r/60,.6,.08,true);burst(e.x,e.y,0x8a4ab0,10,1,.3);}
 function zoneEnd(z){sc.remove(z.m);z.m.children.forEach(m=>{if(m.material&&m.userData.o!=null)m.material.dispose();});}

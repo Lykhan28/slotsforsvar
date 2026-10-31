@@ -1,25 +1,71 @@
 // ---------- ENEMY ARMY + ENDING SCENES ----------
 let FS=1,AM=1,cine=null,endS=null;
-const army=[],fws=[],rockets=[],smk=[],chunks=[],dynF=[],SPM={};
-// the army casts no real shadows (just blob shadows): 20+ detailed enemies would double their cost in the shadow map
-// castle spots below are in the castle's original coordinates (gate on the east wall), mapped into the level with CW(); the army with BW() per breach
+const fws=[],rockets=[],smk=[],chunks=[],dynF=[],SPM={};
+// castle spots below are in the castle's original coordinates (gate on the east wall), mapped into the level with CW(); the crowd with BW() per breach
 const fireL=new THREE.PointLight(0xff5a1a,0,16);{const q=CW(11.4,2.5);fireL.position.set(q.x,3,q.z);}sc.add(fireL);
 const FW_COL=[0xff5a5a,0xffd24a,0x6af0ff,0xc08bff,0x7cff4a,0xff8ec0,0xffffff];
-function buildArmy(){const types=['norm','norm','fast','norm','tank','norm','fast','norm','tank','norm'],nb=ENT.length;
-ENT.forEach((o0,bi)=>{const t0=BW(-6.3,-2.5,bi);
-for(let row=0;row<4;row++)for(let col=0;col<7;col++){const lx=-7.7-row*1.0+rnd(-.18,.18),lz=-2.5+(col-3)*.8*(1+row*.1)+rnd(-.18,.18);
-if(Math.abs(lz+2.5)<.7&&lx>-9.5)continue;if(Math.hypot(lx+8.6,lz+1.5)<1.2)continue;if(Math.random()<(nb>1?.45:.15))continue;
-const{x,z}=BW(lx,lz,bi),type=types[(row*7+col)%types.length],o=buildEnemy(type);o.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});o.m.traverse(c=>{c.castShadow=false;});
-o.m.position.set(x,gh(x,z),z);o.m.scale.setScalar(rnd(.92,1.1));o.body.rotation.y=Math.atan2(t0.x-x,t0.z-z)+rnd(-.15,.15);if(row>=2)o.m.traverse(c=>{if(c.isMesh)c.castShadow=false;});
-army.push({o,type,ph:rnd(0,6),y0:gh(x,z)});}
-for(const[lx,lz]of[[-10.2,-4.4],[-10.8,-.7]].slice(0,nb>1?1:2)){const{x,z}=BW(lx,lz,bi),o=buildEnemy('boss');o.m.children.forEach(c=>{if(c.isSprite)c.visible=false;});o.m.traverse(c=>{c.castShadow=false;});o.m.position.set(x,gh(x,z),z);o.m.scale.setScalar(1.05);o.body.rotation.y=Math.atan2(t0.x-x,t0.z-z);army.push({o,type:'boss',ph:rnd(0,6),y0:gh(x,z)});}});}
-function armyAnim(dt){for(const a of army){const r=a.o.rig,t=tt+a.ph,m=a.o.m,ro=(n,x,y,z)=>{const q=r[n];if(q){if(x!==undefined)q.rotation.x=x;if(y!==undefined)q.rotation.y=y;if(z!==undefined)q.rotation.z=z;}};
-const hop=AM==2?Math.max(0,Math.sin(t*5))*.12:AM==1?Math.max(0,Math.sin(t*3.2))*.03:0;m.position.y=a.y0+hop+(a.type=='boss'?1.5+Math.sin(t*1.6)*.1:0);
-const lift=AM==0?-.2:AM==2?-2.8:-1.0,w=Math.sin(t*3.5)*(AM==2?.35:.2);
-if(a.type=='norm'){ro('S1',lift+w);ro('E1',AM==0?-.2:-.5);ro('S0',-.25+Math.sin(t*1.3)*.05);ro('TO',.18+Math.sin(t*2)*.02);ro('HD',-.15+Math.sin(t*.9)*.08,Math.sin(t*.6)*.3);ro('R0',0,0,.2+Math.sin(t*3)*.1);ro('R1',0,0,-.2-Math.sin(t*3)*.1);}
-else if(a.type=='fast'){ro('SP',AM==0?.2:-.6+Math.sin(t*3.5)*.25);ro('TO',Math.sin(t*2)*.02);ro('HD',Math.sin(t*1.2)*.1,Math.sin(t*.7)*.3);ro('T0',.1,Math.sin(t*4)*.4);ro('T1',0,Math.sin(t*4-.9)*.4);ro('RD',0,0,Math.sin(t*1.8)*.05);}
-else if(a.type=='tank'){ro('S0',lift+w);ro('E0',-.3);ro('S1',-.45);ro('E1',-1);ro('HD',-.05,Math.sin(t*.7)*.2);ro('CP',.1+Math.sin(t*2)*.05);ro('PL',-.5+Math.sin(t*3)*.1);r.TO.position.y=.46+Math.sin(t*1.6)*.006;}
-else{const f=t*3.5,roar=Math.pow(Math.max(0,Math.sin(t*.8)),8);ro('W0',0,0,Math.sin(f)*.6+.1);ro('W1',0,0,-(Math.sin(f)*.6+.1));ro('WE0',0,0,Math.sin(f-.7)*.4);ro('WE1',0,0,-Math.sin(f-.7)*.4);ro('WH0',0,0,Math.sin(f-1.4)*.5);ro('WH1',0,0,-Math.sin(f-1.4)*.5);r.TO.position.y=.9-Math.sin(f)*.06;ro('JW',.1+roar*.7);ro('HD',.1-roar*.3,0);ro('T0',0,Math.sin(t*1.8)*.3);ro('T1',0,Math.sin(t*1.8-.9)*.4);ro('T2',0,Math.sin(t*1.8-1.8)*.5);}}}
+// ---------- the wave waiting outside the wall ----------
+// The next wave stands in a column outside its breach: CRD[i] = breach i's queue in spawn order (road p of the wave queue = breach p; flyers share their road's breach).
+// In the break it is waveQ(g.wave+1), during a wave what is left of g.q; it is rebuilt when the wave number or the game object (reset()) changes (crW/crG).
+// Only CRN members per breach have models (mem, front first); the rest (pend) wait out of sight and step up as the column moves on.
+// spawn() calls crowdTake(type, road): the front member of that type is handed over as the real enemy's model, and e.vo eases it from where it stood
+// to the start of the road (animEnemy). Members are buildEnemy() models with an enemy-like object (crMake) run by animEnemy(), so every type walks and idles
+// like the real thing; they cast no real shadows (a full column would double the shadow map's cost) and hide their health bars (sprites without a map) until they walk in.
+// Defeat makes them cheer (AM 2, set by startEnd). The sim stubs crowdTake (it never builds models), so the game logic doesn't change.
+const CRD=ENT.map(()=>({mem:[],pend:[]})),CRN=(LOWQ?8:16)>>(ENT.length>1?1:0),CRC=[0,.55,-.55];let crW=-1,crG=null;
+// slot k of a breach's column in breach coordinates: three abreast, the front row just outside the breach, a little off the middle so it misses the battering ram
+// and the campfires of the breach scenery (js/06-scenery.js) and stays inside the clear ground (inBr)
+const crSlot=(k,bi,back)=>{const r=Math.floor(k/3),q=BW(-7.25-r*.75-(back||0),-2.72+CRC[k%3]+(r%2?.1:-.1),bi);return{x:q.x*S+W*S/2,y:q.z*S+H*S/2};};
+function crMake(type,bi,k,back){const o=buildEnemy(type),p=crSlot(k,bi,back),f=crSlot(0,bi,-1),dir=Math.atan2(f.x-p.x,f.y-p.y),sh=[];
+const hb=[];o.m.traverse(c=>{if(c.isMesh&&c.castShadow){c.castShadow=false;sh.push(c);}if(c.isSprite&&!c.material.map&&c.visible){c.visible=false;hb.push(c);}});
+return{...E[type],type,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm,sh,hb,bi,x:p.x,y:p.y,px:p.x,py:p.y,dir,vis:dir,ph:rnd(0,6),gp:0,k:GAIT[type],hp:1,max:1,sl:0,stun:0,slf:1,age:back?0:rnd(0,.3),hit:0,tf:1,id:rnd(2,7)};}
+function crDrop(m){sc.remove(m.m);m.bar.material.dispose();if(m.gm)for(const x of m.gm)x.dispose();}
+function crowdBuild(q){for(const C of CRD){C.mem.forEach(crDrop);C.mem=[];C.pend=[];}
+for(const e of q){const C=CRD[(e.p|0)%CRD.length];if(C.mem.length<CRN)C.mem.push(crMake(e.type,CRD.indexOf(C),C.mem.length,4+C.mem.length*.15));else C.pend.push(e.type);}}
+function crowdTake(type,pi){const C=CRD[(pi|0)%CRD.length];if(!C)return null;const i=C.mem.findIndex((m,j)=>j<4&&m.type==type);
+if(i<0){const j=C.pend.indexOf(type);if(j>=0)C.pend.splice(j,1);return null;}
+const m=C.mem.splice(i,1)[0];if(C.pend.length)C.mem.push(crMake(C.pend.shift(),m.bi,C.mem.length,3));for(const c of m.hb)c.visible=true;for(const c of m.sh)c.castShadow=true;
+return{m:m.m,body:m.body,ice:m.ice,bar:m.bar,meshes:m.meshes,rig:m.rig,gm:m.gm,vo:{x:m.x,y:m.y}};}
+function crowdAnim(dt){
+if(crG!==g){crG=g;crW=-1;}
+const nx=g.run?g.wave:(INF||g.wave<MAXW)&&!g.won?g.wave+1:0;if(!g.over&&nx!==crW){crW=nx;crowdBuild(!nx?[]:g.run?g.q:waveQ(nx));}
+for(const C of CRD)C.mem.forEach((m,k)=>{const p=crSlot(k,m.bi),dx=p.x-m.x,dy=p.y-m.y,L=Math.hypot(dx,dy),st=60*1.1*dt;
+if(L>2){const s=Math.min(st,L)/L;m.x+=dx*s;m.y+=dy*s;m.dir=Math.atan2(dx,dy);}
+else{m.gp+=(Math.round(m.gp/PI)*PI-m.gp)*Math.min(1,dt*6);m.id-=dt;if(m.id<=0){m.id=rnd(3,8);const f=crSlot(0,m.bi,-1);m.dir=Math.atan2(f.x-m.x,f.y-m.y)+rnd(-.5,.5);}}
+animEnemy(m,dt);const w=m.m.position;w.y+=gh(w.x,w.z)+(AM==2?Math.max(0,Math.sin(tt*6+m.ph))*.14:0);});}
+// ---------- castle life ----------
+// Townsfolk (CIT) wander the courtyard between spots in two open areas (CYD, castle coordinates: x0,x1,z0,z1); going from one to the other they pass CYV, clear of the keep.
+// They stop and look about, run in panic when the castle falls (AM 2) and jump for joy when it is saved (end sequence, AM 0).
+// Two guards (OILG) stand on the arch over the gate with cauldrons of boiling oil: gateOil(tiles) (from spellFx, Boiling Oil) tips the cauldrons and throws arcs of
+// drops (OIL.d) onto the gate tiles; each tile bursts into flame when its first drop lands. All in CLG, a group turned like the castle; looks only, never in the sim.
+const CLG=new THREE.Group();CLG.position.set(GATE.x,0,GATE.z);CLG.rotation.y=GATE.rot;sc.add(CLG);
+const CYD=[[8.75,10.4,.7,2.85],[11.05,12.35,.7,1.45]],CYV=[10.75,1.1],CIT=[],OIL={t:-1,d:[],n:0,a:0},OILM=new THREE.MeshBasicMaterial({color:new THREE.Color(0xe07a1c).convertSRGBToLinear()});
+{const TU=[0x8a5a3a,0x55678a,0x6f7f44,0x9a4a36,0x6a4a7a,0xa88446,0x4a7474,0x7a6a5a],AP=[0xd8cbb0,0x5a3a2a,0xc8b890,0x3a4a2a,0xe0d4b8,0x7a2a2a];
+for(let i=0;i<(LOWQ?4:8);i++){const G=new THREE.Group(),B=new THREE.Group();G.add(B);CLG.add(G);chibi(B,0,0,TU[i%TU.length],AP[i%AP.length],false);bakeE(B);G.scale.setScalar(i==3||i==6?.72:rnd(.95,1.05));
+const a=CYD[i%2];CIT.push({G,B,x:rnd(a[0],a[1]),z:rnd(a[2],a[3]),a:i%2,path:[],w:rnd(0,4),ph:rnd(0,6),dir:rnd(0,6),sp:rnd(.28,.4)});}}
+const OILG=[2.12,2.88].map(z=>{const S=new THREE.Group();S.position.set(0,1.44,z-2.5);S.rotation.y=-PI/2;CLG.add(S);
+const M=new THREE.Group();M.position.z=-.06;S.add(M);chibi(M,0,0,P.rd,0x8a9098,false);bakeE(M);
+const K=new THREE.Group();K.position.set(0,0,.19);S.add(K);const pot=new THREE.Group();pot.position.z=-.085;K.add(pot);
+part(pot,'sph',0x2b2b30,.085,.065,.085,0,.065,0);part(pot,'cyl',0x3a3a42,.075,.016,.075,0,.11,0);part(pot,'cyl',0xff7a1a,.066,.006,.066,0,.116,0,0xff6a00).castShadow=false;glow(pot,0,.15,0,.3,0xff8a30);
+return{M,K};});
+function gateOil(tiles){OIL.t=0;OIL.tl=tiles;OIL.hit=tiles.map(()=>0);OIL.n=0;OIL.a=0;OIL.bm=0;}
+const OV=new THREE.Vector3();
+function castleAnim(dt){const pan=AM==2&&endS,joy=AM==0&&endS;
+for(const c of CIT){if(c.path.length){const[x,z]=c.path[0],dx=x-c.x,dz=z-c.z,L=Math.hypot(dx,dz),s=c.sp*(pan?2.8:1)*dt;
+if(L<=s){c.x=x;c.z=z;c.path.shift();if(!c.path.length)c.w=pan?rnd(0,.2):rnd(2,7);}else{c.x+=dx/L*s;c.z+=dz/L*s;}if(L>.001)c.dir=Math.atan2(dx,dz);c.ph+=dt*(pan?20:11);}
+else{c.w-=dt;if(c.w<=0){const b=Math.random()<.3?1-c.a:c.a,r=CYD[b],t=[rnd(r[0],r[1]),rnd(r[2],r[3])];c.path=b!=c.a?[CYV,t]:[t];c.a=b;}}
+const wk=c.path.length>0;c.G.position.set(c.x-6.17,-.1,c.z-2.5);c.G.rotation.y=c.dir;
+c.B.position.y=joy?Math.max(0,Math.sin(tt*7+c.ph))*.12:wk?Math.abs(Math.sin(c.ph))*.025:0;c.B.rotation.z=wk?Math.sin(c.ph)*.07:0;c.B.rotation.y=wk||joy?0:Math.sin(tt*.45+c.ph)*.5;}
+if(OIL.t<0)return;OIL.t+=dt;const t=OIL.t,tip=t<.25?sm(0,.25,t):t<.8?1:1-sm(.8,1.25,t);
+for(const o of OILG){o.K.rotation.x=tip*1.75;o.M.rotation.x=tip*.3;}
+if(t>.18&&t<.75&&dt>0){OIL.a+=dt*70;while(OIL.a>=1){OIL.a--;const j=OIL.n%OIL.tl.length,q=OIL.tl[j],o=OILG[OIL.n++%2];o.K.getWorldPosition(OV);
+const x1=wx(q.x)+rnd(-.28,.28),z1=wz(q.y)+rnd(-.28,.28),L=Math.hypot(x1-OV.x,z1-OV.z),m=new THREE.Mesh(geo('sph'),OILM);m.scale.setScalar(rnd(.02,.038));sc.add(m);
+OIL.d.push({m,x0:OV.x,y0:OV.y+.08,z0:OV.z,x1,z1,u:0,d:.28+L*.05,h:.3+L*.12,j});}}
+for(let i=OIL.d.length-1;i>=0;i--){const d=OIL.d[i];d.u+=dt/d.d;const u=Math.min(1,d.u);d.m.position.set(d.x0+(d.x1-d.x0)*u,d.y0*(1-u)+d.h*4*u*(1-u),d.z0+(d.z1-d.z0)*u);
+if(u>=1){sc.remove(d.m);OIL.d.splice(i,1);if(!OIL.hit[d.j]){OIL.hit[d.j]=1;const q=OIL.tl[d.j];if(!OIL.bm){OIL.bm=1;snd('boom',q.x,q.y);}
+burst(q.x,q.y,0xc86414,16,1.8,.1);burst(q.x,q.y,0xffb040,10,1.4,.1);fx(q.x,q.y,0x8a4a14,.3,1.1,.8,.03,true);for(let k=0;k<3;k++)fx(q.x+rnd(-20,20),q.y+rnd(-20,20),0xd8d0c8,.1,.6,1.2,.4+k*.25);}
+else if(Math.random()<.3)burst(d.x1*S+W*S/2,d.z1*S+H*S/2,0xffa040,1,.6,.05);}}
+if(t>1.3&&!OIL.d.length)OIL.t=-1;}
 const spm=c=>SPM[c]||(SPM[c]=new THREE.SpriteMaterial({map:GT,color:new THREE.Color(c).convertSRGBToLinear(),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,fog:false}));
 function spark(x,y,z,col,s0,vx,vy,vz,d,gv){const sp=L1(new THREE.Sprite(spm(col)));sp.position.set(x,y,z);sp.scale.set(s0,s0,1);sc.add(sp);fws.push({sp,vx,vy,vz,t:0,d,s:s0,gv});}
 function rocket(x,z,col){const sp=L1(new THREE.Sprite(spm(0xffe6a0)));sp.scale.set(.25,.25,1);sp.position.set(x,.3,z);sc.add(sp);rockets.push({sp,x,z,col,t:0,ty:rnd(3.6,5.6),vx:rnd(-.3,.3),vz:rnd(-.3,.3),d:rnd(.9,1.2)});snd('fw_up');}

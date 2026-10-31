@@ -1,6 +1,6 @@
 // ---------- main menu ----------
 // open: the game is paused behind the menu. quit: render loop stopped and sound muted until "Back to the menu"
-const MENU={open:true,quit:false,pg:'main',df:DFN};
+const MENU={open:true,quit:false,pg:'main',mode:'title',df:DFN,tt:0,ts:null};
 const GFX={glow:true,shadows:true,sharp:true,ao:!LOWQ,auto:true};
 try{Object.assign(GFX,JSON.parse(localStorage.getItem('sfgfx')||'{}'));}catch(e){}
 // auto quality (GFX.auto): when frames average slower than AQF ms (~36 fps) over 3 s of play, aqTick() (from the render loop) switches off the next effect in AQS
@@ -12,7 +12,8 @@ function gfxApply(){if(bloom)bloom.enabled=gq('glow');if(AO)AO.pass.enabled=gq('
 function aqTick(ms){if(!GFX.auto||MENU.open||document.hidden||ms>250)return;AQ.t+=ms;AQ.n++;if(AQ.t<3000)return;const avg=AQ.t/AQ.n;AQ.t=AQ.n=0;if(AQ.w>0){AQ.w--;return;}if(avg<AQF)return;
 const k=AQS.find(s=>gq(s)&&(s!='ao'||AO)&&(s!='glow'||bloom));if(!k)return;AQ.off.add(k);AQ.w=1;gfxApply();}
 // gameplay settings (localStorage sfopt): auto-start = the next wave starts by itself when the break countdown runs out
-const OPT={auto:false,shake:true,cb:false,fcam:false};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));}catch(e){}autoW=!!OPT.auto;$('fc').classList.toggle('on',!!OPT.fcam);
+// rot = Free cam (drag rotates the camera; the old fcam key, off by default, is dropped so everyone starts with rotation on again)
+const OPT={auto:false,shake:true,cb:false,rot:true};try{Object.assign(OPT,JSON.parse(localStorage.getItem('sfopt')||'{}'));delete OPT.fcam;}catch(e){}autoW=!!OPT.auto;fcamSet(!!OPT.rot);
 function optSet(k){OPT[k]=!OPT[k];try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}autoW=!!OPT.auto;if(k=='cb')cbApply();ui();}
 // colourblind mode (OPT.cb): health bar colours (hpC) and status icons (stIco) in js/07-enemies.js are read every frame; the coverage colours, its legend and the range ring are refreshed here
 function cbApply(){covPal();covLeg();if(g)selRng();}
@@ -21,7 +22,7 @@ function gfxSet(k){const lw=k=='sharp'&&AQ.off.delete('low');if(AQ.off.delete(k)
 // Saved in localStorage sfprog as {easy:{n,st},normal:…,hard:…}; older saves ({n,st} or a bare number) were played like Easy. A win also counts on every easier difficulty (lvWon).
 // Switching level or difficulty reloads the page, because the whole scene is built once at load (js/01-config.js picks LVN and DFN)
 // stars for a win by lives left, relative to the difficulty's lives plus the Stonemasons perk (STAR): 90%+ = 3, 50%+ = 2, any win = 1 – Easy 18/10, Normal 14/8, Hard 9/5. lvWon() puts this win's stars in g.stN and the earlier best in g.stB (end screen)
-const STAR=d=>{const l=d.li+pkv('wall');return[Math.ceil(l*.9),Math.ceil(l*.5)];},stars=l=>{const s=STAR(DF);return l>=s[0]?3:l>=s[1]?2:1;},starH=n=>'<span class="stars">'+[0,1,2].map(i=>'<i'+(i<n?' class="on"':'')+'>★</i>').join('')+'</span>',starT=d=>{const s=STAR(d);return'★★★ '+s[0]+'+ lives left · ★★ '+s[1]+'+ · ★ any win';};
+const STAR=d=>{const l=d.li+pkv('f_wall');return[Math.ceil(l*.9),Math.ceil(l*.5)];},stars=l=>{const s=STAR(DF);return l>=s[0]?3:l>=s[1]?2:1;},starH=n=>'<span class="stars">'+[0,1,2].map(i=>'<i'+(i<n?' class="on"':'')+'>★</i>').join('')+'</span>',starT=d=>{const s=STAR(d);return'★★★ '+s[0]+'+ lives left · ★★ '+s[1]+'+ · ★ any win';};
 const PROG={};for(const d of DIFS)PROG[d.k]={n:0,st:[]};
 try{let d=JSON.parse(localStorage.getItem('sfprog'));if(typeof d=='number')d={easy:{n:d}};else if(d&&'n' in d)d={easy:d};if(d)for(const k in PROG)if(d[k]){PROG[k].n=d[k].n|0;if(Array.isArray(d[k].st))PROG[k].st=d[k].st.map(x=>Math.min(3,Math.max(0,x|0)));}}catch(e){}
 function lvWon(){g.stB=PROG[DF.k].st[LVN]||0;g.stN=stars(g.lives);for(let i=0;i<=DFN;i++){const p=PROG[DIFS[i].k];p.n=Math.max(p.n,LVN+1);p.st[LVN]=Math.max(p.st[LVN]||0,g.stN);}try{localStorage.setItem('sfprog',JSON.stringify(PROG));}catch(e){}ach('win');}
@@ -30,7 +31,7 @@ function lvWon(){g.stB=PROG[DF.k].st[LVN]||0;g.stN=stars(g.lives);for(let i=0;i<
 try{INF=(new URLSearchParams(location.search).get('endless')=='1'||localStorage.getItem('sfmode')=='endless')&&PROG[DF.k].n>LVN;}catch(e){}
 const BEST={};for(const d of DIFS)BEST[d.k]=[];try{const d=JSON.parse(localStorage.getItem('sfbest'));if(d)for(const k in BEST)if(Array.isArray(d[k]))BEST[k]=d[k].map(x=>Math.max(0,x|0));}catch(e){}
 function infRec(){const b=BEST[DF.k];if(g.wave<=(b[LVN]||0))return;b[LVN]=g.wave;g.rec=true;try{localStorage.setItem('sfbest',JSON.stringify(BEST));}catch(e){}ach('endless');}
-function goLevel(i,di=DFN,inf=false){if(i===LVN&&di===DFN&&inf===INF){if(g.over)reset();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);localStorage.setItem('sfdif',DIFS[di].k);localStorage.setItem('sfmode',inf?'endless':'');sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1)+'&diff='+DIFS[di].k+(inf?'&endless=1':''));}
+function goLevel(i,di=DFN,inf=false){if(i===LVN&&di===DFN&&inf===INF){if(g.over)reset();loadRun();menuClose();return;}let ok=true;try{localStorage.setItem('sflv',i+1);localStorage.setItem('sfdif',DIFS[di].k);localStorage.setItem('sfmode',inf?'endless':'');sessionStorage.setItem('sfgo','1');}catch(e){ok=false;}location.href=location.pathname+(ok?'':'?level='+(i+1)+'&diff='+DIFS[di].k+(inf?'&endless=1':''));}
 // level picker = a world map: difficulty tabs (MENU.df, applied when a level is played) above an SVG map where every level is a node along one winding road.
 // WMP = node positions in the 1000×620 viewBox (index = level), WMT = per theme the land colour and the icons drawn around it, WIC = the icons (drawn at 0,0, foot at y=0).
 // The land and icons are built once (wMap, cached in WMS); the road progress and nodes (wDyn) and the card of the selected level (MENU.ls, lvCard) are redrawn.
@@ -102,11 +103,11 @@ s+='<g class="wnd'+(lock?' lock':'')+(done?' won':'')+(cur?' cur':'')+(i===MENU.
 $('wm_dyn').innerHTML=s;}
 // the card under the map for the selected level: description, mechanic, stars or progress, Play/Continue and (once won) Endless
 function lvCard(){const di=MENU.df,D=DIFS[di],p=PROG[D.k],here=di===DFN,i=MENU.ls,L=LEVELS[i],cur=here&&i==LVN&&!INF,lock=i>p.n&&!(here&&i==LVN),done=i<p.n,st=p.st[i]||0,M=MECH[L.mc];
-const sv=lock||cur?null:savedRun(i,di,false),sw=cur?(inGame()?g.wave:null):sv?sv.wave:null;
+const sv=lock||cur&&inGame()?null:savedRun(i,di,false),sw=cur&&inGame()?g.wave:sv?sv.wave:null;
 let h='<span class="ln">'+(i+1)+'</span><div class="lt"><b>'+L.n+(done?' '+(st?starH(st):'✓'):'')+'</b><small>'+(lock?'🔒 Win '+LEVELS[i-1].n+' on '+D.n+' to unlock':L.d)+'</small>'+(M?'<span class="lm">'+M.ic+' <em>'+M.n+':</em> '+M.d+'</span>':'')+
 '<small class="lsz">'+L.w+'×'+L.h+' board'+(sw!=null?' · run in progress, '+(sw?'wave '+sw+' of '+MAXW+' cleared':'not started'):'')+(done&&!st?' · won before stars were counted':'')+'</small></div><div class="lca">'+
 '<button class="btn go" id="lc_go"'+(lock?' disabled':'')+'><span class="t">'+(lock?'Locked':sw!=null?'Continue':'Play')+'</span></button>';
-let es=null,hb=0,ec=false;if(done){ec=here&&i==LVN&&INF;es=ec?(inGame()?g.wave:null):(()=>{const v=savedRun(i,di,true);return v?v.wave:null;})();hb=BEST[D.k][i]||0;
+let es=null,hb=0,ec=false;if(done){ec=here&&i==LVN&&INF;es=ec&&inGame()?g.wave:(()=>{const v=savedRun(i,di,true);return v?v.wave:null;})();hb=BEST[D.k][i]||0;
 h+='<button class="lve'+(ec?' cur':'')+'" id="lc_inf" title="Endless mode on '+D.n+': the waves never stop – how long can you hold?'+(hb?' Best: '+hb+' waves survived.':'')+(es!=null?' Run in progress, '+(es?'wave '+es+' cleared':'not started')+'.':'')+'"><b>∞</b><small>'+(hb?'best '+hb:'Endless')+'</small></button>';}
 const c=$('m_card');c.innerHTML=h+'</div>';if(!lock)$('lc_go').onclick=()=>goLevel(i,di);if(done)$('lc_inf').onclick=()=>goLevel(i,di,true);}
 function lvPick(i,go){const p=PROG[DIFS[MENU.df].k],lock=i>p.n&&!(MENU.df===DFN&&i==LVN);if(go&&i===MENU.ls&&!lock){goLevel(i,MENU.df);return;}if(i===MENU.ls)return;MENU.ls=i;snd('click');for(const e of document.querySelectorAll('#wm_dyn .wnd'))e.classList.toggle('sel',+e.dataset.i===i);lvCard();wCenter(true);}
@@ -122,21 +123,35 @@ $('m_lvls').onclick=e=>{const n=e.target.closest&&e.target.closest('[data-i]');i
 $('m_lvls').ondblclick=e=>{const n=e.target.closest&&e.target.closest('[data-i]');if(n)lvPick(+n.dataset.i,true);};
 $('m_lvls').onkeydown=e=>{const n=e.target.closest&&e.target.closest('[data-i]');if(n&&(e.key=='Enter'||e.key==' ')){e.preventDefault();lvPick(+n.dataset.i,true);}};
 $('m_df').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-d]');if(b&&+b.dataset.d!==MENU.df){MENU.df=+b.dataset.d;snd('click');mLevels();}};
-// Royal Armoury: stars buy perk ranks (PERKS/PK in js/09-game.js), saved in localStorage sfperk as {id: ranks}. Stars = every star in PROG on every difficulty
-// (a win on a harder difficulty is also counted on the easier ones, so it pays more); spent = the cost of every rank owned. Reset refunds them all.
-try{const d=JSON.parse(localStorage.getItem('sfperk'));if(d)for(const p of PERKS)if(d[p.id])PK[p.id]=clamp(d[p.id]|0,0,p.mx);}catch(e){}
-const pkSave=()=>{try{localStorage.setItem('sfperk',JSON.stringify(PK));}catch(e){}},starsAll=()=>DIFS.reduce((a,d)=>a+PROG[d.k].st.reduce((x,y)=>x+(y|0),0),0),
-starsSpent=()=>PERKS.reduce((a,p)=>a+p.c.slice(0,pk(p.id)).reduce((x,y)=>x+y,0),0),pkTxt=(p,r)=>{const v=r*p.v;return p.id=='gold'?'+'+v+' gold':p.id=='wall'?'+'+v+' '+(v==1?'life':'lives'):(p.id=='smith'?'−':'+')+Math.round(v*100)+'%';};
-function mArm(){const tot=starsAll(),av=tot-starsSpent(),sp=tot-av;
-setH($('m_an'),'<span class="ast">★ '+av+'</span> to spend · '+tot+' earned ('+DIFS.map(d=>d.n+' '+PROG[d.k].st.reduce((x,y)=>x+(y|0),0)).join(' · ')+'). Stars won on a harder difficulty count on the easier ones too. Gold and lives perks apply from the next level you start.');
-const el=$('m_al');el.innerHTML='';for(const p of PERKS){const r=pk(p.id),mx=r>=p.mx,c=p.c[r],d=document.createElement('div');d.className='prk'+(r?' own':'');
-d.innerHTML='<span class="pic">'+p.ic+'</span><span class="pt"><b>'+p.n+'</b><small>'+p.d+(p.mx>1?' per rank':'')+'.</small><span class="pip">'+Array.from({length:p.mx},(_,i)=>'<i'+(i<r?' class="on"':'')+'></i>').join('')+(r?'<em>'+pkTxt(p,r)+'</em>':'')+'</span></span>'+
-'<button class="btn pby"'+(mx||av<c?' disabled':'')+'>'+(mx?'Max':'★ '+c)+'</button>';
-d.lastChild.onclick=()=>{if(mx||starsAll()-starsSpent()<c)return;PK[p.id]=r+1;pkSave();ach('perk');snd('coin');mArm();ui();};el.appendChild(d);}
-const rb=$('m_ar');rb.disabled=!sp;rb.classList.remove('warn');rb.textContent=sp?'Reset perks (refund ★ '+sp+')':'Reset perks';}
-$('m_ar').onclick=()=>{const b=$('m_ar');if(b.classList.contains('warn')){for(const k in PK)delete PK[k];pkSave();snd('click');mArm();ui();}else{b.classList.add('warn');b.textContent='Refund every perk? Click again';}};
+// stars = every star in PROG on every difficulty (a win on a harder difficulty is also counted on the easier ones); they only show how well each level went
+const starsAll=()=>DIFS.reduce((a,d)=>a+PROG[d.k].st.reduce((x,y)=>x+(y|0),0),0);
+// Talents (TREES/TAL/PK in js/09-game.js): achievement points (apAll() in js/15-achievements.js) buy ranks, TCOST each, saved in localStorage sftal as {id: ranks}.
+// Like the old World of Warcraft trees: a tier opens once TREQ ranks per tier above it are spent in that tree; Reset refunds everything (no single ranks back).
+// The old Royal Armoury perks (sfperk, bought with stars) are not carried over. The page: three trees side by side (tabs on a phone, MENU.tt), the picked talent (MENU.ts) in the panel below.
+try{const d=JSON.parse(localStorage.getItem('sftal'));if(d)for(const t of TAL)if(d[t.id])PK[t.id]=clamp(d[t.id]|0,0,t.mx);}catch(e){}
+const tlSave=()=>{try{localStorage.setItem('sftal',JSON.stringify(PK));}catch(e){}},tlIn=i=>TAL.reduce((a,t)=>a+(t.t==i?pk(t.id):0),0),
+// a talent's text for r ranks (# = its value), and why it can't be learnt now ('' = it can)
+tlTxt=(t,r)=>{const v=+(t.v*r).toFixed(2),s=t.u=='%'?Math.round(v*100)+'%':t.u=='s'?v+' s':t.u=='l'?v+' extra '+(v==1?'life':'lives'):String(v);return t.d.split('#').join(s);},
+tlNo=t=>TREES[t.t].lock?'Sealed':pk(t.id)>=t.mx?'Fully learnt':tlIn(t.t)<t.r*TREQ?'Needs '+t.r*TREQ+' points in '+TREES[t.t].n:apAll()-apSpent()<TCOST?'Needs '+TCOST+' achievement points':'';
+function tlLearn(t){if(tlNo(t))return false;PK[t.id]=pk(t.id)+1;tlSave();ach('perk');snd('coin');mTal();ui();return true;}
+function mTal(){const av=apAll()-apSpent(),el=$('m_tl');if(MENU.ts==null)MENU.ts=TAL[0].id;const sel=TAL.find(t=>t.id==MENU.ts);
+setH($('m_tn'),'<span class="ast">'+av+'</span> achievement points to spend · '+apSpent()+' spent of '+apAll()+' earned. Each rank costs '+TCOST+'. A row opens once '+TREQ+' points per row above it are spent in that tree; ★ marks the three big talents of each tree.');
+let h='<div class="ttab">'+TREES.map((T0,i)=>'<button data-tt="'+i+'"'+(i==MENU.tt?' class="on"':'')+'>'+T0.ic+' '+T0.n+'</button>').join('')+'</div>';
+TREES.forEach((T0,i)=>{const n=tlIn(i);h+='<div class="tree t'+i+(T0.lock?' lock':'')+(i==MENU.tt?' on':'')+'"><div class="th"><span class="tic">'+T0.ic+'</span><b>'+T0.n+'</b><small>'+(T0.lock?T0.d:n+' points · '+T0.d)+'</small></div><div class="tg">';
+for(let r=0;r<7;r++)for(let c=0;c<4;c++){const t=TAL.find(o=>o.t==i&&o.r==r&&o.c==c);if(T0.lock){h+=(r%2==c%2&&c<3)?'<span class="tal no"><i>?</i></span>':'<span></span>';continue;}
+if(!t){h+='<span></span>';continue;}const k=pk(t.id),op=n>=r*TREQ,cls='tal'+(t.big?' big':'')+(k>=t.mx?' max':k?' part':'')+(op?'':' shut')+(op&&k<t.mx&&av>=TCOST?' can':'')+(t.id==MENU.ts?' sel':'');
+h+='<button class="'+cls+'" data-t="'+t.id+'" title="'+t.n+(t.big?' ★':'')+' – '+tlTxt(t,Math.max(1,k))+'"><i>'+t.ic+'</i><em>'+k+'/'+t.mx+'</em></button>';}
+h+='</div></div>';});el.innerHTML=h;
+const k=pk(sel.id),no=tlNo(sel);setH($('m_ti'),'<span class="tic">'+sel.ic+'</span><div class="tid"><b>'+sel.n+(sel.big?' <span class="tbig">★ big talent</span>':'')+'</b><small>'+TREES[sel.t].n+' · row '+(sel.r+1)+' · rank '+k+' of '+sel.mx+'</small>'+
+(k?'<p>'+tlTxt(sel,k)+'</p>':'')+(k<sel.mx?'<p class="nx">'+(k?'Next rank: ':'')+tlTxt(sel,k+1)+'</p>':'')+'</div><button class="btn go" id="m_tlb"'+(no?' disabled':'')+'>'+(no||'Learn · '+TCOST)+'</button>');
+$('m_tlb').onclick=()=>tlLearn(sel);
+const rb=$('m_tr');rb.disabled=!apSpent();rb.classList.remove('warn');rb.textContent='Reset talents';}
+$('m_tl').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-t],[data-tt]');if(!b)return;if(b.dataset.tt!=null){MENU.tt=+b.dataset.tt;snd('click');mTal();return;}
+const t=TAL.find(o=>o.id==b.dataset.t);if(MENU.ts==t.id){if(!tlLearn(t))snd('click');}else{MENU.ts=t.id;snd('click');mTal();}};
+$('m_tr').onclick=()=>{const b=$('m_tr');if(b.classList.contains('warn')){for(const k in PK)delete PK[k];tlSave();snd('click');mTal();ui();}else{b.classList.add('warn');b.textContent='Unlearn every talent? Click again';}};
 // a level picked in the menu starts right after the reload
-function menuStart(){let go=false;try{go=sessionStorage.getItem('sfgo')=='1';sessionStorage.removeItem('sfgo');}catch(e){}if(go){MENU.open=false;$('menu').style.display='none';}else menuOpen();}
+// otherwise the page opens on the main menu, outside any level (the level picked last is built behind it, not shown, and only loaded by Continue or Play)
+function menuStart(){let go=false;try{go=sessionStorage.getItem('sfgo')=='1';sessionStorage.removeItem('sfgo');}catch(e){}if(go){loadRun();MENU.open=false;$('menu').style.display='none';}else menuTitle();}
 $('lvl').textContent='Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'');
 const inGame=()=>!g.over&&(g.wave>0||g.tw.length>0);
 // saved run: during each break between waves (never mid-wave) the run is kept in localStorage sfrun<level index><difficulty letter: none for Easy, n, h><e for Endless> (runK), so a refresh or Quit resumes it
@@ -157,10 +172,18 @@ if(LV.mc=='fire'&&Array.isArray(d.fire))for(const[c,r,t]of d.fire)if(free(c,r)&&
 // Ashfall: a run past the collapse wave has the shortcut open
 if(LV.ru&&g.wave>=LV.ru.w)ruinOpen(true,true);ui();}
 function restartLevel(){try{localStorage.removeItem(RUNK);}catch(e){}runS='';reset();menuClose();}
-function mPage(p){MENU.pg=p;document.querySelector('.mbox').classList.toggle('wide',p=='levels');for(const k of['main','levels','armoury','achievements','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='armoury')mArm();if(p=='achievements')mAch();if(p=='bestiary')mBest();$('m_play').querySelector('.t').textContent=inGame()?'Continue':'Play';
-$('m_sub').textContent=p=='bye'?'':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');
-const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');}
-function menuOpen(){MENU.open=true;g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');$('m_play').focus();}
+// two menus share the pages: the main menu (MENU.mode 'title', page 'main'): a screen of its own with the world map behind it and the 3D view not drawn;
+// and the in-game menu (mode 'game', page 'pause') over a running level, with Return to main menu. Back on a sub-page goes to the menu it came from
+const mRoot=()=>MENU.mode=='title'?'main':'pause';
+function mPage(p){MENU.pg=p;document.querySelector('.mbox').classList.toggle('wide',p=='levels'||p=='talents');for(const k of['main','pause','levels','talents','achievements','bestiary','settings','changelog','bye'])$('m_'+k).style.display=k==p?'flex':'none';if(p=='settings')mOpts();if(p=='changelog')mLog();if(p=='levels')mLevels();if(p=='talents')mTal();if(p=='achievements')mAch();if(p=='bestiary')mBest();
+const ti=MENU.mode=='title';$('m_sub').textContent=p=='bye'?'':ti?'★ '+starsAll()+' stars · '+apAll()+' achievement points':'Level '+(LVN+1)+' · '+LV.n+' · '+DF.n+(INF?' · Endless':'')+(inGame()?' · '+(g.run?'paused on wave '+g.wave+(INF?'':' of '+MAXW):g.wave?'wave '+g.wave+(INF?'':' of '+MAXW)+' cleared':'getting ready'):'');
+if(p=='main'){const sv=savedRun(LVN),c=$('m_cont');c.style.display=sv?'':'none';if(sv)setH(c,'<span class="t">Continue</span><small>'+LV.n+' · '+DF.n+(INF?' · Endless':'')+' · '+(sv.wave?'wave '+sv.wave+(INF?'':' of '+MAXW)+' cleared':'not started')+'</small>');$('m_lv').classList.toggle('go',!sv);}
+if(p=='pause'){const rs=$('m_rs');rs.style.display=inGame()?'':'none';rs.textContent='Restart level';rs.classList.remove('warn');const h=$('m_home');h.textContent='Return to main menu';h.classList.remove('warn');}}
+function menuOpen(){MENU.open=true;MENU.mode='game';$('menu').classList.remove('title');g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('pause');$('m_play').focus();}
+// the main menu: the level is reset (a run saved between waves stays saved and comes back with Continue), the story card and the end screen go away
+function menuTitle(){MENU.open=true;MENU.mode='title';if(!$('mbg').firstChild)$('mbg').innerHTML='<svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid slice">'+wMap().replace('<g id="wm_dyn"></g>','')+'</svg>';if(inGame()||g.over)reset();if(STY.open)storyDone();$('menu').classList.add('title');g.sel=null;selRng();ui();$('menu').style.display='flex';mPage('main');(savedRun(LVN)?$('m_cont'):$('m_lv')).focus();}
+// Return to main menu: mid-wave it asks first, because the run goes back to the start of this wave (the save is made between waves)
+function menuHome(){const b=$('m_home');if(g.run&&!g.over&&!b.classList.contains('warn')){b.classList.add('warn');b.textContent='Leave mid-wave? This wave will start over';return;}menuTitle();}
 function menuClose(){MENU.open=false;$('menu').style.display='none';}
 // bestiary: every enemy type in BST order; ones met so far (SEEN) with portrait, description and facts, the rest as a dark silhouette. Portraits are rendered one per tick so the page opens at once
 function mBest(){const el=$('m_bl'),n=BSK.filter(t=>SEEN[t]).length;$('m_bn').textContent=n+' of '+BSK.length+' enemies met'+(n<BSK.length?' – the rest are still out there.':'. You’ve seen them all!');el.innerHTML='';
@@ -182,16 +205,17 @@ function mLog(){const el=$('m_logtxt');if(logHTML){el.innerHTML=logHTML;return;}
 fetch('CHANGELOG.md',{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{logHTML=mdLite(t);el.innerHTML=logHTML;el.scrollTop=0;})
 .catch(()=>{el.innerHTML='Couldn’t load the changelog. You can read it on <a href="https://github.com/Lykhan28/slotsforsvar/blob/main/CHANGELOG.md" target="_blank" rel="noopener">GitHub</a>.';});}
 // Quit: leave the game (a run saved between waves is kept and comes back with Back to the menu or the next visit), try to close the tab (browsers only allow that for tabs a script opened), otherwise stop and say goodbye
-function menuQuit(){reset();MENU.quit=true;if(AU.m)AU.m.gain.setTargetAtTime(0,AU.ctx.currentTime,.05);mPage('bye');window.close();}
-function menuBack(){MENU.quit=false;loadRun();if(AU.m)AU.m.gain.setTargetAtTime(.9,AU.ctx.currentTime,.05);mPage('main');last=performance.now();requestAnimationFrame(loop);}
-$('m_play').onclick=()=>{if(g.over)reset();menuClose();};
+function menuQuit(){reset();MENU.mode='title';$('menu').classList.add('title');MENU.quit=true;if(AU.m)AU.m.gain.setTargetAtTime(0,AU.ctx.currentTime,.05);mPage('bye');window.close();}
+function menuBack(){MENU.quit=false;if(AU.m)AU.m.gain.setTargetAtTime(.9,AU.ctx.currentTime,.05);menuTitle();last=performance.now();requestAnimationFrame(loop);}
+$('m_play').onclick=()=>menuClose();
 // Restart level asks for a second click, so a misclick doesn't throw the run away
 $('m_rs').onclick=()=>{const b=$('m_rs');if(b.classList.contains('warn'))restartLevel();else{b.classList.add('warn');b.textContent='Lose this run? Click again';}};
-$('m_lv').onclick=()=>mPage('levels');$('m_arm').onclick=()=>mPage('armoury');$('m_bst').onclick=()=>mPage('bestiary');$('m_set').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
-document.querySelectorAll('#menu [data-back]').forEach(b=>b.onclick=()=>mPage('main'));
+$('m_lv').onclick=()=>mPage('levels');$('m_tal').onclick=()=>mPage('talents');$('m_bst').onclick=$('m_bst2').onclick=()=>mPage('bestiary');$('m_set').onclick=$('m_set2').onclick=()=>mPage('settings');$('m_log').onclick=()=>mPage('changelog');$('m_quit').onclick=menuQuit;$('m_back').onclick=menuBack;
+$('m_cont').onclick=()=>{loadRun();menuClose();};$('m_home').onclick=menuHome;$('m_ach2').onclick=()=>mPage('achievements');
+document.querySelectorAll('#menu [data-back]').forEach(b=>b.onclick=()=>mPage(mRoot()));
 $('mn').onclick=menuOpen;
 // while the menu is open, game hotkeys are off; Esc goes back a page or resumes a game in progress
 addEventListener('keydown',e=>{if(!MENU.open)return;e.stopImmediatePropagation();auInit();if(e.key!='Escape'||e.repeat)return;
-if(MENU.pg=='settings'||MENU.pg=='changelog'||MENU.pg=='levels'||MENU.pg=='bestiary')mPage('main');else if(MENU.pg=='main'&&inGame())menuClose();},true);
+if(MENU.pg!='main'&&MENU.pg!='pause'&&MENU.pg!='bye')mPage(mRoot());else if(MENU.pg=='pause')menuClose();},true);
 
 gfxApply();cbApply();

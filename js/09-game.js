@@ -1,7 +1,7 @@
 // ---------- game ----------
 let g;
 function reset(){endReset();if(g)for(const a of[...g.tw,...g.en,...g.bu,...g.dying,...g.zn,...(g?g.rf:[]),...(g.fire||[]),...(g.rk?[g.rk]:[]),...(g.vr||[])]){sc.remove(a.m);if(a.sg)sc.remove(a.sg);}if(g&&g.hero&&g.hero.m)for(const m of[g.hero.m,g.hero.rg,g.hero.tg])sc.remove(m);
-g={gold:Math.round(LV.gold*DF.gold)+pkv('gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],fire:[],fit:MECH.fire.ig0,ru:false,gvt:MECH.grave.t0,evt:MECH.lava.t0,dk:0,dkc:MECH.dark.t0,lnc:0,mic:0,bz:0,bzc:MECH.cold.t0,rk:null,rkw:null,rkt:MECH.rock.t0,btt:MECH.bolt.t0,vr:null,vrt:MECH.rift.t0,scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();if(LV.ru)ruinOpen(false,true);selRng();ui();}
+g={gold:Math.round(LV.gold*DF.gold)+pkv('f_gold'),lives:maxL(),wave:0,tw:[],en:[],bu:[],dying:[],q:[],cps:[],zn:[],rf:[],sp:[],fire:[],fit:MECH.fire.ig0,ru:false,gvt:MECH.grave.t0,evt:MECH.lava.t0,dk:0,dkc:MECH.dark.t0,lnc:0,mic:0,bz:0,bzc:MECH.cold.t0,rk:null,rkw:null,rkt:MECH.rock.t0,btt:MECH.bolt.t0,vr:null,vrt:MECH.rift.t0,scd:[0,0,0],aim:null,rep:0,wt:0,brk:0,sel:null,build:'arrow',spd:1,over:false,run:false};g.hero=heroInit();if(LV.ru)ruinOpen(false,true);selRng();ui();}
 // Endless mode (INF, set by js/14-menu.js at load for a level already won on this difficulty; the sim's --endless): no victory after MAXW, the waves go on.
 // Past MAXW endWave(w) makes each wave up in the table format, seeded by level and wave so it is the same every time (save/reload, sim): 3–6 groups
 // drawn from the level's own enemies (every non-boss type from wave MAXW+EWV.all on), EWV.n0 + EWV.dn per wave enemies, a boss every 5th wave from the
@@ -31,11 +31,14 @@ const waveMix=w=>waveQ(w).map(q=>q.type),waveName=w=>{const s=wvS(w),c=s.indexOf
 // earlyBonus() gold for the time left; with auto-start on (autoW, a menu setting) the wave starts by itself when the break is over
 const BRK=25;let autoW=false;
 const brkLeft=()=>g.wave>0&&!g.run&&!g.over&&(INF||g.wave<MAXW)?Math.max(0,BRK-g.brk):0,earlyBonus=()=>Math.floor(brkLeft()*(.4+.04*g.wave));
-function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
-function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;if(g.hero)g.hero.ult=1;g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
-// each breach has its own road (PATHS); the wave alternates between them
-function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp*(e.bs&&DF.bh||1),o=buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;o.m.scale.setScalar(.01);
-g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:{norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36,pirate:2*PI/38}[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});foeSeen(type);}
+function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(g.wave>0)ach('early');if(b>0){g.gold+=b;const p=WP[WP.length-1];popText(p[0],p[1],'+'+b,'#ffd24a');snd('coin');}startWave();}
+function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;if(g.hero)g.hero.ult=1+pk('w_ult');g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
+// each breach has its own road (PATHS); the wave alternates between them. The model comes from the crowd waiting outside the breach when it has one (crowdTake, js/13-ending.js),
+// e.vo = the offset it eases away from as it steps onto the road
+function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp*(e.bs&&DF.bh||1),o=crowdTake(type,pi)||buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;if(!o.vo)o.m.scale.setScalar(.01);
+g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:GAIT[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});if(o.vo){const n=g.en[g.en.length-1];n.age=1;n.vo={x:o.vo.x-n.x,y:o.vo.y-n.y,t:0};}foeSeen(type);}
+// walk cycle per game unit walked, per enemy type (animEnemy; the crowd outside the wall uses it too)
+const GAIT={norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36,pirate:2*PI/38};
 // higher = closer to the castle (minus the distance still to walk, so enemies on different roads compare fairly)
 const prog=e=>-e.R.rem[e.seg]-Math.hypot(e.R[e.seg][0]-e.x,e.R[e.seg][1]-e.y);
 // targeting modes: a tower shoots the enemy in range with the highest tscore(); t.tm is the player's choice, else the tower type's default (T[k].tm), else First
@@ -45,21 +48,43 @@ const tmode=t=>t.tm||T[t.k].tm||'first';
 const tscore=(t,e,m)=>m=='first'?prog(e):m=='last'?-prog(e):m=='strong'?e.hp:m=='fast'?e.s+prog(e)*1e-6:-Math.hypot(e.x-t.x,e.y-t.y);
 // the upgrade branch a level-3 tower took (BRN in js/01-config.js), or null
 const brn=t=>t.l>=3&&t.br!=null&&BRN[t.k]?BRN[t.k][t.br]:null;
-// Royal Armoury perks (bought with stars in the menu, js/14-menu.js): PERKS = [id, icon, name, ranks, star cost per rank, what one rank does]; PK[id] = ranks owned
-// (loaded by js/14-menu.js from localStorage sfperk; always empty in the sim unless --perks). pk(id) = ranks. Effects: tower damage in stat() (PKD = tower type → perk, v per rank),
-// soldiers' health in solHp(), upgrade price in upCost(), starting gold and lives in reset()/maxL(), the hero in hst(), spell damage in spells()/heroCast(). Keep them modest.
-const PERKS=[
-{id:'arch',ic:'🏹',n:"Fletchers' Guild",mx:3,c:[2,3,4],v:.05,d:'Archers deal +5% damage'},
-{id:'siege',ic:'🪨',n:'Siege Workshop',mx:3,c:[2,3,4],v:.05,d:'Catapults and Ballistas deal +5% damage'},
-{id:'arc',ic:'🔮',n:'Arcane Library',mx:3,c:[2,3,4],v:.05,d:'Wizards, Storm Towers and Alchemists deal +5% damage'},
-{id:'drill',ic:'⚔️',n:'Drill Yard',mx:2,c:[2,3],v:.1,d:'Barracks soldiers get +10% health'},
-{id:'smith',ic:'🔨',n:'Master Smiths',mx:2,c:[3,4],v:.05,d:'Tower upgrades cost 5% less'},
-{id:'gold',ic:'💰',n:'War Chest',mx:3,c:[2,3,4],v:20,d:'Start every level with +20 gold'},
-{id:'wall',ic:'🧱',n:'Stonemasons',mx:2,c:[3,5],v:1,d:'+1 life (and one more for the Repair gate)'},
-{id:'hero',ic:'🐴',n:"Knight's Training",mx:2,c:[3,4],v:.1,d:'Sir Kirkevang gets +10% health and damage'},
-{id:'spell',ic:'📜',n:'Spellwrights',mx:2,c:[2,3],v:.06,d:'Rain of Arrows and Boiling Oil deal +6% damage'}];
-const PK={},PKV=Object.fromEntries(PERKS.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'arch',cannon:'siege',ballista:'siege',frost:'arc',storm:'arc',alch:'arc'};
-const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1)*crysM(t.c,t.r),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*fogM(t.c,t.r)*darkM(t),f:T[t.k].f*(b&&b.fm||1)/(t.hs||1)*coldM(t)/(t.oc>0?MECH.bolt.f:1)};};
+// Talents (WoW-classic style trees, page in js/14-menu.js): bought with achievement points (js/15-achievements.js), TCOST a rank. TREES = the trees (lock = shown greyed out,
+// nothing in it yet); TAL = one talent: tree t, tier r (0–6; tier r opens once TREQ×r ranks are spent in that tree), column c (0–3) on the grid, ranks mx, value per rank v,
+// unit u for the text ('%' = v×100%, 's' = seconds, '' = plain; # in d is the value), big = one of a tree's three substantial talents (tiers 3, 5 and 7).
+// PK[id] = ranks owned (loaded by js/14-menu.js from localStorage sftal; always empty in the sim unless --talents). pk(id) = ranks, pkv(id) = ranks × v.
+// Effects – Warrior: hst() (health, damage), the hero's swing time hfr(), respawn, xp in heroXp(), damage taken in heroUpd(), spell damage in heroCast()/spells(), the squad's time and
+// health, Smite's radius and charges (h.ult). Fortification: stat() (PKD = tower type → its damage talent, f_art every tower, range f_rng, reload f_rof), solHp(), upCost(), starting
+// gold in reset(), maxL(), repCost(), kill gold in update()'s death loop, Treasury income at the wave end. Keep the small ones small – the trees take many hours to fill.
+const TREES=[{k:'war',n:'Warrior',ic:'🐴',d:'Sir Kirkevang and his spells'},{k:'fort',n:'Fortification',ic:'🏰',d:'Towers, walls and coffers'},{k:'arc',n:'Sorcery',ic:'🔮',d:'Sealed – coming in a later update',lock:1}],
+TCOST=10,TREQ=5,TAL=[
+{id:'w_hp',t:0,r:0,c:1,mx:5,v:.03,u:'%',ic:'❤️',n:'Iron Hide',d:'Sir Kirkevang has +# health.'},
+{id:'w_dmg',t:0,r:0,c:2,mx:5,v:.03,u:'%',ic:'🗡️',n:'Sharpened Blade',d:'Sir Kirkevang deals +# damage.'},
+{id:'w_rain',t:0,r:1,c:0,mx:3,v:.04,u:'%',ic:'🏹',n:'Volley Drill',d:'Rain of Arrows deals +# damage.'},
+{id:'w_rsp',t:0,r:1,c:1,mx:3,v:1,u:'s',ic:'⏳',n:'Quick Recovery',d:'When he falls, Sir Kirkevang rides back # sooner.'},
+{id:'w_xp',t:0,r:1,c:2,mx:2,v:.1,u:'%',ic:'📖',n:'Battle Lore',d:'Sir Kirkevang earns +# experience.'},
+{id:'w_wall',t:0,r:2,c:1,mx:1,v:.3,u:'%',ic:'🛡️',n:'Shield Wall',d:'Sir Kirkevang takes # less damage from every blow.',big:1},
+{id:'w_oil',t:0,r:2,c:2,mx:3,v:.05,u:'%',ic:'🛢️',n:'Hotter Oil',d:'Boiling Oil deals +# damage.'},
+{id:'w_vet',t:0,r:3,c:1,mx:3,v:1,u:'s',ic:'⚔️',n:'Hold Fast',d:'Reinforcements stay # longer.'},
+{id:'w_spd',t:0,r:3,c:2,mx:3,v:.03,u:'%',ic:'💨',n:'Swift Strikes',d:'Sir Kirkevang swings # faster.'},
+{id:'w_might',t:0,r:4,c:1,mx:1,v:.25,u:'%',ic:'🦁',n:"Champion's Might",d:'Sir Kirkevang has +# health and deals +# damage.',big:1},
+{id:'w_squad',t:0,r:4,c:2,mx:2,v:.1,u:'%',ic:'🪖',n:'Picked Men',d:'Reinforcements arrive with +# health.'},
+{id:'w_smr',t:0,r:5,c:1,mx:3,v:.1,u:'%',ic:'🌟',n:'Radiance',d:'Divine Smite reaches # farther.'},
+{id:'w_ult',t:0,r:6,c:1,mx:1,v:1,u:'',ic:'⚡',n:'Wrath of Heaven',d:'Divine Smite can be called down twice a wave.',big:1},
+{id:'f_arch',t:1,r:0,c:1,mx:5,v:.01,u:'%',ic:'🏹',n:"Fletchers' Guild",d:'Archers and Ballistas deal +# damage.'},
+{id:'f_gold',t:1,r:0,c:2,mx:5,v:5,u:'g',ic:'💰',n:'War Chest',d:'Start every level with # extra gold.'},
+{id:'f_siege',t:1,r:1,c:0,mx:3,v:.02,u:'%',ic:'🪨',n:'Siege Workshop',d:'Catapults deal +# damage.'},
+{id:'f_arc',t:1,r:1,c:1,mx:5,v:.01,u:'%',ic:'🔮',n:'Arcane Library',d:'Wizards, Storm Towers and Alchemists deal +# damage.'},
+{id:'f_drill',t:1,r:1,c:2,mx:3,v:.05,u:'%',ic:'🛡️',n:'Drill Yard',d:'Barracks soldiers have +# health.'},
+{id:'f_smith',t:1,r:2,c:1,mx:1,v:.06,u:'%',ic:'🔨',n:'Master Smiths',d:'Tower upgrades cost # less.',big:1},
+{id:'f_rng',t:1,r:2,c:2,mx:3,v:.01,u:'%',ic:'🔭',n:'Long Sight',d:'Towers reach +# farther.'},
+{id:'f_wall',t:1,r:3,c:1,mx:2,v:1,u:'l',ic:'🧱',n:'Stonemasons',d:'# more (and one more for the Repair gate).'},
+{id:'f_rof',t:1,r:3,c:2,mx:3,v:.01,u:'%',ic:'⚙️',n:'Oiled Gears',d:'Towers reload # faster.'},
+{id:'f_tax',t:1,r:4,c:1,mx:1,v:.05,u:'%',ic:'🪙',n:'Tax Collectors',d:'Every defeated enemy pays +# gold.',big:1},
+{id:'f_gate',t:1,r:4,c:2,mx:2,v:.1,u:'%',ic:'🔧',n:'Gatewrights',d:'Repairing the gate costs # less.'},
+{id:'f_vault',t:1,r:5,c:1,mx:3,v:.04,u:'%',ic:'🏦',n:'Royal Clerks',d:'Treasuries earn +# gold.'},
+{id:'f_art',t:1,r:6,c:1,mx:1,v:.05,u:'%',ic:'🏰',n:'Masterwork Arsenal',d:'Every tower deals +# damage.',big:1}];
+const PK={},PKV=Object.fromEntries(TAL.map(p=>[p.id,p.v])),pk=id=>PK[id]|0,pkv=id=>pk(id)*PKV[id],PKD={arrow:'f_arch',ballista:'f_arch',cannon:'f_siege',frost:'f_arc',storm:'f_arc',alch:'f_arc'};
+const stat=t=>{const b=brn(t);return{d:T[t.k].d*(1+.6*(t.l-1))*(t.buff||1)*(b&&b.dm||1)*(PKD[t.k]?1+pkv(PKD[t.k]):1)*(1+pkv('f_art'))*crysM(t.c,t.r),r:(T[t.k].r+10*(t.l-1)+(b&&b.rg||0))*(1+pkv('f_rng'))*fogM(t.c,t.r)*darkM(t),f:T[t.k].f*(b&&b.fm||1)*(1-pkv('f_rof'))/(t.hs||1)*coldM(t)/(t.oc>0?MECH.bolt.f:1)};};
 // the branch a tower's shots carry: its own, plus hr when a Blessed Standard covers it (buffs() sets t.bls)
 const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 // damage multiplier for tower type k (with branch b) hitting enemy e (its resistance to the damage type; the Ballista pierces physical armour);
@@ -68,7 +93,7 @@ const tbr=t=>t.bls?{...brn(t),hr:1}:brn(t);
 const dmul=(e,k,b)=>{const t=b&&b.dt||T[k].dt;if(t=='phys'&&e.ac>0)return 1+ACID;return t=='phys'&&(T[k].pr||b&&b.pr)?1:1-(e.rs[t]||0)*(b&&b.hr&&e.rs[t]<1?0:1);};
 // Shieldbearer: an Archer arrow or Ballista bolt flying at its front (within ~70° of head-on; dx,dy = the shot's travel direction) loses e.shd of its damage
 const shBlk=(e,k,dx,dy)=>{if(!e.shd||(k!='arrow'&&k!='ballista'))return 1;const L=Math.hypot(dx,dy);return L>0&&-(dx*Math.sin(e.dir)+dy*Math.cos(e.dir))/L>.34?1-e.shd:1;};
-const upCost=t=>Math.round(T[t.k].c*.8*t.l*(1-pkv('smith')));
+const upCost=t=>Math.round(T[t.k].c*.8*t.l*(1-pkv('f_smith')));
 function update(dt){if(g.over)return;
 if(!g.run&&g.wave>0){g.brk+=dt;if(autoW&&(INF||g.wave<MAXW)&&g.brk>=BRK)startWave();}
 if(g.run){g.wt+=dt;while(g.q.length&&g.q[0].t<=g.wt){const q=g.q.shift();spawn(q.type,q.p);if(LV.mc)mSpawn(g.en[g.en.length-1],q);}}
@@ -86,14 +111,14 @@ const d=Math.hypot(e.x-b.x,e.y-b.y),m=(T[b.k].bs||340)*dt;
 if(d<=m+4){b.dead=1;if(b.k=='alch'){snd('splash',e.x,e.y);const br=b.br||{},c=br.ac?0xd8f03a:br.pl?0xa06ad0:0x7cff4a;for(const o of g.en)if(!o.fy&&!o.out&&dmul(o,'alch',br)>0&&Math.hypot(o.x-e.x,o.y-e.y)<=45){o.pt=3;o.pd=Math.max(o.pd||0,b.d*dmul(o,'alch',br));o.hit=.15;if(br.ac)o.ac=br.ac;if(br.pl)o.pg=br.pl;}fx(e.x,e.y,c,.1,.75,.5,.1,true);burst(e.x,e.y,c,10,1.2,.2);}else if(b.k=='cannon'){snd('boom',e.x,e.y);const br=b.br||{};shake(br.bd?.5:.38);for(const o of g.en)if(!o.fy&&!o.out&&Math.hypot(o.x-e.x,o.y-e.y)<=(br.sp||T.cannon.sp)){const dd=b.d*dmul(o,'cannon',br)*(o===e&&br.bd||1);o.hp-=dd;hf(o,.25,dd,'cannon',o.x-e.x,o.y-e.y);o.sl=1;o.slf=1-.2*(b.l||1);}fx(e.x,e.y,0xffffff,.15,.95,.35,.12,true);burst(e.x,e.y,0xe9c98a,10,1.4,.15);if(br.fz)addZone({k:'fire',x:e.x,y:e.y,r:br.fz[0],t:br.fz[1],d0:br.fz[1],d:b.d*br.fz[2]});}
 else{const dd=b.d*dmul(e,b.k,b.br)*shBlk(e,b.k,e.x-b.x,e.y-b.y)*big(e,b.br);e.hp-=dd;if(b.br&&b.br.sk)skewer(e,b);hf(e,.2,dd,b.k,e.x-b.x,e.y-b.y,b.br);if(b.k=='frost')wizHit(e,b);else burst(e.x,e.y,0xffffff,2,.6,.3);}}
 else{b.x+=(e.x-b.x)/d*m;b.y+=(e.y-b.y)/d*m;}}
-const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else if(e.mir){sc.remove(e.m);mirEnd(e);}else{const rw=e.rw+bounty(e);g.gold+=rw;ach('kill',e);heroXp(e);snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
+const spl=[];for(const e of g.en)if(e.hp<=0){if(e.leak||e.gone)sc.remove(e.m);else if(e.mir){sc.remove(e.m);mirEnd(e);}else{const rw=Math.round(e.rw*(1+pkv('f_tax')))+bounty(e);g.gold+=rw;ach('kill',e);heroXp(e);snd('coin');popText(e.x,e.y,'+'+rw,'#ffd24a');if(e.pg&&e.pt>0)plague(e);burst(e.x,e.y,e.col,10,1.3,.3);killFx(e);if(e.spl)spl.push(e);if(!e.fy&&!e.bs&&e.type!='skel')g.cps.push({x:e.x,y:e.y,R:e.R,seg:e.seg,t:NEC.ct});}}
 for(const c of g.cps)c.t-=dt;if(g.cps.length)g.cps=g.cps.filter(c=>c.t>0);
 for(const b of g.bu)if(b.dead)sc.remove(b.m);
 g.en=g.en.filter(e=>e.hp>0);g.bu=g.bu.filter(b=>!b.dead);for(const e of spl)trollSplit(e);
 if(g.lives<=0){g.lives=0;if(!g.over){snd('lose');g.overT=performance.now();startEnd(false);}g.over=true;}
-if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;g.aim=null;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=Math.round(T[t.k].inc*t.l*(t.buff||1));g.gold+=v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(FLD.length)harvest();
+if(g.run&&!g.q.length&&!g.en.length){g.run=false;g.brk=0;g.aim=null;snd('waveEnd');g.gold+=20+g.wave*2;for(const t of g.tw)if(T[t.k].inc){const v=Math.round(T[t.k].inc*t.l*(t.buff||1)*(1+pkv('f_vault')));g.gold+=v;g.vinc=(g.vinc||0)+v;popText(t.x,t.y,'+'+v,'#ffd24a');}if(FLD.length)harvest();
 // Royal Bank: interest on the gold held after the wave's income
-for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.round(Math.min(b.it[1],Math.floor(g.gold*b.it[0]))*(t.buff||1));if(v>0){g.gold+=v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}if(INF)infRec();else if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
+for(const t of g.tw){const b=brn(t);if(b&&b.it){const v=Math.round(Math.min(b.it[1],Math.floor(g.gold*b.it[0]))*(t.buff||1));if(v>0){g.gold+=v;g.vinc=(g.vinc||0)+v;popText(t.x,t.y,'+'+v,'#ffe9a0');}}}ach('wave');if(INF)infRec();else if(g.wave>=MAXW){snd('win');g.over=true;g.won=true;lvWon();g.overT=performance.now();startEnd(true);}ui();}}
 // Sapper: once a tower stands within SAP.r it leaves the road, runs at it (40% faster) and blows up beside it, stunning it for SAP.st s (no gold for that);
 // if the tower is sold first it walks back to where it left the road. Returns true while it is off the road (update() then skips the road walk)
 const SAP={r:90,st:4};
@@ -125,7 +150,7 @@ function banish(e,l){if(e.bn>0||e.hp<=0)return;let m=(30+30*l)*(e.bs?.34:1);snd(
 pushBack(e,m);ach('banish',e);
 e.px=e.x;e.py=e.y;e.age=.08;e.bn=4;fx(e.x,e.y,0xb58cff,.9,.1,.4,.1,true);burst(e.x,e.y,0xd9c2ff,10,1,.4);}
 // Repair gate: buy back one life (up to maxL(), the difficulty's lives plus the Stonemasons perk); the price starts at REP.b and grows by REP.k for every repair this level (g.rep, saved with the run)
-const maxL=()=>DF.li+pkv('wall'),REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)/5)*5;
+const maxL=()=>DF.li+pkv('f_wall'),REP={b:50,k:1.35},repCost=()=>Math.round(REP.b*Math.pow(REP.k,g.rep)*(1-pkv('f_gate'))/5)*5;
 function repair(){if(g.over||g.lives>=maxL())return false;const c=repCost();if(g.gold<c)return false;g.gold-=c;g.lives++;g.rep++;repFx(c);ach('repair');return true;}
 // move enemy e back along its road by m (the Wizard's banish, the hero's Lance Charge)
 function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1]-e.y);if(d<=m){e.x=p[0];e.y=p[1];m-=d;if(e.seg>1)e.seg--;else break;}else{e.x+=(p[0]-e.x)/d*m;e.y+=(p[1]-e.y)/d*m;m=0;}}}
@@ -134,20 +159,27 @@ function pushBack(e,m){while(m>0){const p=e.R[e.seg-1],d=Math.hypot(p[0]-e.x,p[1
 // across the board, and once he has arrived he fights like a Barracks soldier: he runs at the nearest ground enemy within HERO.eng of his spot (unblocked ones
 // first, then the one closest to the castle), blocks it (e.bk) and trades blows (he shrugs off HERO.arm of every hit). Flyers and faded Ghosts are ignored.
 // He earns xp from every enemy that dies within HERO.xr of him (its gold value) and levels up to HERO.mx (+35% health, +30% damage a level). At 0 health he
-// falls and rides back out from the gate after HERO.rsp s. Abilities: HAB (cooldowns in waves, g.scd; Divine Smite once a wave, h.ult), heroCast(i).
+// falls and rides back out from the gate after hrsp() s. Abilities: HAB (cooldowns in waves, g.scd; Divine Smite once a wave – twice with the Wrath of Heaven talent – h.ult = charges left), heroCast(i).
+// Halved health, damage and spells on purpose: the Warrior talents (TAL) win some of that back
 // Looks: heroSync()/heroFx() in js/07-enemies.js (stubbed in the sim)
-const HERO={sp:110,eng:75,rg:26,hp:300,d:20,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
+const HERO={sp:110,eng:75,rg:26,hp:150,d:10,f:.9,rsp:15,reg:.02,arm:.3,xr:200,xp:[0,80,220,450,800],mx:5};
 // abilities: three spells (castable anywhere during a wave, hero or not; aim = click a spot on the board after picking it, road = a road cell)
 // and Sir Kirkevang's own Divine Smite (once a wave, centred on him; h.ult, refilled by startWave()). cw = cooldown in waves: cast during wave w, ready again from wave w+cw
 // (1 = once a wave); g.scd[i] = the wave it is ready from (0 = ready), spRdy(i)/spLeft(i)
 const HAB=[{n:'Rain of Arrows',ic:'🏹',cw:1,r:90,aim:1,ds:'Click a spot: four volleys of arrows rain down there over two seconds, hitting everything below – flyers too.'},
 {n:'Boiling Oil',ic:'🛢️',cw:1,r:40,ds:'Pours boiling oil on the three road tiles in front of the castle gate: a big burst of fire damage, then burning ground that slows and scalds for 4 s.'},
-{n:'Reinforcements',ic:'⚔️',cw:1,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for 15 s, blocking anything on foot except bosses.'},
-{n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Once a wave: holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
+{n:'Reinforcements',ic:'⚔️',cw:1,aim:1,road:1,ds:'Click the road: two soldiers drop in and hold that spot for {rt} s, blocking anything on foot except bosses.'},
+{n:'Divine Smite',ic:'⚡',ult:1,r:160,ds:'Holy light strikes every enemy around him, flyers too, for huge damage that ignores armour – and heals him fully.'}];
 const spCw=i=>HAB[i].cw,spLeft=i=>Math.max(0,g.scd[i]-g.wave),spRdy=i=>g.scd[i]<=g.wave;
 // a cooldown label: "Once a wave" or "Every N waves"
-const cwTxt=a=>a.ult||a.cw==1?'Once a wave':'Every '+spCw(HAB.indexOf(a))+' waves';
-const hst=h=>({hp:HERO.hp*(1+.35*(h.lv-1))*(1+pkv('hero')),d:HERO.d*(1+.3*(h.lv-1))*(1+pkv('hero'))});
+const cwTxt=a=>a.ult?(pk('w_ult')?'Twice a wave':'Once a wave'):a.cw==1?'Once a wave':'Every '+spCw(HAB.indexOf(a))+' waves';
+// the short cooldown on an ability tile
+const coTxt=(a,i)=>a.ult?(pk('w_ult')?'2 a wave':'1 a wave'):a.cw==1?'1 a wave':spCw(i)+' waves';
+// an ability's description with its numbers filled in (Reinforcements' time grows with the Hold Fast talent)
+const habDs=a=>a.ds.replace('{rt}',String(spRt()));
+const hst=h=>{const m=1+pkv('w_might');return{hp:HERO.hp*(1+.35*(h.lv-1))*(1+pkv('w_hp'))*m,d:HERO.d*(1+.3*(h.lv-1))*(1+pkv('w_dmg'))*m};};
+// swing time, respawn time and Smite's reach with the Warrior talents
+const hfr=()=>HERO.f*(1-pkv('w_spd')),hrsp=()=>HERO.rsp-pkv('w_rsp'),smR=()=>HAB[3].r*(1+pkv('w_smr'));
 // where he starts and respawns: the road cell nearest the gate
 function heroHome(){const gx=GATE.x*S+W*S/2,gy=GATE.z*S+H*S/2;let bd=Infinity,b=null;for(const k of road){const[c,r]=k.split(',').map(Number),x=c*S+S/2,y=r*S+S/2,d=Math.hypot(x-gx,y-gy);if(onB(c,r)&&d<bd){bd=d;b={x,y};}}return b;}
 // the hero only goes to road cells on the board (not the breach or gate outside the wall)
@@ -158,7 +190,7 @@ const heroRel=h=>{if(h.e&&h.e.bk===h)h.e.bk=null;h.e=null;};
 // h.go = riding to a new post on the player's order (he fights nothing on the way); cleared on arrival. Chasing an enemy a little way off his post is not riding –
 // deciding that from the distance made him drop his target every other frame and turn back and forth until the enemy reached him
 function heroGo(x,y){const h=g.hero;if(!h||h.hp<=0)return false;h.tx=x;h.ty=y;h.go=1;heroRel(h);return true;}
-function heroXp(e){const h=g.hero;if(!h||h.hp<=0||h.lv>=HERO.mx||Math.hypot(e.x-h.x,e.y-h.y)>HERO.xr)return;h.xp+=e.rw;
+function heroXp(e){const h=g.hero;if(!h||h.hp<=0||h.lv>=HERO.mx||Math.hypot(e.x-h.x,e.y-h.y)>HERO.xr)return;h.xp+=Math.round(e.rw*(1+pkv('w_xp')));
 while(h.lv<HERO.mx&&h.xp>=HERO.xp[h.lv]){h.lv++;const s=hst(h);h.hp=Math.min(s.hp,h.hp+(s.hp-h.max)+s.hp*.3);h.max=s.hp;heroLvl(h);}}
 function heroUpd(dt){const h=g.hero;if(!h)return;
 if(h.hp<=0){h.rs-=dt;if(h.rs<=0){const p=heroHome(),s=hst(h);Object.assign(h,{x:p.x,y:p.y,tx:p.x,ty:p.y,hp:s.hp,max:s.hp,e:null,cd:0,go:0});}return;}
@@ -169,27 +201,28 @@ if(!ride&&!e){let bp=-Infinity;for(const o of g.en){if(o.hp<=0||o.fy||o.out||Mat
 if(e){h.e=e;if(!e.bk||e.bk.hp<=0||e.bk.e!==e)e.bk=h;}}
 const gx=e?e.x:h.tx,gy=e?e.y:h.ty,dx=gx-h.x,dy=gy-h.y,L=Math.hypot(dx,dy),stop=e?HERO.rg:0;h.mv=0;
 if(L>.01)h.dir=Math.atan2(dx,dy);if(L>stop){const k=Math.min(HERO.sp*dt,L-stop)/L;h.x+=dx*k;h.y+=dy*k;h.mv=1;}
-if(e&&L<=HERO.rg+6){if(e.bk!==h&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=h;h.cd-=dt;if(h.cd<=0){h.cd=HERO.f;h.sw=1;const dd=s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.15,dd,'barracks',dx,dy);heroHit(h,e);}
-if(e.bk===h&&!(e.stun>0)){e.dir=Math.atan2(h.x-e.x,h.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;h.hp-=edmg(e)*(1-HERO.arm);h.hit=.2;if(h.hp<=0){h.rs=HERO.rsp;heroRel(h);heroFx(-1,h,[]);}}}}
+if(e&&L<=HERO.rg+6){if(e.bk!==h&&(!e.bk||e.bk.hp<=0||e.bk.e!==e))e.bk=h;h.cd-=dt;if(h.cd<=0){h.cd=hfr();h.sw=1;const dd=s.d*dmul(e,'barracks');e.hp-=dd;hf(e,.15,dd,'barracks',dx,dy);heroHit(h,e);if(e.hp<=0)ach('hk',e);}
+if(e.bk===h&&!(e.stun>0)){e.dir=Math.atan2(h.x-e.x,h.y-e.y);e.at=(e.at||0)-dt;if(e.at<=0){e.at=BAR.ecd;h.hp-=edmg(e)*(1-HERO.arm)*(1-pkv('w_wall'));h.hit=.2;if(h.hp<=0){h.rs=hrsp();g.hf=1;heroRel(h);heroFx(-1,h,[]);}}}}
 else if(!e)h.hp=Math.min(h.max,h.hp+h.max*HERO.reg*dt);}
 // ability i (0..3) at game point (x,y) for the aimed spells: returns false when it can't be cast now (no wave running, on cooldown, a bad spot,
 // or for Divine Smite: hero dead or already used this run)
 function heroCast(i,x,y){const h=g.hero,a=HAB[i];if(!a||g.over||!g.run)return false;
-if(a.ult){if(!h||h.hp<=0||!h.ult)return false;h.ult=0;const s=hst(h),near=g.en.filter(e=>e.hp>0&&!e.out&&Math.hypot(e.x-h.x,e.y-h.y)<=a.r);
-for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm');e.stun=Math.max(e.stun,1);}h.hp=h.max;heroFx(3,h,near);return true;}
+if(a.ult){if(!h||h.hp<=0||!h.ult)return false;h.ult--;const s=hst(h),near=g.en.filter(e=>e.hp>0&&!e.out&&Math.hypot(e.x-h.x,e.y-h.y)<=smR());
+for(const e of near){const dd=10*s.d*dmul(e,'storm');e.hp-=dd;hf(e,.3,dd,'storm');e.stun=Math.max(e.stun,1);}h.hp=h.max;heroFx(3,h,near);ach('smite',near);return true;}
 if(!spRdy(i))return false;
 if(a.aim&&!(x>=0&&x<W*S&&y>=0&&y<H*S))return false;
 if(a.road){const c=Math.floor(x/S),r=Math.floor(y/S);if(!onB(c,r))return false;x=c*S+S/2;y=r*S+S/2;}
-g.scd[i]=g.wave+spCw(i);ach('cast');
+g.scd[i]=g.wave+spCw(i);ach('cast',i);
 if(i==0)g.sp.push({k:'rain',x,y,t:0,v:0});
-if(i==1){const d=SPN.oil*gob()*(1+pkv('spell'));for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
+if(i==1){const d=SPN.oil*gob()*(1+pkv('w_oil'));for(const q of gateTiles()){for(const e of g.en)if(e.hp>0&&!e.fy&&!e.out&&Math.hypot(e.x-q.x,e.y-q.y)<=a.r&&!e.oil){e.oil=1;const dd=d*dmul(e,'cannon',FIRE);e.hp-=dd;hf(e,.3,dd,'cannon');e.sl=3;e.slf=.5;}
 addZone({k:'fire',x:q.x,y:q.y,r:a.r,t:4,d0:4,d:d*SPN.burn,sl:1});}for(const e of g.en)e.oil=0;spellFx(1,{tiles:gateTiles()});}
-if(i==2){const l=1+(g.wave>=8)+(g.wave>=15),t={k:'barracks',l,br:null,x,y,rp:{x,y},n:SPN.rn,tmp:SPN.rt,sol:[]};
-for(let j=0;j<SPN.rn;j++){const mx=solHp(t);t.sol.push({i:j,x:x+(j?14:-14),y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});}g.rf.push(t);spellFx(2,t);}
+if(i==2){const l=1+(g.wave>=8)+(g.wave>=15),t={k:'barracks',l,br:null,x,y,rp:{x,y},n:SPN.rn,tmp:spRt(),sol:[]};
+for(let j=0;j<SPN.rn;j++){const mx=solHp(t)*(1+pkv('w_squad'));t.sol.push({i:j,x:x+(j?14:-14),y,hp:mx,max:mx,cd:0,rs:0,e:null,dir:0});}g.rf.push(t);spellFx(2,t);}
 return true;}
 // spell numbers: damage as a share of a goblin's health this wave (gob()), so they stay useful all game: Rain of Arrows rn volleys of rain each,
-// Boiling Oil oil at once then burn a second; Reinforcements: rn soldiers (Barracks level 1/2/3 from waves 1/8/15) for rt s
-const SPN={rain:.22,vol:4,oil:.9,burn:.25,rn:2,rt:15};
+// Boiling Oil oil at once then burn a second; Reinforcements: rn soldiers (Barracks level 1/2/3 from waves 1/8/15) for rt s (spRt() adds the Hold Fast talent).
+// All of them, and the hero's health and damage, were halved on purpose (he carried the defence) – the Warrior talents win some of it back
+const SPN={rain:.11,vol:4,oil:.45,burn:.125,rn:2,rt:7.5},spRt=()=>SPN.rt+pkv('w_vet');
 const gob=()=>wHP(g.wave)*LV.hp*DF.hp;
 // the three on-board road cells nearest the gate (Boiling Oil): the hero's home cell and the next two along the road
 let GTL=null;
@@ -197,7 +230,7 @@ function gateTiles(){if(GTL)return GTL;const h=heroHome(),c0=Math.floor(h.x/S),r
 while(q.length&&GTL.length<3){const[c,r]=q.shift();GTL.push({x:c*S+S/2,y:r*S+S/2});for(const[dc,dr]of[[1,0],[-1,0],[0,1],[0,-1]]){const k=(c+dc)+','+(r+dr);if(!seen.has(k)&&onB(c+dc,r+dr)){seen.add(k);q.push([c+dc,r+dr]);}}}return GTL;}
 // active spells and squads, run from update(): Rain of Arrows drops a volley every 0.4 s, squads count down and leave
 function spells(dt){
-for(const p of g.sp){p.t+=dt;if(p.k=='rain'&&p.t>=.3+p.v*.4&&p.v<SPN.vol){p.v++;const d=SPN.rain*gob()*(1+pkv('spell'));
+for(const p of g.sp){p.t+=dt;if(p.k=='rain'&&p.t>=.3+p.v*.4&&p.v<SPN.vol){p.v++;const d=SPN.rain*gob()*(1+pkv('w_rain'));
 for(const e of g.en)if(e.hp>0&&!e.out&&Math.hypot(e.x-p.x,e.y-p.y)<=HAB[0].r){const dd=d*dmul(e,'arrow');e.hp-=dd;hf(e,.15,dd,'arrow');}spellFx(0,p);}}
 if(g.sp.length)g.sp=g.sp.filter(p=>p.v<SPN.vol);
 for(const t of g.rf){t.tmp-=dt;if(t.tmp<=0||t.sol.every(d=>d.hp<=0)){barGone(t);squadEnd(t);}}if(g.rf.length)g.rf=g.rf.filter(t=>t.tmp>0&&t.sol.some(d=>d.hp>0));}
@@ -209,7 +242,7 @@ for(const t of g.rf){t.tmp-=dt;if(t.tmp<=0||t.sol.every(d=>d.hp<=0)){barGone(t);
 // Flyers, faded Ghosts and bosses are ignored – bosses can't be blocked by a Barracks (the hero can). Soldier damage comes from stat() (level, banners) and goes through dmul() like any physical hit. Models: solSync() in js/07-enemies.js
 const BAR={n:3,hp:80,rsp:8,sp:75,eng:60,rg:22,reg:.08,ecd:1,near:90};
 // soldier health and count, respawn time and the share of enemy damage taken – the level-3 branch (BRN.barracks) changes them
-const solHp=t=>BAR.hp*(1+.5*(t.l-1))*((brn(t)||{}).shp||1)*(1+pkv('drill')),solN=t=>(brn(t)||{}).sn||BAR.n,solRs=t=>BAR.rsp*(t.l>=3?.75:1)*((brn(t)||{}).rsf||1),solArm=t=>1-((brn(t)||{}).arm||0);
+const solHp=t=>BAR.hp*(1+.5*(t.l-1))*((brn(t)||{}).shp||1)*(1+pkv('f_drill')),solN=t=>(brn(t)||{}).sn||BAR.n,solRs=t=>BAR.rsp*(t.l>=3?.75:1)*((brn(t)||{}).rsf||1),solArm=t=>1-((brn(t)||{}).arm||0);
 // enemy melee damage per hit on a soldier: grows with the wave; big enemies hit harder, bosses much harder
 const edmg=e=>4*Math.pow(1.12,g.wave)*(e.bs?3:Math.sqrt(e.h));
 // can a Barracks go on cell c,r: a road cell next to it
@@ -289,7 +322,7 @@ function ruins(){const u=LV.ru;if(!g.ru&&g.run&&(g.wave>u.w||g.wave==u.w&&g.wt>=
 // putOn(o,q,k) puts enemy o there, k to the side of the road, facing along it (graves, landings, rifts)
 function roadPt(c,r,only){const x=c*S+S/2,y=r*S+S/2;for(let pi=0;pi<PATHS.length;pi++){if(only!=null&&pi!=only)continue;const R=PATHS[pi];for(let j=0;j<R.length-1;j++){const a=R[j],b=R[j+1];
 if((a[0]==b[0]&&x==a[0]||a[1]==b[1]&&y==a[1])&&x>=Math.min(a[0],b[0])&&x<=Math.max(a[0],b[0])&&y>=Math.min(a[1],b[1])&&y<=Math.max(a[1],b[1])){const L=Math.hypot(b[0]-a[0],b[1]-a[1]);return{c,r,x,y,pi,R,seg:j+1,ux:(b[0]-a[0])/L,uy:(b[1]-a[1])/L};}}}return null;}
-function putOn(o,q,k){Object.assign(o,{R:q.R,seg:q.seg,x:q.x-q.uy*k,y:q.y+q.ux*k,dir:Math.atan2(q.ux,q.uy)});o.vis=o.dir;o.px=o.x;o.py=o.y;}
+function putOn(o,q,k){Object.assign(o,{R:q.R,seg:q.seg,x:q.x-q.uy*k,y:q.y+q.ux*k,dir:Math.atan2(q.ux,q.uy)});o.vis=o.dir;o.px=o.x;o.py=o.y;if(o.vo){o.vo=null;o.age=0;}}
 const GVP=(LV.gv||[]).map(([c,r],i)=>{const q=roadPt(c,r);if(!q)throw Error(LV.n+': grave '+c+','+r+' is not on a road');q.i=i;return q;});
 function graves(dt){const M=MECH.grave;if(!g.run){g.gvt=M.t0;g.gw=null;return;}
 if(g.gw){g.gw.t-=dt;if(g.gw.t<=0){const q=GVP[g.gw.i],n=1+Math.floor(g.wave/M.dn),sk=[];g.gw=null;
@@ -355,7 +388,7 @@ g.vrt-=dt;if(g.vrt<=0){g.vrt=M.cd;g.vr=RFT.slice(0,2).map(L=>({q:L[Math.floor(Ma
 const MECHF={fire:fires,ruin:ruins,grave:graves,lava,dark,cold,rock:rocks,bolt:strikes,rift:rifts};
 function mech(dt){const f=MECHF[LV.mc];if(f)f(dt);}
 const back=k=>1+2.70158*Math.pow(k-1,3)+1.70158*Math.pow(k-1,2);
-function sync(dt,rdt){tt+=dt;armyAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
+function sync(dt,rdt){tt+=dt;crowdAnim(dt);castleAnim(dt);endAnim(dt);WT.value=tt;WN.offset.x+=dt*.03;WN.offset.y+=dt*.018;flies.forEach((f,i)=>{f.a+=dt*f.sp;const x=f.cx+Math.sin(f.a)*f.r,z=f.cz+Math.cos(f.a*1.3)*f.r*.7,y=f.y+Math.sin(f.a*3)*.15;f.g.rotation.y=Math.atan2(x-f.g.position.x,z-f.g.position.z);f.g.position.set(x,y,z);const fl3=Math.sin(tt*18+i)*.9;f.h1.rotation.z=fl3;f.h2.rotation.z=fl3;});
 for(const e of g.en)animEnemy(e,dt);animDying(dt);zoneAnim(dt);burnAnim(dt);mechAnim(dt);rallyHide();heroSync(dt);for(const t of g.rf)solSync(t,dt);spellAnim(dt);
 const fl=(a,o)=>a.forEach((f,i)=>{const b=f.userData.b;f.scale.set(b.x,b.y*(1+.3*Math.sin(tt*14+i*2+o)),b.z);});
 for(const t of g.tw){const q=t.rec||0,rd=rdt===undefined?dt:rdt;if(t.ba)towerAnim(t,rd);else if(t.age<.4){t.age+=rd;t.m.scale.setScalar(back(Math.min(1,t.age/.4)));}crewAnim(t,dt,rd);

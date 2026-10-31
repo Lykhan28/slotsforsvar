@@ -95,9 +95,9 @@ if(bf>1)c.unshift('<span class="chip hi">🚩 +'+Math.round((bf-1)*100)+'% from 
 return h+'<div class="chips">'+c.join('')+'</div>';}
 // the hero in the inspector (during a wave with nothing selected): level, health, damage, xp and his abilities; ai = a hovered ability tile
 function heroHTML(ai){const h=g.hero,s=hst(h),nx=h.lv<HERO.mx?HERO.xp[h.lv]:null,sm=x=>' <small>'+x+'</small>';
-if(ai!=null){const a=HAB[ai];return '<div class="ih"><div class="iic">'+a.ic+'</div><div class="ihn"><b>'+a.n+'</b><span class="tag">'+cwTxt(a)+' · key '+(ai+1)+(a.aim?' · then click':'')+'</span></div></div><p class="ds">'+a.ds+'</p>';}
+if(ai!=null){const a=HAB[ai];return '<div class="ih"><div class="iic">'+a.ic+'</div><div class="ihn"><b>'+a.n+'</b><span class="tag">'+cwTxt(a)+' · key '+(ai+1)+(a.aim?' · then click':'')+'</span></div></div><p class="ds">'+habDs(a)+'</p>';}
 return '<div class="ih"><div class="iic">🐎</div><div class="ihn"><b>Sir Kirkevang</b><span class="tag">Hero · level '+h.lv+'</span></div></div>'+
-'<div class="sts">'+row('Health',h.hp>0?Math.ceil(h.hp)+sm('of '+Math.round(h.max)):'Fallen'+sm('back in '+Math.ceil(h.rs)+'s'))+row('Damage',fmt(s.d)+sm('a swing · '+HERO.f+'s'))+row('Experience',nx?h.xp+sm('of '+nx):'Max level')+'</div>'+
+'<div class="sts">'+row('Health',h.hp>0?Math.ceil(h.hp)+sm('of '+Math.round(h.max)):'Fallen'+sm('back in '+Math.ceil(h.rs)+'s'))+row('Damage',fmt(s.d)+sm('a swing · '+fmt(hfr())+'s'))+row('Experience',nx?h.xp+sm('of '+nx):'Max level')+'</div>'+
 '<div class="chips"><span class="chip">🛡️ Blocks enemies on foot</span><span class="chip">🚩 Click the road to send him</span><span class="chip">Abilities: keys 1–4</span></div>';}
 // boss health bar across the top of the view while a boss is on the board
 function bossBar(){const e=g.en.find(o=>o.bs&&o.hp>0),el=$('bb');el.classList.toggle('on',!!e&&!g.over);if(!e)return;
@@ -115,6 +115,8 @@ function storyShow(i){const s=STORY[LVN];if(!s)return;$('sty').innerHTML='<div c
 function storyDone(){if(!STY.open)return;STY.open=false;$('sty').classList.remove('on');ui();}
 $('sty').onclick=storyDone;
 addEventListener('keydown',e=>{if(!STY.open||MENU.open)return;e.stopImmediatePropagation();if([' ','Enter','Escape'].includes(e.key)){e.preventDefault();storyDone();}},true);
+// the end screen's way back to the main menu
+const HOMEB='<button class="btn" id="home">Main menu</button>';
 function ui(){bossBar();gateDmg();$('clr').classList.toggle('vis',g.aim!=null||!!g.sel);if(!STY.pre&&!MENU.open&&!INF&&!g.over&&!g.run&&!g.wave&&!g.tw.length){STY.pre=true;storyShow(0);}
 if(g.over&&g.won&&!INF&&!g.sty&&performance.now()-(g.overT||0)>2200){g.sty=1;storyShow(1);}if(g.run&&g.wave!==banW){banW=g.wave;waveBan();}if(evT&&(performance.now()>evT||g.over)){evT=0;$('evt').classList.remove('on');}const w=g.run?waveMix(g.wave).length:0,left=g.en.length+g.q.length;
 $('gold').textContent=g.gold;$('lives').textContent=g.lives;
@@ -144,16 +146,16 @@ if(s){const bp=brPick(s);setH($('up'),bp?'Choose a path ↑':s.l>=3?'Max level':
 document.body.classList.toggle('over',!!g.over);document.body.classList.toggle('wave',!!g.run&&!g.over);habUI();lpUI();
 const sov=g.over&&performance.now()-(g.overT||0)>2200&&!STY.open;$('ov').style.display=sov?'flex':'none';
 const last=LVN>=LEVELS.length-1,oh=g.won?'<span class="k" style="--ac:var(--ok)">'+(last?'Victory · the final level':'Victory · level '+(LVN+1)+' of '+LEVELS.length)+' · '+DF.n+'</span><h2>'+(last?'The kingdom is saved!':'The castle is saved!')+'</h2>'+starH(g.stN||1)+'<small class="stt">'+(g.stB&&g.stN>g.stB?'<b>New best!</b> ':'')+starT(DF)+'</small><p>'+(last?'Even the Dread Wastes couldn’t break you. All '+MAXW+' waves held back, with '+g.lives+' lives to spare.':'All '+MAXW+' waves held back, with '+g.lives+' lives to spare.')+'</p>'+
-(last?'<button class="btn go" id="again"><span class="t">Restart level</span></button><button class="btn" id="inf">∞ Endless mode</button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="inf">∞ Endless mode</button><button class="btn" id="again">Restart level</button>')
-:INF?'<span class="k" style="--ac:var(--bad)">Endless · '+DF.n+'</span><h2>The castle has fallen</h2><p>You held out for '+(g.wave-1)+' wave'+(g.wave==2?'':'s')+' before wave '+g.wave+' broke through.</p><small class="stt">'+(g.rec?'<b>New record!</b> ':'')+'Best on '+DF.n+': '+(BEST[DF.k][LVN]||0)+' waves</small><button class="btn go" id="again"><span class="t">Try again</span></button>'
-:'<span class="k" style="--ac:var(--bad)">Defeat · '+DF.n+'</span><h2>The castle has fallen</h2><p>Overrun on wave '+g.wave+' of '+MAXW+'.</p><button class="btn go" id="again"><span class="t">Restart level</span></button>';
+(last?'<button class="btn go" id="again"><span class="t">Restart level</span></button><button class="btn" id="inf">∞ Endless mode</button>':'<button class="btn go" id="next"><span class="t">Next level: '+LEVELS[LVN+1].n+'</span></button><button class="btn" id="inf">∞ Endless mode</button><button class="btn" id="again">Restart level</button>')+HOMEB
+:INF?'<span class="k" style="--ac:var(--bad)">Endless · '+DF.n+'</span><h2>The castle has fallen</h2><p>You held out for '+(g.wave-1)+' wave'+(g.wave==2?'':'s')+' before wave '+g.wave+' broke through.</p><small class="stt">'+(g.rec?'<b>New record!</b> ':'')+'Best on '+DF.n+': '+(BEST[DF.k][LVN]||0)+' waves</small><button class="btn go" id="again"><span class="t">Try again</span></button>'+HOMEB
+:'<span class="k" style="--ac:var(--bad)">Defeat · '+DF.n+'</span><h2>The castle has fallen</h2><p>Overrun on wave '+g.wave+' of '+MAXW+'.</p><button class="btn go" id="again"><span class="t">Restart level</span></button>'+HOMEB;
 if(sov&&g.ovh!==oh){g.ovh=oh;$('ov').innerHTML='<div class="ovbox">'+oh+'</div>';}covUpd();saveRun();}
 const pick=k=>{if(T[k].off){offMsg=performance.now()+3000;offT=['Locked','🔒 Not available yet.'];ui();return;}g.build=k;g.sel=null;selRng();ui();};
 TK.forEach((k,i)=>{const b=document.createElement('button');b.className='tile'+(T[k].off?' off':'');b.id='b_'+k;b.style.setProperty('--ac',TC2[k]);b.title=T[k].n+' ('+(i+1)+')';
 b.innerHTML='<i class="hk">'+(i+1)+'</i><span class="ic">'+T[k].ic+'</span><span class="nm">'+T[k].n+'</span><b class="co">'+COIN+T[k].c+'</b>';b.onclick=()=>pick(k);
 b.onpointerenter=e=>{if(e.pointerType=='mouse'){hov=k;ui();}};b.onpointerleave=()=>{hov=null;ui();};$('towers').appendChild(b);});
 // the hero bar: his card (click it to look at him) and four ability tiles (click or keys 1–4 during a wave)
-const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Kirkevang – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+(a.ult||a.cw==1?'1 a wave':spCw(i)+' waves')+'</b><span class="cdv"></span></button>').join('');
+const HCD=$('hab');HCD.innerHTML='<div id="hcard" title="Sir Kirkevang – click to look at him"></div>'+HAB.map((a,i)=>'<button class="tile'+(a.ult?' ult':'')+'" id="a_'+i+'" title="'+a.n+' ('+(i+1)+')"><i class="hk">'+(i+1)+'</i><span class="ic">'+a.ic+'</span><span class="nm">'+a.n+'</span><b class="co">'+coTxt(a,i)+'</b><span class="cdv"></span></button>').join('');
 HAB.forEach((a,i)=>{const b=$('a_'+i);b.onclick=()=>cast(i);b.onpointerenter=e=>{if(e.pointerType=='mouse'){hovA=i;ui();}};b.onpointerleave=()=>{hovA=null;ui();};});
 $('hcard').onclick=()=>{const h=g.hero;if(!h)return;cine=null;tx=wx(h.hp>0?h.x:heroHome().x);tz=wz(h.hp>0?h.y:heroHome().y);setCam();};
 // long-press (touch/pen only): hold a dock tile, an ability tile, the hero card or a tower on the board (js/12-input.js) for LPMS ms to open the info sheet #lp,
@@ -176,7 +178,7 @@ const el=$('lp'),k=LP.t?LP.t.k:LP.k;el.style.setProperty('--ac',k?TC2[k]:'var(--
 function cast(i){const a=HAB[i];if(!a||!g.run)return;if(a.aim){if(g.aim===i)g.aim=null;else if(spRdy(i)){g.aim=i;g.sel=null;selRng();}else snd('click');ui();return;}if(heroCast(i))ui();else snd('click');}
 function habUI(){const h=g.hero;if(!h||!g.run)return;const dead=h.hp<=0,c=$('hcard'),nx=h.lv<HERO.mx?HERO.xp[h.lv]:0,p0=h.lv>1?HERO.xp[h.lv-1]:0;c.classList.toggle('dead',dead);
 setH(c,'<b>Sir Kirkevang</b><small>Level '+h.lv+(dead?' · back in '+Math.ceil(h.rs)+'s':'')+'</small><span class="hb"><i style="width:'+(dead?0:100*h.hp/h.max).toFixed(1)+'%"></i></span><span class="hb xp"><i style="width:'+(nx?100*(h.xp-p0)/(nx-p0):100).toFixed(1)+'%"></i></span>');
-HAB.forEach((a,i)=>{const b=$('a_'+i),cd=a.ult?0:spLeft(i),used=a.ult&&!h.ult;b.classList.toggle('used',!!(used||cd>0||a.ult&&dead));b.classList.toggle('on',g.aim===i);const v=b.lastChild;v.style.setProperty('--p',a.ult?(used?1:0):(cd/spCw(i)).toFixed(3));setH(v,cd>0?String(cd):used?'✓':'');setH(b.querySelector('.co'),a.ult||a.cw==1?'1 a wave':spCw(i)+' waves');b.title=a.n+' ('+(i+1)+')'+(cd>0?' – ready in '+cd+(cd==1?' wave':' waves'):used?' – used this wave':'');});}
+HAB.forEach((a,i)=>{const b=$('a_'+i),cd=a.ult?0:spLeft(i),used=a.ult&&!h.ult;b.classList.toggle('used',!!(used||cd>0||a.ult&&dead));b.classList.toggle('on',g.aim===i);const v=b.lastChild;v.style.setProperty('--p',a.ult?(used?1:0):(cd/spCw(i)).toFixed(3));setH(v,cd>0?String(cd):used?'✓':'');setH(b.querySelector('.co'),coTxt(a,i));b.title=a.n+' ('+(i+1)+')'+(cd>0?' – ready in '+cd+(cd==1?' wave':' waves'):used?' – used this wave':'');});}
 // pause and speed: the HUD buttons, P and F; starting a wave also resumes
 function setPause(v){v=!!v&&!g.over;if(!!g.pause==v)return;g.pause=v;ui();}
 const setSpd=s=>{g.spd=s;ui();},go=()=>{setPause(false);callEarly();};
@@ -186,7 +188,7 @@ $('info').onclick=e=>{if(!e.target.closest)return;const b=e.target.closest('[dat
 // coverage map: C or the grid button; the legend matches COVC in js/06-scenery.js
 function covTog(){COV.on=!COV.on;$('cv').classList.toggle('on',COV.on);$('covl').classList.toggle('on',COV.on);covUpd();}
 const covLeg=()=>$('covl').querySelector('.sw').innerHTML=COVC.map((c,i)=>'<i style="background:#'+new THREE.Color(c).getHexString()+'">'+(i<5?i:'5+')+'</i>').join('');covLeg();$('cv').onclick=covTog;
-$('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);else if(e.target.closest('#inf'))goLevel(LVN,DFN,true);};
+$('rep').onclick=()=>{if(repair())ui();else snd('click');};$('start').onclick=go;$('pz').onclick=()=>setPause(!g.pause);$('pov').firstChild.onclick=()=>setPause(false);$('ov').onclick=e=>{if(!e.target.closest)return;if(e.target.closest('#again'))restartLevel();else if(e.target.closest('#next'))goLevel(LVN+1);else if(e.target.closest('#inf'))goLevel(LVN,DFN,true);else if(e.target.closest('#home'))menuTitle();};
 document.querySelectorAll('#spd button[data-s]').forEach(b=>b.onclick=()=>setSpd(+b.dataset.s));
 $('hp').onclick=()=>{$('hp').classList.toggle('on',$('help').classList.toggle('on'));};$('help').onclick=()=>{$('help').classList.remove('on');$('hp').classList.remove('on');};
 // a tower placed in this break (t.bw) can be undone for everything spent on it, upgrades too, until the wave starts; otherwise selling gives 60% back
@@ -217,4 +219,4 @@ function mmGo(e){const r=MM.getBoundingClientRect(),x=((e.clientX-r.left)/r.widt
 MM.addEventListener('pointerdown',e=>{MM.setPointerCapture(e.pointerId);mmGo(e);});MM.addEventListener('pointermove',e=>{if(e.buttons)mmGo(e);});
 addEventListener('keydown',e=>{const k=e.key;if(e.repeat)return;if((e.ctrlKey||e.metaKey)&&(k=='z'||k=='Z')){e.preventDefault();undo();return;}if(e.ctrlKey||e.metaKey||e.altKey)return;
 if(g.run&&k>='1'&&k<='4')cast(+k-1);else if(!g.run&&k>='1'&&k<='9'&&TK[+k-1])pick(TK[+k-1]);else if(k==' '){e.preventDefault();go();}else if(k=='p'||k=='P')setPause(!g.pause);else if(k=='f'||k=='F')setSpd(g.spd%3+1);else if((k=='u'||k=='U')&&g.sel)upTw(g.sel);else if((k=='b'||k=='B'||k=='n'||k=='N')&&brPick(g.sel))upTw(g.sel,k=='b'||k=='B'?0:1);else if((k=='s'||k=='S')&&g.sel)sellTw(g.sel);else if(k=='z'||k=='Z')undo();else if(k=='c'||k=='C')covTog();else if(k=='r'||k=='R')$('rep').onclick();else if((k=='t'||k=='T')&&g.sel)setTm(g.sel,TGK[(TGK.indexOf(tmode(g.sel))+1)%TGK.length]);else if(k=='Escape'&&g.aim!=null){g.aim=null;selRng();ui();}else if(k=='Escape'){if($('help').classList.contains('on')){$('help').classList.remove('on');$('hp').classList.remove('on');}else if(g.sel){g.sel=null;selRng();ui();}else menuOpen();}
-else if(OPT.fcam&&(k=='q'||k=='Q')){az-=.3;setCam();}else if(OPT.fcam&&(k=='e'||k=='E')){az+=.3;setCam();}});
+else if(OPT.rot&&(k=='q'||k=='Q')){az-=.3;setCam();}else if(OPT.rot&&(k=='e'||k=='E')){az+=.3;setCam();}});

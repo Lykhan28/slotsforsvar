@@ -24,7 +24,7 @@ Options:
   --diff D         difficulty easy|normal|hard (default easy, the original game; DIFS in js/01-config.js)
   --endless        Endless mode: waves go on past 20 (made up by endWave()) until defeat (at most 100);
                    with --waves N it prints waves 1-40
-  --perks "a:3,b:2" Royal Armoury perks by id and rank (PERKS in js/09-game.js, e.g. arch:3,gold:2; 'all' = every perk at max)
+  --talents "a:3,b:2" talents by id and rank (TAL in js/09-game.js, e.g. w_hp:5,f_gold:2; 'all' = every talent at max, 'war' / 'fort' = one whole tree)
   --hp X           try another enemy health multiplier for the level (instead of its hp in LEVELS)
   --gold N         try another starting gold for the level
   --keep-going     don't stop at defeat: play all 20 waves and count every leak
@@ -63,7 +63,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a == '--waves') opt.waves = +next();
   else if (a == '--diff') opt.diff = next();
   else if (a == '--endless') opt.endless = true;
-  else if (a == '--perks') opt.perks = next();
+  else if (a == '--talents') opt.perks = next();
   else if (a == '--hp') opt.hp = +next();
   else if (a == '--gold') opt.gold = +next();
   else if (a == '--build') opt.build.push(next());
@@ -104,7 +104,7 @@ const ctx = vm.createContext({
   // rendering, sound and UI hooks called by the game logic
   sc: { add: noop, remove: m => countLeak(m) }, snd: noop, burst: noop, fx: noop, popText: noop, bolt: noop, tfx: noop, killFx: noop, shake: noop, gateHit: noop, healFx: noop, sapFx: noop, trollFx: noop, zoneFx: noop, zoneEnd: noop, plagueFx: noop, solDie: noop, heroFx: noop, heroLvl: noop, heroHit: noop, spellFx: noop, squadEnd: noop, repFx: noop, phzFx: noop, foeSeen: noop, kingFx: noop, raiseFx: noop, burnFx: noop, burnEnd: noop, ruinFx: noop, graveFx: noop, eruptFx: noop, darkFx: noop, harvestFx: noop, landFx: noop, mirFx: noop, mirEnd: noop, coldFx: noop, rockFx: noop, rockEnd: noop, strikeFx: noop, riftFx: noop, riftTp: noop, rumFx: noop, plunderFx: noop,
   hf: (o, h, d, kind) => { o.lk = kind; }, mkBullet: () => ({ visible: true }),
-  buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }),
+  buildEnemy: () => ({ m: { en: 1, scale: { setScalar: noop } }, rig: {} }), crowdTake: () => null,
   ui: noop, infRec: noop, ach: noop, selRng: noop, endReset: noop, lvWon: noop, startEnd: noop,
 });
 vm.runInContext(`Math.random=(()=>{let s=${seed};return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})();`, ctx);
@@ -136,7 +136,7 @@ vm.runInContext(extractLine(input, /^const free=.*$/m, 'const free', 'js/12-inpu
 const run = code => vm.runInContext(code, ctx);
 if (opt.hp) run(`LV.hp=${opt.hp}`);
 if (opt.endless) run('INF=true');
-if (opt.perks) run(opt.perks == 'all' ? 'for(const p of PERKS)PK[p.id]=p.mx' : `Object.assign(PK,${JSON.stringify(Object.fromEntries(opt.perks.split(',').map(x => x.split(':')).map(([k, v]) => [k, +v])))})`);
+if (opt.perks) run(['all', 'war', 'fort'].includes(opt.perks) ? `for(const p of TAL)if(!TREES[p.t].lock&&('${opt.perks}'=='all'||TREES[p.t].k=='${opt.perks}'))PK[p.id]=p.mx` : `Object.assign(PK,${JSON.stringify(Object.fromEntries(opt.perks.split(',').map(x => x.split(':')).map(([k, v]) => [k, +v])))})`);
 if (opt.gold) run(`LV.gold=${opt.gold}`);
 const LV = run('LV'), T = run('T'), BRN = run('BRN'), W = run('W'), H = run('H'), MAXW = run('MAXW');
 // one letter per enemy type, as in the wave tables (WC in js/01-config.js)
@@ -278,7 +278,7 @@ function heroAI() {
   if (run('spRdy')(1) && live.filter(e => !e.fy && run('gateTiles')().some(q => Math.hypot(e.x - q.x, e.y - q.y) <= HAB[1].r)).length >= 3) cast(1);
   const foot = live.filter(e => !e.fy && !e.bs && e.x >= 0 && e.x < W * 60 && e.y >= 0 && e.y < H * 60);
   if (run('spRdy')(2) && foot.length >= 4) { const lead = foot.reduce((a, e) => run('prog')(e) > run('prog')(a) ? e : a); const c = Math.floor(lead.x / 60), r = Math.floor(lead.y / 60); if (run('onB')(c, r)) cast(2, c * 60 + 30, r * 60 + 30); }
-  const h = G.hero; if (h && h.hp > 0 && h.ult) { const n = live.filter(e => Math.hypot(e.x - h.x, e.y - h.y) <= HAB[3].r); if (n.length >= 6 || n.some(e => e.bs)) cast(3); }
+  const h = G.hero; if (h && h.hp > 0 && h.ult) { const n = live.filter(e => Math.hypot(e.x - h.x, e.y - h.y) <= run('smR')()); if (n.length >= 6 || n.some(e => e.bs)) cast(3); }
 }
 const waves = [], gold = [];
 let time = 0, failed = null;

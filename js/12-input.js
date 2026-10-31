@@ -50,11 +50,11 @@ C.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p){hover(
 const ox=p.x,oy=p.y;p.x=e.clientX;p.y=e.clientY;
 if(ptrs.size>=2&&pin){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoom(pin.d/d);pan(mx-pin.mx,my-pin.my);pin={d,mx,my};return;}
 if(!dn)return;const dx=e.clientX-dn.x,dy=e.clientY-dn.y;
-if(drag||Math.hypot(dx,dy)>8){drag=true;clearTimeout(lpT);if(!OPT.fcam||dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
+if(drag||Math.hypot(dx,dy)>8){drag=true;clearTimeout(lpT);if(!OPT.rot||dn.btn==2||dn.sh)pan(e.clientX-ox,e.clientY-oy);else{az=dn.az-dx*.006;pol=clamp(dn.pol-dy*.006,.3,1.25);setCam();}}});
 const up=e=>{clearTimeout(lpT);const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(ptrs.size<2)pin=null;if(dn&&had&&!drag&&e.type=='pointerup'){if(dn.btn===0)tap(e);else if(dn.btn===2)unsel();}if(!ptrs.size)dn=null;};
 C.addEventListener('pointerup',up);C.addEventListener('pointercancel',up);
 $('zi').onclick=()=>zoom(.8);$('zo').onclick=()=>zoom(1.25);$('zr').onclick=()=>{({az,pol,dist,tx,tz}=CAM0);setCam();};
-// Free cam (OPT.fcam, saved with the gameplay settings): off = dragging only moves the camera and it keeps the default angle; on = the old controls
-// (drag rotates and tilts, right-drag/Shift-drag moves, Q/E turn). Switching it off swings the view back to the default angle where it is
-function fcamSet(on){OPT.fcam=on;try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}if(!on){cine=null;az=CAM0.az;pol=CAM0.pol;setCam();}$('fc').classList.toggle('on',on);}
-$('fc').onclick=()=>fcamSet(!OPT.fcam);$('clr').onclick=unsel;
+// Free cam (OPT.rot, saved with the gameplay settings, on by default): on = drag rotates and tilts, right-drag/Shift-drag moves, Q/E turn;
+// off = the rotation is locked: dragging only moves the camera and it keeps the default angle. Switching it off swings the view back to the default angle where it is
+function fcamSet(on){OPT.rot=on;try{localStorage.setItem('sfopt',JSON.stringify(OPT));}catch(e){}if(!on){cine=null;az=CAM0.az;pol=CAM0.pol;setCam();}$('fc').classList.toggle('on',on);$('fc').title=on?'Free cam on: drag rotates the camera – click to lock the rotation':'Free cam off: the rotation is locked and dragging moves the camera – click to rotate again';}
+$('fc').onclick=()=>fcamSet(!OPT.rot);$('clr').onclick=unsel;

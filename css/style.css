@@ -236,12 +236,37 @@ body.over #panel{opacity:.3}
 .lvb:hover:not(:disabled){background:rgba(255,224,160,.1);border-color:var(--line2)}
 .lvb.cur{border-color:rgba(240,199,112,.55);background:rgba(240,199,112,.1)}
 .lvb.lock{opacity:.5;cursor:default}
-.prk{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04)}.prk.own{border-color:rgba(240,199,112,.35)}
-.prk .pic{flex:none;width:34px;height:34px;display:grid;place-items:center;font-size:20px;border-radius:50%;background:rgba(0,0,0,.25)}
-.prk .pt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.prk .pt b{font:700 14px var(--disp);letter-spacing:.04em;color:var(--gold2)}.prk .pt small{font-size:12px;color:var(--ink2);line-height:1.3}
-.prk .pip{display:flex;align-items:center;gap:4px}.prk .pip i{width:14px;height:5px;border-radius:3px;background:rgba(255,255,255,.14)}.prk .pip i.on{background:var(--gold)}.prk .pip em{font-style:normal;font-size:11.5px;color:var(--gold2);margin-left:4px}
-.prk .pby{flex:none;height:36px;min-width:62px;padding:0 12px;font-size:14px}
-#m_an{line-height:1.45}#m_an .ast{font:700 16px var(--disp);color:var(--gold2)}
+/* ---- main menu: a screen of its own (#menu.title) with the world map, slowly drifting, behind the box */
+#mbg{display:none;position:absolute;inset:0;overflow:hidden;background:#140e08}#menu.title{background:none}#menu.title #mbg{display:block}
+#mbg svg{display:block;width:100%;height:100%;filter:saturate(.85) brightness(.6) blur(1.5px);animation:mbgd 70s ease-in-out infinite alternate}
+#mbg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(10,7,4,.05),rgba(8,5,2,.82))}
+@keyframes mbgd{from{transform:scale(1.05)}to{transform:scale(1.16) translate(-2%,1.5%)}}
+.mbox{position:relative}#menu.title .mt{font-size:27px}
+.btn.mc{flex-direction:column;gap:1px}.btn.mc small{font:500 11.5px var(--ui);letter-spacing:0;opacity:.85}
+/* ---- talents: three trees of 4×7 talents (tabs on a phone), the picked talent below */
+#m_tn{line-height:1.45}#m_tn .ast,#m_an2 .ast{font:700 16px var(--disp);color:var(--gold2)}
+.tls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;min-height:0;overflow:auto}.ttab{display:none}
+.tree{display:flex;flex-direction:column;gap:10px;padding:10px 8px 12px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(140,50,32,.22),rgba(0,0,0,.22) 60%)}
+.tree.t1{background:linear-gradient(180deg,rgba(70,92,120,.26),rgba(0,0,0,.22) 60%)}.tree.t2{background:linear-gradient(180deg,rgba(100,70,150,.22),rgba(0,0,0,.22) 60%)}
+.tree.lock{filter:grayscale(1);opacity:.4}
+.th{display:flex;align-items:center;gap:8px;padding:0 4px}.th .tic{font-size:22px}.th b{font:700 15px var(--disp);letter-spacing:.06em;color:var(--gold2)}.th small{margin-left:auto;font-size:11px;line-height:1.25;color:var(--ink2);text-align:right}
+.tg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 4px;justify-items:center;align-items:center}
+.tal{position:relative;width:44px;height:44px;padding:0;border-radius:10px;border:2px solid #4b4640;background:#1a1511;color:inherit;font-size:21px;display:grid;place-items:center;cursor:pointer;filter:grayscale(1);opacity:.5;transition:box-shadow .15s,transform .1s}
+.tal i{font-style:normal}.tal:not(.shut){filter:none;opacity:.85}.tal:hover{transform:translateY(-1px)}
+.tal.can,.tal.part{opacity:1;border-color:#46c052;box-shadow:0 0 9px rgba(70,192,82,.35)}.tal.max{opacity:1;border-color:var(--gold);box-shadow:0 0 9px rgba(240,199,112,.45)}
+.tal.big{width:50px;height:50px;border-radius:50%;font-size:24px}.tal.big::before{content:'★';position:absolute;top:-8px;left:-6px;font-size:13px;color:var(--gold2);text-shadow:0 0 6px rgba(0,0,0,.8)}
+.tal em{position:absolute;right:-7px;bottom:-7px;padding:1px 4px;border-radius:6px;border:1px solid var(--line2);background:#0d0a07;font:700 10px var(--ui);font-style:normal;color:var(--ink2)}
+.tal.can em,.tal.part em{color:#86e090}.tal.max em{color:var(--gold2)}.tal.sel{outline:2px solid #fff;outline-offset:3px}
+.tal.no{cursor:default;opacity:.6}.tal.no i{color:var(--ink2);font-size:16px}
+.tli{flex:none;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:rgba(255,255,255,.04)}
+.tli .tic{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:10px;background:rgba(0,0,0,.3);font-size:26px}
+.tid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.tid b{font:700 15px var(--disp);letter-spacing:.04em;color:var(--gold2)}.tid small{font-size:11.5px;color:var(--ink2)}
+.tid p{margin:2px 0 0;font-size:13px;line-height:1.35}.tid p.nx{color:#9fe0a6}.tbig{font:600 11px var(--ui);letter-spacing:0;color:var(--gold)}
+.tli .btn{flex:none;min-width:150px;height:44px;padding:0 14px;font-size:14px}
+.ach .apt{flex:none;min-width:34px;height:26px;padding:0 7px;display:grid;place-items:center;border-radius:13px;border:1px solid var(--line);font:700 12px var(--ui);color:var(--ink2)}.ach.on .apt{color:var(--gold2);border-color:rgba(240,199,112,.6)}
+@media (max-width:700px){.tls{grid-template-columns:1fr}.ttab{display:flex;gap:4px;padding:4px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.2)}
+.ttab button{flex:1;height:36px;border:0;border-radius:10px;background:none;color:var(--ink2);font:700 12.5px var(--disp);cursor:pointer}.ttab button.on{color:var(--gold2);background:rgba(240,199,112,.16);box-shadow:inset 0 0 0 1px rgba(240,199,112,.45)}
+.tree{display:none}.tree.on{display:flex}.tli{flex-wrap:wrap}.tli .btn{width:100%}}
 .ach{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}.ach.on{border-color:rgba(240,199,112,.4);background:rgba(240,199,112,.07)}
 .ach .ai{flex:none;width:36px;height:36px;display:grid;place-items:center;font-size:20px;border-radius:50%;background:rgba(0,0,0,.25);filter:grayscale(1);opacity:.45}.ach.on .ai{filter:none;opacity:1;box-shadow:0 0 0 1px rgba(240,199,112,.5)}
 .ach .at{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.ach .at b{font:700 14px var(--disp);letter-spacing:.04em;color:var(--ink2)}.ach.on .at b{color:var(--gold2)}.ach .at small{font-size:12px;color:var(--ink2);line-height:1.3}.ach .at em{font-style:normal;font-size:11px;color:var(--ink3)}
