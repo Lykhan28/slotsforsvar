@@ -35,7 +35,7 @@ function callEarly(){if(g.run||g.over)return;const b=earlyBonus();if(g.wave>0)ac
 function startWave(){if(g.run||g.over)return;g.wave++;g.brk=0;g.run=true;if(g.hero)g.hero.ult=1+pk('w_ult');g.wt=0;g.q=waveQ(g.wave);snd(g.q.some(q=>E[q.type].bs)?'hornB':'horn');ui();}
 // each breach has its own road (PATHS); the wave alternates between them. The model comes from the crowd waiting outside the breach when it has one (crowdTake, js/13-ending.js),
 // e.vo = the offset it eases away from as it steps onto the road
-function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp*(e.bs&&DF.bh||1),o=crowdTake(type,pi)||buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;if(!o.vo)o.m.scale.setScalar(.01);
+function spawn(type,pi){if(E[type].bs)snd('roar_'+type);const e=E[type],hp=wHP(g.wave)*e.h*LV.hp*DF.hp*HHP*(e.bs&&DF.bh||1),o=crowdTake(type,pi)||buildEnemy(type),R0=(e.fy?FPATHS:PATHS)[pi||0],R=g.ru&&!e.fy&&R0===PATHS[0]&&ruPick()?SC:R0;if(!o.vo)o.m.scale.setScalar(.01);
 g.en.push({R,x:R[0][0],y:R[0][1],px:R[0][0],py:R[0][1],seg:1,hp,max:hp,sl:0,stun:0,slf:1,type,dir:PI/2,vis:PI/2,ph:Math.random()*6,gp:Math.random()*6,k:GAIT[type],hlr:1.5,tf:1,pzt:1+Math.random()*2,smt:3,rzt:2,age:0,hit:0,flash:0,...e,m:o.m,body:o.body,ice:o.ice,bar:o.bar,meshes:o.meshes,rig:o.rig,gm:o.gm});if(o.vo){const n=g.en[g.en.length-1];n.age=1;n.vo={x:o.vo.x-n.x,y:o.vo.y-n.y,t:0};}foeSeen(type);}
 // walk cycle per game unit walked, per enemy type (animEnemy; the crowd outside the wall uses it too)
 const GAIT={norm:2*PI/36,fast:2*PI/50,tank:2*PI/44,boss:0,guard:2*PI/40,shaman:2*PI/38,bat:0,sapper:2*PI/32,troll:2*PI/64,ghost:0,imp:2*PI/30,king:2*PI/40,ram:1/10.8,necro:0,skel:2*PI/36,pirate:2*PI/38};
@@ -223,7 +223,7 @@ return true;}
 // Boiling Oil oil at once then burn a second; Reinforcements: rn soldiers (Barracks level 1/2/3 from waves 1/8/15) for rt s (spRt() adds the Hold Fast talent).
 // All of them, and the hero's health and damage, were halved on purpose (he carried the defence) – the Warrior talents win some of it back
 const SPN={rain:.11,vol:4,oil:.45,burn:.125,rn:2,rt:7.5},spRt=()=>SPN.rt+pkv('w_vet');
-const gob=()=>wHP(g.wave)*LV.hp*DF.hp;
+const gob=()=>wHP(g.wave)*LV.hp*DF.hp*HHP;
 // the three on-board road cells nearest the gate (Boiling Oil): the hero's home cell and the next two along the road
 let GTL=null;
 function gateTiles(){if(GTL)return GTL;const h=heroHome(),c0=Math.floor(h.x/S),r0=Math.floor(h.y/S),seen=new Set([c0+','+r0]),q=[[c0,r0]];GTL=[];

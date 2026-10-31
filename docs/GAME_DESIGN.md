@@ -20,22 +20,24 @@ Each level is a walled board with the same castle outside one of its walls. Winn
 
 | # | Level | Land | Board | Breaches → castle | Blocked tiles | Start gold | Enemy health | Special enemies (from wave) | Bosses (waves 5 / 10 / 15 / 20) |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | Greenmeadow | Fields | 12×8 | west → east | 0 | 120 | ×1 | Shieldbearers 8, bats 12 | King / Ram / King / Dragon |
-| 2 | Darkwood | Dark forest | 10×7 | north → east | 4 | 130 | ×0.95 | Ghosts 4, Shieldbearers 8, Sappers 9 | King / Necromancer / Ram / Dragon |
-| 3 | Emberwood | Burning forest, burnt houses | 13×8 | south → north | 5 | 140 | ×0.9 | Trolls 6, Sappers 8, Shieldbearers 8, bats 13 | Ram / King / Dragon / Dragon |
-| 4 | Mirefen | Marsh | 14×9 | west → south | 11 | 150 | ×0.93 | Shamans 4, bats 6, Trolls 7, Shieldbearers 12 | Necromancer / King / Ram / Dragon |
-| 5 | Ashfall | Ruined, smouldering town | 11×7 | east → west | 7 | 160 | ×1.1 | Sappers 3, Shieldbearers 4, bats 8, Trolls and Shamans 13 | Ram / Necromancer / King / Dragon |
-| 6 | Barrow Moor | Graveyard moor | 15×9 | north → east | 12 | 170 | ×0.8 | Skeletons 1, Ghosts 3, bats 8, Shieldbearers and Shamans 9, Trolls 17 | Necromancer / King / Necromancer / two Necromancers |
-| 7 | Scorched Badlands | Cracked earth and lava | 12×9 | west + north → south | 9 | 190 | ×0.9 | Fire Imps 3, bats and Shieldbearers 8, Sappers 9, Shamans 10, Trolls 13 | Ram / Dragon / King / King + Dragon |
-| 8 | The Dread Wastes | Black rock, lava, red sky | 16×10 | west + east → north | 16 | 220 | ×0.88 | Fire Imps and Ghosts 3, Sappers 6, bats, Shieldbearers and Shamans 8, Trolls 10, Skeletons 13 | Necromancer / Ram / Dragon / two Dragons |
-| 9 | Harvest Vale | Autumn farmland: orchards, haystacks, a windmill | 13×8 | west → east | 6 | 230 | ×1.45 | Sappers 3, Shieldbearers 4, Trolls 7, bats 8 | King / Ram / King / Dragon |
-| 10 | Saltcliff Cove | Sea cliffs, pirate ships in the bay, a wreck, a smugglers' camp | 14×8 | west → east | 7 | 240 | ×1.45 | Sappers 3, Shamans 4, bats 6, Ghosts and skeletons 10, Trolls 12 | King / Necromancer / Ram / King + Dragon |
-| 11 | Sunscorch Dunes | Desert: sand, palms, an oasis, sandstone pillars | 13×9 | west + north → east | 7 | 250 | ×1.1 | Fire Imps 3, Sappers 6, bats 8, Trolls 13 | Ram / Dragon / King / Ram + Dragon |
-| 12 | Frostpeak Hold | Snowy mountain fortress: snowfall, peaks, frozen ponds | 14×9 | west → north | 9 | 260 | ×1.45 | Shieldbearers 3, Trolls 4, Ghosts 7, bats 13 | King / Ram / Necromancer / Dragon + King |
-| 13 | Crystal Hollow | A twilight glade of glowing crystals | 15×9 | west + east → south | 9 | 270 | ×1.15 | Ghosts 3, skeletons 5, Shamans 7, Trolls 13 | Necromancer / King / Necromancer / Necromancer + Dragon |
-| 14 | Wolfjaw Pass | A mountain pass: one long, narrow road between rock spires | 16×9 | west → east | 15 | 280 | ×1.4 | Sappers 3, Trolls 7, bats 8 | Ram / King / Ram / King + Dragon |
-| 15 | Stormwatch Heights | Storm-lashed highland: rain, lightning, standing stones | 15×10 | west + north → east | 10 | 300 | ×1.3 | bats 3, Fire Imps 6, Ghosts 8, skeletons 13 | Dragon / Ram / King + Necromancer / two Dragons |
-| 16 | The Sundered Realm | The world breaking apart: floating rocks, void cracks | 16×10 | west + east → north | 16 | 320 | ×1 | Fire Imps and Ghosts 3, skeletons 5, bats 8 | Necromancer / Dragon / King + Ram / all four |
+| 1 | Greenmeadow | Fields | 12×8 | west → east | 0 | 120 | ×1.1 | Shieldbearers 8, bats 12 | King / Ram / King / Dragon |
+| 2 | Darkwood | Dark forest | 10×7 | north → east | 4 | 130 | ×1.05 | Ghosts 4, Shieldbearers 8, Sappers 9 | King / Necromancer / Ram / Dragon |
+| 3 | Emberwood | Burning forest, burnt houses | 13×8 | south → north | 5 | 140 | ×1 | Trolls 6, Sappers 8, Shieldbearers 8, bats 13 | Ram / King / Dragon / Dragon |
+| 4 | Mirefen | Marsh | 14×9 | west → south | 11 | 150 | ×1.02 | Shamans 4, bats 6, Trolls 7, Shieldbearers 12 | Necromancer / King / Ram / Dragon |
+| 5 | Ashfall | Ruined, smouldering town | 11×7 | east → west | 7 | 160 | ×1.2 | Sappers 3, Shieldbearers 4, bats 8, Trolls and Shamans 13 | Ram / Necromancer / King / Dragon |
+| 6 | Barrow Moor | Graveyard moor | 15×9 | north → east | 12 | 170 | ×0.88 | Skeletons 1, Ghosts 3, bats 8, Shieldbearers and Shamans 9, Trolls 17 | Necromancer / King / Necromancer / two Necromancers |
+| 7 | Scorched Badlands | Cracked earth and lava | 12×9 | west + north → south | 9 | 190 | ×1 | Fire Imps 3, bats and Shieldbearers 8, Sappers 9, Shamans 10, Trolls 13 | Ram / Dragon / King / King + Dragon |
+| 8 | The Dread Wastes | Black rock, lava, red sky | 16×10 | west + east → north | 16 | 220 | ×0.97 | Fire Imps and Ghosts 3, Sappers 6, bats, Shieldbearers and Shamans 8, Trolls 10, Skeletons 13 | Necromancer / Ram / Dragon / two Dragons |
+| 9 | Harvest Vale | Autumn farmland: orchards, haystacks, a windmill | 13×8 | west → east | 6 | 230 | ×1.6 | Sappers 3, Shieldbearers 4, Trolls 7, bats 8 | King / Ram / King / Dragon |
+| 10 | Saltcliff Cove | Sea cliffs, pirate ships in the bay, a wreck, a smugglers' camp | 14×8 | west → east | 7 | 240 | ×1.45 (Hard ×1.1 more) | Sappers 3, Shamans 4, bats 6, Ghosts and skeletons 10, Trolls 12 | King / Necromancer / Ram / King + Dragon |
+| 11 | Sunscorch Dunes | Desert: sand, palms, an oasis, sandstone pillars | 13×9 | west + north → east | 7 | 250 | ×1.1 (Hard ×1.2 more) | Fire Imps 3, Sappers 6, bats 8, Trolls 13 | Ram / Dragon / King / Ram + Dragon |
+| 12 | Frostpeak Hold | Snowy mountain fortress: snowfall, peaks, frozen ponds | 14×9 | west → north | 9 | 260 | ×1.6 (Hard ×1.1 more) | Shieldbearers 3, Trolls 4, Ghosts 7, bats 13 | King / Ram / Necromancer / Dragon + King |
+| 13 | Crystal Hollow | A twilight glade of glowing crystals | 15×9 | west + east → south | 9 | 270 | ×1.15 (Hard ×1.1 more) | Ghosts 3, skeletons 5, Shamans 7, Trolls 13 | Necromancer / King / Necromancer / Necromancer + Dragon |
+| 14 | Wolfjaw Pass | A mountain pass: one long, narrow road between rock spires | 16×9 | west → east | 15 | 280 | ×1.4 (Hard ×1.15 more) | Sappers 3, Trolls 7, bats 8 | Ram / King / Ram / King + Dragon |
+| 15 | Stormwatch Heights | Storm-lashed highland: rain, lightning, standing stones | 15×10 | west + north → east | 10 | 300 | ×1.43 | bats 3, Fire Imps 6, Ghosts 8, skeletons 13 | Dragon / Ram / King + Necromancer / two Dragons |
+| 16 | The Sundered Realm | The world breaking apart: floating rocks, void cracks | 16×10 | west + east → north | 16 | 320 | ×1.1 | Fire Imps and Ghosts 3, skeletons 5, bats 8 | Necromancer / Dragon / King + Ram / all four |
+
+Enemy health was raised about 10% on most levels on 2026-10-31 (Saltcliff Cove, Sunscorch Dunes, Crystal Hollow and Wolfjaw Pass kept theirs – they were already the tightest on Normal), and levels 10–14 got an extra Hard-only factor (`hh` in `LEVELS`, `HHP` at load). On Hard, levels 10–15 now need talents: the full builds lose them without talents, and win them with the whole Fortification tree, or with the first three rows of both trees (about 410 points). The Warrior tree on its own is not enough for four of them. Reference runs, lives lost per level (L = defeat): Easy 0 1 4 0 0 4 0 0 0 0 0 0 0 0 0 2 (11); Normal 6 11 8 0 6 10 5 1 5 14 5 9 2 7 11 4 (104, all won); Hard without talents 6 11 9 0 6 7 5 0 10 L17 L21 L29 L23 L20 L38 4; Hard with the Fortification tree 0 0 2 0 0 5 0 0 0 8 0 3 0 0 0 0.
 
 The waves are hand-designed per level (see **Waves** under Enemies), so each land has its own enemies and introduces them at its own pace. The enemy health multiplier is not a difficulty ranking: it was tuned with the simulator to make up for each board's shape and wave table, so that a sensible build wins every level while losing more lives level by level.
 
